@@ -1,7 +1,6 @@
 // src/layout/component/users/FindIdComponent.jsx
 import * as React from 'react';
 import {
-    Box,
     Button,
     Container,
     Paper,

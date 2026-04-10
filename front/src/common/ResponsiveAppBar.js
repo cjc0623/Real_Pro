@@ -14,8 +14,6 @@ import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
-import Modal from '@mui/material/Modal'; // For ReportComponent Test
-import ReportComponent from '../layout/component/mypage/ReportComponent'; // For ReportComponent Test
 import axios from 'axios';
 
 import { login as loginAction, logout as logoutAction, getUserInfoAsync } from '../slice/loginSlice';
@@ -56,12 +54,12 @@ const pickToken = () =>
   sessionStorage.getItem('ACCESS_TOKEN') ||
   null;
 
-const normalizeProfileUrl = (v) => {
-  if (!v) return null;
-  if (v.startsWith('http')) return v;
-  if (v.startsWith('/g2i4/uploads/')) return `${API_BASE}${v}`;
-  return `${API_BASE}/g2i4/uploads/user_profile/${encodeURIComponent(v)}`;
-};
+// const normalizeProfileUrl = (v) => {
+//   if (!v) return null;
+//   if (v.startsWith('http')) return v;
+//   if (v.startsWith('/g2i4/uploads/')) return `${API_BASE}${v}`;
+//   return `${API_BASE}/g2i4/uploads/user_profile/${encodeURIComponent(v)}`;
+// };
 
 // 간단한 JWT 디코더
 function decodeJwt(token) {

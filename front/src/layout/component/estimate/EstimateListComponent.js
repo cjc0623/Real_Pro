@@ -24,7 +24,6 @@ const EstimateListComponent = () => {
   const [serverData, setServerData] = useState(initState);
   const navigate = useNavigate();
   const { roles, email } = useSelector(state => state.login);
-  const authChecked = useRef(false);
   const [openEstimateListAccept, setOpenEstimateListAccept] = useState(false)
   const [selectedEno, setSelectedEno] = useState(null)
   const [accepting, setAccepting] = useState(false)

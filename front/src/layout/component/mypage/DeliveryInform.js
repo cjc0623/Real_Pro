@@ -159,13 +159,6 @@ const statusKo = (s) => s === 'IN_TRANSIT' ? '배송 중' : s === 'COMPLETED' ? 
 
 // ===== 메인 컴포넌트 =====
 const DeliveryInfoPage = () => {
-  const getRequesterId = (item) =>
-    item?.requesterId ??
-    item?.memberId ??
-    item?.memId ??
-    item?.member_id ??
-    item?.member ??
-    null;
   const navigate = useNavigate();
 
   const handleViewOrderSummary = (matchingNo) => {
@@ -863,8 +856,6 @@ const DeliveryInfoPage = () => {
 
               try {
                 console.log("리뷰 전송 데이터:", reviewDTO);
-
-                const result = await createReview(reviewDTO);
 
                 setReviewedMap(prev => ({
                   ...prev,

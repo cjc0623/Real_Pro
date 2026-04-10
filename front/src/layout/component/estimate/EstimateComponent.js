@@ -4,7 +4,6 @@ import {
   FormControl, InputLabel, OutlinedInput, Checkbox, ListItemText,
   Box, IconButton, InputAdornment, Grid, useMediaQuery, useTheme,
   Dialog,
-  DialogTitle,
   DialogActions,
   DialogContent,
 } from "@mui/material";
@@ -24,11 +23,6 @@ import { isCurrentUserAdmin } from "../../../utils/jwtUtils";
 
 const tomorrowStart = dayjs().add(1, "day").hour(9).minute(0).second(0).millisecond(0);
 
-const SPECIAL_NOTE_OPTIONS = [
-  { label: "냉동식품 및 유제품", cost: 300000 },
-  { label: "위험물", cost: 500000 },
-  { label: "파손주의", cost: 150000 },
-];
 const initState = {
   startAddress: '',
   endAddress: '',
@@ -99,6 +93,8 @@ const EstimateComponent = () => {
     }
     extraFetchData();
   }, [roles, email, navigate]);
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const fee = fees.find(f => f.weight === estimate.cargoWeight) || null
     const base = fee ? Number(fee.initialCharge) : 0;
@@ -114,9 +110,6 @@ const EstimateComponent = () => {
       distanceCost: distCost,
       specialOption: extra
     }))
-
-
-
   }, [estimate.cargoWeight, estimate.distanceKm, specialNotes, fees]);
 
   const handleSpecialNoteChange = (e) => {
@@ -178,17 +171,6 @@ const EstimateComponent = () => {
   const handleChangeEstimate = (e) => {
     estimate[e.target.name] = e.target.value
     setEstimate({ ...estimate })
-  }
-  const handleClickSave = () => {
-    postSaveEs(estimate)
-      .then(data => {
-        console.log(data)
-        alert('임시저장이 완료되었습니다')
-        moveToHome();
-      }).catch(error => {
-        const msg = error.response?.data?.message || error.response?.data?.error || "임시저장 중 오류가 발생했습니다.";
-        alert(msg);
-      })
   }
 
   const handleClickCancel = () => {

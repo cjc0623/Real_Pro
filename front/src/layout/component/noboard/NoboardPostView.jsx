@@ -7,8 +7,6 @@ import {
   Card,
   CardContent,
   Button,
-  Paper,
-  Divider,
   Alert,
   CircularProgress,
   Stack,
@@ -64,7 +62,7 @@ const PostView = () => {
       setLoading(false);
     }
   };
-
+// eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (id) {
       loadNoticeDetail();
@@ -78,6 +76,7 @@ const PostView = () => {
   }, [id]);
 
   // notice가 로드된 후 권한 확인
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (notice && currentUserId !== null) {
       // 관리자이거나 작성자 본인이면 수정/삭제 가능

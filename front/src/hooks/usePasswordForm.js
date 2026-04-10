@@ -9,7 +9,7 @@ export default function usePasswordForm() {
   const [showPassword2, setShowPassword2] = useState(false);
 
   const pwRegex =
-    /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@*_\#\$%\^&\?])[A-Za-z\d!@*_\#\$%\^&\?]{8,20}$/;
+    /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@*_#$%^&?])[A-Za-z\d!@*_#$%^&?]{8,20}$/;
 
   const handleChangePassword1 = (e) => {
     const value = e.target.value;

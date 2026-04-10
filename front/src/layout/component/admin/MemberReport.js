@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Box,
   Typography,
@@ -39,7 +39,7 @@ const MemberReport = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
   const [keyword, setKeyword] = useState("");
-  const [unreadOnly, setUnreadOnly] = useState(false);
+  const [unreadOnly] = useState(false);
   const [error, setError] = useState("");
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -100,11 +100,11 @@ const MemberReport = () => {
       setLoading(false);
     }
   };
-
+// eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     loadUnreadCount();
   }, []);
-
+// eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     load();
   }, [page, size, keyword, unreadOnly]);
@@ -188,25 +188,6 @@ const MemberReport = () => {
     } catch (e) {
       console.error("정지 해제 실패:", e);
       alert(e?.response?.data?.message || "정지 해제 중 오류가 발생했습니다.");
-    }
-  };
-
-  // 수정: 자동 읽음 방식으로 바꾸므로 이 함수는 더 이상 사용하지 않음
-  const handleMarkRead = async (id) => {
-    if (!id) {
-      console.error("신고 ID가 유효하지 않습니다. 신고를 읽음으로 표시할 수 없습니다.");
-      alert("신고 ID가 유효하지 않습니다. 신고를 읽음으로 표시할 수 없습니다.");
-      return;
-    }
-    try {
-      await markReportRead(id, true);
-      loadUnreadCount();
-      load();
-      setDialogOpen(false);
-      window.dispatchEvent(new CustomEvent("reportRead"));
-    } catch (e) {
-      console.error("신고를 읽음으로 표시하는 데 실패했습니다.", e);
-      alert("신고를 읽음으로 표시하는 데 실패했습니다.");
     }
   };
 

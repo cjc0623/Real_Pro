@@ -5,8 +5,6 @@ import {
   Container,
   Typography,
   Card,
-  CardContent,
-  CardHeader,
   Button,
   Table,
   TableBody,
@@ -18,8 +16,7 @@ import {
   Chip,
   Pagination,
   CircularProgress,
-  Alert,
-  Stack
+  Alert
 } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
 
@@ -71,10 +68,11 @@ const BulletinBoard = () => {
   };
 
   // 관리자 권한 확인
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     setIsAdmin(isCurrentUserAdmin());
   }, []);
-
+// eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     loadNotices(currentPage);
   }, [currentPage, activeCategory]);

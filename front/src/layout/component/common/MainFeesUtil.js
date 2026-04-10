@@ -5,7 +5,7 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import { useState } from "react";
 import { uploadImage } from "../../../api/common/mainImageAPI";
-import { addBasicRow, deleteBasicRow } from "../../../api/adminApi/adminApi";
+import { addBasicRow } from "../../../api/adminApi/adminApi";
 import { postSearchFeesBasic } from "../../../api/estimateApi/estimateApi";
 
 export default function MainFeesUtil({ open, onClose, onSuccess }) {

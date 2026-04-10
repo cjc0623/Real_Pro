@@ -13,8 +13,7 @@ import {
   Pagination,
   CircularProgress,
   TableContainer,
-  Paper,
-  Chip // Added Chip import
+  Paper
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import { useNavigate, useLocation, NavLink } from "react-router-dom";

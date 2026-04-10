@@ -23,8 +23,8 @@ const initState = {
 const HomePage = () => {
   const [estimate, setEstimate] = useState(initState);
   const [fees, setFees] = useState([]);
-  const [baseCost, setBaseCost] = useState(0);
-  const [distanceCost, setDistanceCost] = useState(0);
+  const [setBaseCost] = useState(0);
+  const [setDistanceCost] = useState(0);
   const [exPrice, setExprice] = useState(0);
   const [showAll, setShowAll] = useState(false);
   const visibleFees = showAll ? fees : fees.slice(0, 3);
@@ -34,7 +34,7 @@ const HomePage = () => {
   const { roles } = useSelector(state => state.login);
   const isAdmin = roles.includes("ROLE_ADMIN");
   const [notices, setNotices] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [setLoading] = useState(true);
   const navigate = useNavigate();
 
   const DEFAULT_TRUCK_IMG = "/image/placeholders/truck.svg";

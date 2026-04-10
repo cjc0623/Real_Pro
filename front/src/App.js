@@ -16,7 +16,7 @@ function App() {
     if (token) {
       dispatch(getUserInfoAsync());
     }
-  }, []);
+  }, [dispatch]);
 
   return (
     <>

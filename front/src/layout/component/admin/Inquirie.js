@@ -62,7 +62,7 @@ const Inquirie = () => {
             }
         }
     };
-
+// eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
         fetchInquiries();
     }, [currentPage, location.pathname, searchKeyword]);

@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
     TextField, Button, Stack, Typography, Select, MenuItem,
     FormControl, InputLabel, OutlinedInput, Checkbox, ListItemText,
-    Box, IconButton, InputAdornment, Grid, useMediaQuery, useTheme,
+    Box, IconButton, InputAdornment, useMediaQuery, useTheme,
     Dialog, DialogActions, DialogContent,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
@@ -17,7 +17,6 @@ import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { isCurrentUserAdmin } from "../../../utils/jwtUtils";
 
-import { getCurrentUserInfo } from "../../../utils/jwtUtils";
 
 
 const tomorrowStart = dayjs().add(1, "day").hour(9).minute(0).second(0).millisecond(0);
@@ -57,6 +56,7 @@ const EstimateComponentCombined = () => {
     const isAdmin = isCurrentUserAdmin();
     const mapRef = useRef(null);
 
+// eslint-disable-next-line react-hooks/exhaustive-deps
  useEffect(() => {
     if (authChecked.current) return;
 

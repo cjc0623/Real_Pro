@@ -1,5 +1,5 @@
 // src/pages/mypage/EditVehicleInform.jsx
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
   Box, Grid, Paper, Typography, Button, Modal, TextField,

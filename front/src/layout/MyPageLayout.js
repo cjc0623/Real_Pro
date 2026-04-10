@@ -1,14 +1,11 @@
 //MyPageLayout.js
 import { Outlet } from "react-router-dom";
 import Box from '@mui/material/Box';
-import { Toolbar } from "@mui/material";
 import ResponsiveAppBar from "../common/ResponsiveAppBar";
 import Sidebar from "../common/Sidebar";
 
 const MyPageLayout = () => {
   const ownerId = 1;
-  const DRAWER_WIDTH = 240;
-  const APPBAR_HEIGHT = { xs: 56, md: 100 };
   return (
     <>
       {/* 상단 앱바 */}

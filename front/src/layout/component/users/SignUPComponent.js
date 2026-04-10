@@ -95,7 +95,6 @@ const SignUpComponent = () => {
     const [pw2Touched, setPw2Touched] = React.useState(false);
 
     // 기타 폼
-    const domainOptions = ['gmail.com', 'naver.com', 'daum.net'];
     const [emailLocal, setEmailLocal] = React.useState('');
     const [emailDomain, setEmailDomain] = React.useState('');
     const [emailVerified, setEmailVerified] = React.useState(false);

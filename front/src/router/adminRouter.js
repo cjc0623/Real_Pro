@@ -11,7 +11,6 @@ import Inquirie from "../layout/component/admin/Inquirie";
 import FeesBasic from "../layout/component/admin/FeesBasic";
 import FeesExtra from "../layout/component/admin/FeesExtra";
 
-const AdminLayout = lazy(() => import("../layout/component/admin/AdminLayout"));
 const AdminPage = lazy(() => import("../layout/component/admin/AdminPage"));
 const DeliveryPage = lazy(() => import("../layout/component/admin/DeliveryPage"));
 const MemberAll = lazy(() => import("../layout/component/admin/MemberAll"));

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import {
   Box, Typography, Table, TableHead, TableRow, TableCell, TableBody,
-  Chip, Pagination, CircularProgress, TextField, Tabs, Tab,
+  Pagination, CircularProgress, TextField, Tabs, Tab,
   TableContainer, Paper
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
@@ -38,7 +38,7 @@ const MemberCowner = () => {
   };
 
   const sort = useMemo(() => "memCreateidDateTime,desc", []);
-
+// eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (location.pathname.includes("/admin/memberOwner")) setActiveTab(1);
     else if (location.pathname.includes("/admin/memberCowner")) setActiveTab(2);
@@ -84,7 +84,7 @@ const MemberCowner = () => {
       setLoading(false);
     }
   };
-
+// eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { load();}, [page, keyword, sort]);
 
   return (

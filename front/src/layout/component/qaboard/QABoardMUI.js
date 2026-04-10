@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import { login } from '../../../slice/loginSlice';
 import * as qaboardApi from '../../../api/qaboardApi';
 import {
   Box,
@@ -39,7 +38,6 @@ import {
   CalendarToday,
   ExpandMore,
   Lock,
-  Visibility,
   Forum,
 } from '@mui/icons-material';
 import { CircularProgress } from '@mui/material';
@@ -53,8 +51,6 @@ import useCustomLogin from '../../../hooks/useCustomLogin';
 import { getPostVisibility, getActionPermissions } from './qaPermissionUtils';
 
 const QABoardMUI = () => {
-  // Redux dispatch
-  const dispatch = useDispatch();
   
   // Login state and permissions
   const { isAdmin, currentUserId, loginState } = useCustomLogin();
@@ -83,7 +79,7 @@ const QABoardMUI = () => {
   const [loading, setLoading] = useState(true); // 초기 로딩 상태를 true로 설정
   const [error, setError] = useState(null);
   const [totalPages, setTotalPages] = useState(0);
-  const [totalElements, setTotalElements] = useState(0);
+  const [setTotalElements] = useState(0);
 
   const ITEMS_PER_PAGE = 4;
   const FAQ_ITEMS_PER_PAGE = 5;
@@ -170,6 +166,7 @@ const QABoardMUI = () => {
   };
 
   // Load data on component mount
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (activeMainTab === 0) { // Only fetch QA posts if '문의하기' tab is active (인덱스 0으로 변경)
       fetchPostList();
@@ -281,6 +278,7 @@ const QABoardMUI = () => {
   };
 
   // Initialize FAQ items to be expanded by default
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     setExpandedFaqs(new Set(faqItems.map(faq => faq.id)));
   }, []);

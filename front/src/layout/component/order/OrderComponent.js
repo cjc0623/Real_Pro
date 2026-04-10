@@ -7,11 +7,7 @@ import {
   TextField,
   Button,
   Select,
-  MenuItem,
-  Divider,
-  ToggleButtonGroup,
-  ToggleButton,
-  OutlinedInput,
+  MenuItem
 } from "@mui/material";
 import { useLocation } from "react-router-dom";
 import { postOrderPome } from "../../../api/orderAPI/orderApi";
@@ -21,7 +17,6 @@ import { getMyCouponList } from "../../../api/couponApi/couponApi";
 // ===== 시안 맞춤 고정 폭 =====
 const LABEL_WIDTH = 120; // 라벨 박스 고정폭 (콜론 맞춤, 우측정렬)
 const NAME_WIDTH = 150; // 주문자/받는분 입력 상자 폭
-const LONG_INPUT_WIDTH = 620; // 긴 주소/상세주소 폭 (시안 기준 넓은 입력)
 
 const iniState = {
   addressee: '',
@@ -138,17 +133,7 @@ const OrderComponent = () => {
     return `${emailLocal}@${domainToUse}`;
   }, [emailLocal, domainToUse]);
 
-  const isValidEmail = useMemo(
-    () => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fullEmail),
-    [fullEmail]
-  );
-
   const fullPhone = `${startPNum}${middlePNum}${endPNum}`
-
-  const handleChangeOrderSheet = (e) => {
-    orderSheet[e.target.name] = e.target.value;
-    setOrderSheet({ ...orderSheet })
-  }
 
   useEffect(() => {
     if (matchingNo) {
@@ -270,7 +255,7 @@ const OrderComponent = () => {
           <Grid item sx={{ flex: "0 0 auto" }}>
             <TextField size="small" name="addressee" sx={{ width: NAME_WIDTH }}
               onChange={(e) => {
-                const val = e.target.value.replace(/[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/g, "").slice(0, 20);
+                const val = e.target.value.replace(/[0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/g, "").slice(0, 20);
                 setOrderSheet(prev => ({ ...prev, addressee: val }));
               }}
               value={orderSheet.addressee}

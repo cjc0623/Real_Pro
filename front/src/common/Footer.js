@@ -1,5 +1,3 @@
-// src/components/Footer.js
-import React from 'react';
 import { Box, Grid, Typography, Link, Container } from '@mui/material';
 
 function Footer() {

@@ -85,13 +85,18 @@ function normalizeRoles(raw) {
 }
 
 const Sidebar = () => {
-  const loginState = useSelector((state) => state?.login) || {};
+  //const loginState = useSelector((state) => state?.login) || {};
+  //이렇게 쓰면 || {} 때문에 매 렌더마다 새로운 객체 생성 → useMemo 의존성 깨짐
+  const loginState = useSelector((state) => state?.login);
+  
   const token = typeof window !== 'undefined' ? pickToken() : null;
   const payload = token ? decodeJwt(token) : null;
 
   const [fetchedUserType, setFetchedUserType] = useState(null); // 'MEMBER' | 'CARGO_OWNER'
   const [fetchedCargoId, setFetchedCargoId] = useState(null);
-  const [ready, setReady] = useState(false);
+  const [setReady] = useState(false);
+
+  const loginId = payload?.loginId;
   // 🔎 백엔드에서 최종 확정(토큰에 권한 없을 수 있으니)
   useEffect(() => {
     let cancelled = false;
@@ -123,7 +128,7 @@ const Sidebar = () => {
       }
     })();
     return () => { cancelled = true; };
-  }, []);
+  }, [loginId]);
   const avatarUrl = loginState?.profileImage || DEFAULT_AVATAR;
 
   // ✅ Redux/토큰 역할
@@ -154,8 +159,6 @@ const Sidebar = () => {
     fetchedCargoId ??              // ← 위에서 세팅
     payload?.loginId ??            // ★ 마지막 보정
     null;
-  // 버튼은 차주면 무조건 노출(UX 이득). 링크는 cargoId 있으면 개인 경로, 없으면 기본 경로
-  const vehicleHref = `/mypage/vehicle/${cargoId}`;
 
   const navStyle = { textDecoration: 'none', color: 'inherit' };
   const activeStyle = { backgroundColor: '#e0e0e0' };

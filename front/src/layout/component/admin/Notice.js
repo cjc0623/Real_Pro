@@ -44,7 +44,7 @@ const Notice = () => {
       console.error("Error fetching notices:", error);
     });
   };
-
+// eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchNotices();
   }, [page, searchKeyword, location.pathname]);
