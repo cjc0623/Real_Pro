@@ -1,7 +1,7 @@
 # 🚚 FIRST ROAD
 
 <div align="center">
-  <img src="https://your-image-url.com/logo.png" width="300" alt="프로젝트 로고"/>
+  <img src="front/src/assets/logo.png" width="300" alt="프로젝트 로고"/>
 
   <br/><br/>
 
