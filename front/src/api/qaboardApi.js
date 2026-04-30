@@ -1,10 +1,9 @@
 import axios from "axios";
 
 // Backend API Server Host
-import { API_SERVER_HOST } from "./serverConfig";
+export const API_SERVER_HOST = "http://localhost:8080";
 
 const qaHost = `${API_SERVER_HOST}/api/qaboard`;
-
 
 // 게시글 목록 조회
 export const getPostList = async (params = {}, userInfo = {}, isAdmin = false) => {

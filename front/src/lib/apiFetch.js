@@ -1,7 +1,7 @@
 // src/lib/apiFetch.js
 import { tokenStore } from './tokenStore';
 
-const API_BASE = process.env.REACT_APP_API_BASE || process.env.REACT_APP_API_BASE || 'http://https://pro-2-ayf7.onrender.com';
+const API_BASE = process.env.REACT_APP_API_BASE || process.env.REACT_APP_API_BASE || 'http://localhost:8080';
 
 
 export async function apiFetch(input, init = {}) {

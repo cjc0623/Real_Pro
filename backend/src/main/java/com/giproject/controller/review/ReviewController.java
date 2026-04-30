@@ -1,5 +1,7 @@
 package com.giproject.controller.review;
 
+import com.giproject.dto.review.ReviewReplyDTO;
+import com.giproject.dto.review.ReviewReplyRequest;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -32,13 +34,16 @@ public class ReviewController {
     private final ReviewService reviewService;
 
     @PostMapping(value = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Long> register(@ModelAttribute ReviewCreateRequest request) {
+    public ResponseEntity<Long> register(
+            @ModelAttribute ReviewCreateRequest request,
+            Authentication authentication) {
         log.info("리뷰 등록 요청 deliveryNo={}, rating={}, imageCount={}",
                 request.getDeliveryNo(),
                 request.getRating(),
                 request.getImages() == null ? 0 : request.getImages().size());
 
-        Long reviewNo = reviewService.register(request);
+        String loginId = authentication.getName();
+        Long reviewNo = reviewService.register(request, loginId);
 
         log.info("등록된 reviewNo : {}", reviewNo);
 
@@ -68,13 +73,16 @@ public class ReviewController {
 
     @DeleteMapping("/{reviewNo}")
     public ResponseEntity<String> remove(
-            @PathVariable(name = "reviewNo") Long reviewNo,
-            @RequestParam(value = "isAdmin", defaultValue = "false") boolean isAdmin,
+            @PathVariable Long reviewNo,
             Authentication authentication) {
 
         String loginId = authentication.getName();
 
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
+
         reviewService.remove(reviewNo, loginId, isAdmin);
+
         return ResponseEntity.ok("리뷰가 삭제되었습니다.");
     }
     @PutMapping(value = "/{reviewNo}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -136,6 +144,42 @@ public class ReviewController {
     public ResponseEntity<DriverDetailDTO> getDriverDetail(
             @PathVariable(name = "cargoId") String cargoId) {
         return ResponseEntity.ok(reviewService.getDriverDetail(cargoId));
+    }
+    @PostMapping("/{reviewNo}/reply")
+    public ResponseEntity<ReviewReplyDTO> createReply(
+            @PathVariable (name = "reviewNo") Long reviewNo,
+            @RequestBody ReviewReplyRequest request,
+            Authentication authentication) {
+
+        String cargoOwnerId = authentication.getName();
+        return ResponseEntity.ok(reviewService.createReply(reviewNo, request, cargoOwnerId));
+    }
+
+    @PutMapping("/{reviewNo}/reply")
+    public ResponseEntity<ReviewReplyDTO> modifyReply(
+            @PathVariable (name = "reviewNo") Long reviewNo,
+            @RequestBody ReviewReplyRequest request,
+            Authentication authentication) {
+
+        String cargoOwnerId = authentication.getName();
+        return ResponseEntity.ok(reviewService.modifyReply(reviewNo, request, cargoOwnerId));
+    }
+
+    @DeleteMapping("/{reviewNo}/reply")
+    public ResponseEntity<String> removeReply(
+            @PathVariable (name = "reviewNo") Long reviewNo,
+            Authentication authentication) {
+
+        String cargoOwnerId = authentication.getName();
+        reviewService.removeReply(reviewNo, cargoOwnerId);
+        return ResponseEntity.ok("댓글이 삭제되었습니다.");
+    }
+
+    @GetMapping("/{reviewNo}/reply")
+    public ResponseEntity<ReviewReplyDTO> getReply(
+            @PathVariable (name = "reviewNo") Long reviewNo) {
+
+        return ResponseEntity.ok(reviewService.getReplyByReviewNo(reviewNo));
     }
     
     

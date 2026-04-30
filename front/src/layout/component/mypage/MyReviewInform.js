@@ -3,12 +3,6 @@ import { API_SERVER_HOST } from "../../../api/serverConfig";
 import {
   Box,
   Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Paper,
   Container,
   Rating,
@@ -23,7 +17,12 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  IconButton,
+  Avatar,
 } from "@mui/material";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+
 import DriverProfileCard from "../common/DriverProfileCard.js";
 import PageComponent from "../common/PageComponent";
 import {
@@ -33,6 +32,15 @@ import {
   modifyReview,
   getReviewByReviewNo,
 } from "../../../api/reviewApi/reviewApi";
+
+const DEFAULT_AVATAR = "/image/placeholders/avatar.svg";
+
+const normalizeProfileUrl = (v) => {
+  if (!v) return null;
+  if (v.startsWith("http")) return v;
+  if (v.startsWith("/g2i4/uploads/")) return `${API_SERVER_HOST}${v}`;
+  return `${API_SERVER_HOST}/g2i4/uploads/user_profile/${encodeURIComponent(v)}`;
+};
 
 const initState = {
   dtoList: [],
@@ -64,6 +72,19 @@ const formatDateTime = (v) => {
     hour12: false,
   });
 };
+const InfoRow = ({ label, value }) => (
+  <Box sx={{ display: "flex", gap: 1, mb: 0.5 }}>
+    <Typography
+      component="span"
+      sx={{ width: 70, flexShrink: 0, color: "text.secondary", fontSize: 13 }}
+    >
+      {label}
+    </Typography>
+    <Typography component="span" sx={{ fontSize: 13, fontWeight: 600 }}>
+      {value || "-"}
+    </Typography>
+  </Box>
+);
 
 const paginate = (data, { page, size }) => {
   const totalCount = data.length;
@@ -103,8 +124,7 @@ const MyReviewInform = () => {
   const [selectedReview, setSelectedReview] = useState(null);
   const [editReviewScore, setEditReviewScore] = useState(0);
   const [editReviewContent, setEditReviewContent] = useState("");
-  const [openDetailModal, setOpenDetailModal] = useState(false);
-  const [selectedDetailReview, setSelectedDetailReview] = useState(null);
+
   const [selectedImage, setSelectedImage] = useState(null);
   const [openDriverDetailModal, setOpenDriverDetailModal] = useState(false);
   const [selectedDriverDetail, setSelectedDriverDetail] = useState(null);
@@ -123,7 +143,6 @@ const MyReviewInform = () => {
 
     try {
       const data = await getDriverDetail(item.driverId);
-      console.log("차주 상세 응답:", data);
       setSelectedDriverDetail(data);
       setDriverReviewSortType("latest");
       setDriverReviewPage(1);
@@ -139,38 +158,6 @@ const MyReviewInform = () => {
     setDriverReviewPage(1);
   };
 
-  const handleOpenDetailModal = async (item) => {
-    console.log("상세 버튼 item 전체:", item);
-    console.log("item.reviewNo:", item?.reviewNo);
-    console.log("item.deliveryNo:", item?.deliveryNo);
-
-    if (!item?.deliveryNo) {
-      alert("deliveryNo 값이 없습니다.");
-      return;
-    }
-
-    try {
-      const detail = await getReviewByReviewNo(item.reviewNo);
-
-      console.log("상세 review detail:", detail);
-
-      setSelectedDetailReview({
-        ...item,
-        ...detail,
-      });
-      setOpenDetailModal(true);
-    } catch (error) {
-      console.error("리뷰 상세 조회 실패:", error);
-      console.error("응답 데이터:", error?.response?.data);
-      console.error("응답 상태:", error?.response?.status);
-      alert("리뷰 상세 정보를 불러오지 못했습니다.");
-    }
-  };
-
-  const handleCloseDetailModal = () => {
-    setOpenDetailModal(false);
-    setSelectedDetailReview(null);
-  };
   const movePage = (pageObj) => {
     setPageParams((prev) => ({ ...prev, ...pageObj }));
   };
@@ -329,135 +316,186 @@ const MyReviewInform = () => {
     applyPagedData(allReviews, pageParams);
   }, [pageParams]);
 
-  const tableColgroup = useMemo(
-    () => (
-      <colgroup>
-        <col style={{ width: "8%" }} />
-        <col style={{ width: "10%" }} />
-        <col style={{ width: "12%" }} />
-        <col style={{ width: "12%" }} />
-        <col style={{ width: "10%" }} />   {/* 썸네일 */}
-        <col style={{ width: "22%" }} />
-        <col style={{ width: "11%" }} />
-        <col style={{ width: "15%" }} />
-      </colgroup>
-    ),
-    []
-  );
-
-  const renderRows = () => {
+  const renderReviewCards = () => {
     if (loading) {
-      return (
-        <TableRow>
-          <TableCell colSpan={8} align="center">
-            불러오는 중...
-          </TableCell>
-        </TableRow>
-      );
+      return <Paper sx={{ p: 4, textAlign: "center" }}>불러오는 중...</Paper>;
     }
 
     if (!serverData.dtoList || serverData.dtoList.length === 0) {
-      return (
-        <TableRow>
-          <TableCell colSpan={8} align="center">
-            작성한 리뷰가 없습니다.
-          </TableCell>
-        </TableRow>
-      );
+      return <Paper sx={{ p: 4, textAlign: "center" }}>작성한 리뷰가 없습니다.</Paper>;
     }
 
-    return serverData.dtoList.map((item) => {
-      const firstImage = item.images?.[0];
-      const thumbnailPath = firstImage?.thumbnailPath || firstImage?.imagePath;
+    return (
+      <Stack spacing={2}>
+        {serverData.dtoList.map((item) => {
+          const firstImage = item.images?.[0];
+          const thumbnailPath = firstImage?.thumbnailPath || firstImage?.imagePath;
 
-      return (
-        <TableRow key={item.reviewNo}>
-          <TableCell align="center">{item.reviewNo}</TableCell>
-          <TableCell align="center">{item.deliveryNo}</TableCell>
-
-          <TableCell align="center">
-            <Button
-              variant="text"
-              size="small"
-              onClick={() => handleOpenDriverDetailModal(item)}
+          return (
+            <Paper
+              key={item.reviewNo}
+              elevation={0}
               sx={{
-                textTransform: "none",
-                fontWeight: 600,
-                minWidth: "auto",
-                p: 0,
+                p: { xs: 2, sm: 2.5 },
+                border: "1px solid #e5e7eb",
+                borderRadius: 2,
+                bgcolor: "#fff",
               }}
             >
-              {item.driverName || "-"}
-            </Button>
-          </TableCell>
-
-          <TableCell align="center">
-            <Rating value={Number(item.rating) || 0} precision={0.5} readOnly />
-          </TableCell>
-          <TableCell align="center">
-            {item.images?.length > 0 ? (
-              <img
-                src={`${API_SERVER_HOST}/${thumbnailPath}`}
-                alt="thumbnail"
-                style={{
-                  width: 50,
-                  height: 50,
-                  objectFit: "cover",
-                  borderRadius: 6,
-                  border: "1px solid #ddd",
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                  mb: 1.5,
                 }}
-              />
-            ) : (
-              "-"
-            )}
-          </TableCell>
-          <TableCell align="left">
-            <Box
-              sx={{
-                maxWidth: 420,
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-              }}
-              title={item.comment || ""}
-            >
-              {item.comment || "-"}
-            </Box>
-          </TableCell>
-          <TableCell align="center">{formatDateTime(item.createdAt)}</TableCell>
-          <TableCell align="center">
-            <Stack direction="row" spacing={1} justifyContent="center">
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={() => handleOpenDetailModal(item)}
               >
-                상세
-              </Button>
 
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={() => handleOpenEditModal(item)}
-              >
-                수정
-              </Button>
+                <Box sx={{ display: "flex", gap: 1.2, flex: 1, minWidth: 0, pr: 1 }}>
+                  <Avatar
+                    src={normalizeProfileUrl(item.driverProfileImage) || DEFAULT_AVATAR}
+                    sx={{ width: 42, height: 42 }}
+                  >
+                    {item.driverName?.[0] || "차"}
+                  </Avatar>
 
-              <Button
-                variant="outlined"
-                color="error"
-                size="small"
-                onClick={() => handleDelete(item.reviewNo)}
-              >
-                삭제
-              </Button>
-            </Stack>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <Typography fontSize={13} color="text.secondary">
+                        운전기사
+                      </Typography>
 
-          </TableCell>
-        </TableRow>
-      );
-    });
+                      <Button
+                        variant="text"
+                        size="small"
+                        onClick={() => handleOpenDriverDetailModal(item)}
+                        sx={{
+                          p: 0,
+                          minWidth: "auto",
+                          fontWeight: 700,
+                          textTransform: "none",
+                        }}
+                      >
+                        {item.driverName || "-"}
+                      </Button>
+                    </Stack>
+
+                    <Typography fontSize={13} color="text.secondary">
+                      {formatDateTime(item.createdAt)}
+                    </Typography>
+
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 0.5 }}>
+                      <Rating value={Number(item.rating) || 0} precision={0.5} readOnly size="small" />
+                      <Typography fontSize={13} fontWeight={700}>
+                        {Number(item.rating || 0).toFixed(1)}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Box>
+
+                <Stack
+                  direction="row"
+                  spacing={0.5}
+                  sx={{ flexShrink: 0 }}
+                >
+                  <IconButton
+                    size="small"
+                    onClick={() => handleOpenEditModal(item)}
+                    sx={{
+                      width: 32,
+                      height: 32,
+                      color: "#6b7280",
+                      "&:hover": { bgcolor: "#eef2ff", color: "#4f46e5" },
+                    }}
+                  >
+                    <EditOutlinedIcon fontSize="small" />
+                  </IconButton>
+
+                  <IconButton
+                    size="small"
+                    onClick={() => handleDelete(item.reviewNo)}
+                    sx={{
+                      width: 32,
+                      height: 32,
+                      color: "#9ca3af",
+                      "&:hover": { bgcolor: "#fef2f2", color: "#dc2626" },
+                    }}
+                  >
+                    <CloseRoundedIcon fontSize="small" />
+                  </IconButton>
+                </Stack>
+              </Box>
+
+              <Box sx={{ bgcolor: "#f3f4f6", borderRadius: 1, p: 1.5, mb: 1.5 }}>
+                <InfoRow label="화물명" value={item.cargoType} />
+                <InfoRow label="무게" value={item.cargoWeight} />
+                <InfoRow label="운송구간" value={`${item.startAddress || "-"} → ${item.endAddress || "-"}`} />
+                <InfoRow label="배송완료" value={formatDateTime(item.deliveryCompletedAt)} />
+              </Box>
+
+              {item.images?.length > 0 && (
+                <Box sx={{ display: "flex", gap: 1, mb: 1.5, flexWrap: "wrap" }}>
+                  {item.images.slice(0, 3).map((img) => {
+                    const path = img.thumbnailPath || img.imagePath;
+
+                    return (
+                      <img
+                        key={img.reviewImageNo}
+                        src={`${API_SERVER_HOST}/${path}`}
+                        alt="review-thumbnail"
+                        onClick={() => setSelectedImage(img.imagePath)}
+                        style={{
+                          width: 100,
+                          height: 100,
+                          objectFit: "cover",
+                          borderRadius: 8,
+                          border: "1px solid #ddd",
+                          cursor: "pointer",
+                        }}
+                      />
+                    );
+                  })}
+                </Box>
+              )}
+
+              <Typography fontSize={14} sx={{ whiteSpace: "pre-wrap", mb: 1.5 }}>
+                {item.comment || "-"}
+              </Typography>
+
+              {item.reply && (
+                <Box
+                  sx={{
+                    mt: 1.5,
+                    p: 1.5,
+                    borderRadius: 1,
+                    bgcolor: "#f8fafc",
+                    border: "1px solid #e5e7eb",
+                    mb: 1.5,
+                  }}
+                >
+                  <Stack direction="row" spacing={0.5} alignItems="center">
+                    <Typography fontSize={13} fontWeight={700}>
+                      {item.driverName || "차주 답글"}
+                    </Typography>
+
+                    <Typography fontSize={12} color="text.secondary">
+                      · {formatDateTime(item.reply.createdAt)}
+                    </Typography>
+                  </Stack>
+
+                  <Typography fontSize={14} sx={{ whiteSpace: "pre-wrap", mt: 0.5 }}>
+                    {item.reply.content}
+                  </Typography>
+                </Box>
+              )}
+
+            </Paper>
+          );
+        })}
+      </Stack>
+    );
   };
+
   const selectedDriverProfileInfo = {
     id: selectedDriverDetail?.profile?.driverId || "",
     name: selectedDriverDetail?.profile?.driverName || "운전기사",
@@ -533,12 +571,12 @@ const MyReviewInform = () => {
     }
   }, [driverReviewPage, driverReviewTotalPage]);
   return (
-<Box sx={{ bgcolor: '#f7f9fc', minHeight: '100vh', py: 6, pb: { xs: '80px', md: 6 },overflow: 'hidden', }}>
-      <Container maxWidth="xl" disableGutters     sx={{
-      px: { xs: 1, sm: 2 },
-      maxWidth: '100vw',
-      boxSizing: 'border-box',
-    }}>
+    <Box sx={{ bgcolor: '#f7f9fc', minHeight: '100vh', py: 6, pb: { xs: '80px', md: 6 }, overflow: 'hidden', }}>
+      <Container maxWidth="xl" disableGutters sx={{
+        px: { xs: 1, sm: 2 },
+        maxWidth: '100vw',
+        boxSizing: 'border-box',
+      }}>
         <Typography variant="h5" fontWeight="bold" gutterBottom textAlign="center">
           내 리뷰 관리
         </Typography>
@@ -548,44 +586,21 @@ const MyReviewInform = () => {
             내가 작성한 리뷰 목록
           </Typography>
 
-          <TableContainer
-            component={Paper}
-            elevation={1}
-            sx={{ height: 470, position: "relative", pb: 0 }}
-          >
-            <Table sx={{ "& .MuiTableCell-root": { height: 60, py: 0 } }}>
-              {tableColgroup}
-              <TableHead>
-                <TableRow>
-                  <TableCell align="center">리뷰번호</TableCell>
-                  <TableCell align="center">배송번호</TableCell>
-                  <TableCell align="center">운전기사</TableCell>
-                  <TableCell align="center">별점</TableCell>
-                  <TableCell align="center">사진</TableCell>
-                  <TableCell align="center">리뷰 내용</TableCell>
-                  <TableCell align="center">작성일</TableCell>
-                  <TableCell align="center">관리</TableCell>
-                </TableRow>
-              </TableHead>
-
-              <TableBody>{renderRows()}</TableBody>
-            </Table>
+          <Box>
+            {renderReviewCards()}
 
             <Box
               sx={{
-                position: "absolute",
-                left: 0,
-                right: 0,
-                bottom: 0,
+                mt: 2,
                 py: 1.5,
                 display: "flex",
                 justifyContent: "center",
-                bgcolor: "background.paper",
+                bgcolor: "transparent",
               }}
             >
               <PageComponent serverData={serverData} movePage={movePage} />
             </Box>
-          </TableContainer>
+          </Box>
         </Box>
       </Container>
 
@@ -695,111 +710,7 @@ const MyReviewInform = () => {
           </Button>
         </DialogActions>
       </Dialog>
-      <Dialog
-        open={openDetailModal}
-        onClose={handleCloseDetailModal}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>리뷰 상세보기</DialogTitle>
 
-        <DialogContent>
-          <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>
-            리뷰 대상 배송 정보
-          </Typography>
-
-          <Typography variant="body2" sx={{ mb: 1 }}>
-            <strong>화물명:</strong> {selectedDetailReview?.cargoType || "-"}
-          </Typography>
-
-          <Typography variant="body2" sx={{ mb: 1 }}>
-            <strong>무게:</strong> {selectedDetailReview?.cargoWeight || "-"}
-          </Typography>
-
-          <Typography variant="body2" sx={{ mb: 1 }}>
-            <strong>출발지:</strong> {selectedDetailReview?.startAddress || "-"}
-          </Typography>
-
-          <Typography variant="body2" sx={{ mb: 1 }}>
-            <strong>도착지:</strong> {selectedDetailReview?.endAddress || "-"}
-          </Typography>
-
-          <Typography variant="body2" sx={{ mb: 1 }}>
-            <strong>배송 완료일:</strong> {formatDateTime(selectedDetailReview?.deliveryCompletedAt)}
-          </Typography>
-
-          <Typography variant="body2" sx={{ mb: 2 }}>
-            <strong>운전 기사:</strong> {selectedDetailReview?.driverName || "-"}
-          </Typography>
-
-          <Typography variant="body2" sx={{ mb: 3 }}>
-            <strong>상태:</strong>{" "}
-            {selectedDetailReview?.deliveryStatus === "COMPLETED"
-              ? "배송 완료"
-              : selectedDetailReview?.deliveryStatus === "IN_TRANSIT"
-                ? "배송 중"
-                : selectedDetailReview?.deliveryStatus === "PENDING"
-                  ? "대기"
-                  : "-"}
-          </Typography>
-
-          <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
-            리뷰 정보
-          </Typography>
-
-          <Typography gutterBottom>별점</Typography>
-          <Rating
-            value={Number(selectedDetailReview?.rating) || 0}
-            precision={0.5}
-            readOnly
-          />
-
-          <Typography variant="body2" sx={{ mt: 3, mb: 1 }}>
-            <strong>작성일:</strong> {formatDateTime(selectedDetailReview?.createdAt)}
-          </Typography>
-
-          <TextField
-            fullWidth
-            multiline
-            rows={5}
-            label="리뷰 내용"
-            value={selectedDetailReview?.comment || ""}
-            InputProps={{ readOnly: true }}
-            sx={{ mt: 2 }}
-          />
-          {selectedDetailReview?.images?.length > 0 && (
-            <Box sx={{ mt: 3 }}>
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                첨부 사진
-              </Typography>
-
-              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-                {selectedDetailReview.images.map((img) => (
-                  <img
-                    key={img.reviewImageNo}
-                    src={`${API_SERVER_HOST}/${img.imagePath}`}
-                    alt={`review-${img.reviewImageNo}`}
-                    onClick={() => setSelectedImage(img.imagePath)}
-                    style={{
-                      width: 120,
-                      height: 120,
-                      objectFit: "cover",
-                      borderRadius: 8,
-                      border: "1px solid #ddd",
-                      cursor: "pointer",
-                    }}
-                  />
-                ))}
-              </Box>
-            </Box>
-
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDetailModal}>닫기</Button>
-        </DialogActions>
-
-      </Dialog>
       <Dialog
         open={openDriverDetailModal}
         onClose={handleCloseDriverDetailModal}
@@ -853,49 +764,109 @@ const MyReviewInform = () => {
 
             {pagedDriverReviews.length ? (
               <Stack spacing={2}>
-                {pagedDriverReviews.map((review) => (
-                  <Box
-                    key={review.reviewNo}
-                    sx={{
-                      border: "1px solid #e5e7eb",
-                      borderRadius: 2,
-                      p: 2,
-                      bgcolor: "#fafafa",
-                    }}
-                  >
-                    <Box
+                {pagedDriverReviews.map((review) => {
+                  const firstImage = review.images?.[0];
+                  const thumbnailPath = firstImage?.thumbnailPath || firstImage?.imagePath;
+
+                  return (
+                    <Paper
+                      key={review.reviewNo}
+                      elevation={0}
                       sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        mb: 1,
+                        p: { xs: 2, sm: 2.5 },
+                        border: "1px solid #e5e7eb",
+                        borderRadius: 2,
+                        bgcolor: "#fff",
                       }}
                     >
-                      <Typography variant="body2" fontWeight="bold">
-                        작성자: {review.writerId || "-"}
+                      <Box sx={{ display: "flex", justifyContent: "space-between", gap: 1.5, mb: 1.5 }}>
+                        <Box sx={{ minWidth: 0 }}>
+                          <Typography fontSize={14} fontWeight={700}>
+                            {review.writerName || review.writerId || "작성자"}
+                          </Typography>
+
+                          <Typography fontSize={13} color="text.secondary">
+                            {formatDateTime(review.createdAt)}
+                          </Typography>
+
+                          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 0.5 }}>
+                            <Rating
+                              value={Number(review.rating) || 0}
+                              precision={0.5}
+                              readOnly
+                              size="small"
+                            />
+                            <Typography fontSize={13} fontWeight={700}>
+                              {Number(review.rating || 0).toFixed(1)}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </Box>
+
+                      <Box sx={{ bgcolor: "#f3f4f6", borderRadius: 1, p: 1.5, mb: 1.5 }}>
+                        <InfoRow label="화물명" value={review.cargoType} />
+                        <InfoRow label="무게" value={review.cargoWeight} />
+                        <InfoRow label="운송구간" value={`${review.startAddress || "-"} → ${review.endAddress || "-"}`} />
+                        <InfoRow label="배송완료" value={formatDateTime(review.deliveryCompletedAt)} />
+                      </Box>
+
+                      {review.images?.length > 0 && (
+                        <Box sx={{ display: "flex", gap: 1, mb: 1.5, flexWrap: "wrap" }}>
+                          {review.images.slice(0, 3).map((img) => {
+                            const path = img.thumbnailPath || img.imagePath;
+
+                            return (
+                              <img
+                                key={img.reviewImageNo}
+                                src={`${API_SERVER_HOST}/${path}`}
+                                alt="review-thumbnail"
+                                onClick={() => setSelectedImage(img.imagePath)}
+                                style={{
+                                  width: 96,
+                                  height: 96,
+                                  objectFit: "cover",
+                                  borderRadius: 8,
+                                  border: "1px solid #ddd",
+                                  cursor: "pointer",
+                                }}
+                              />
+                            );
+                          })}
+                        </Box>
+                      )}
+
+                      <Typography fontSize={14} sx={{ whiteSpace: "pre-wrap", mb: 1.5 }}>
+                        {review.comment || "-"}
                       </Typography>
 
-                      <Typography variant="body2" color="text.secondary">
-                        {formatDateTime(review.createdAt)}
-                      </Typography>
-                    </Box>
+                      {review.reply && (
+                        <Box
+                          sx={{
+                            mt: 1.5,
+                            p: 1.5,
+                            borderRadius: 1,
+                            bgcolor: "#f8fafc",
+                            border: "1px solid #e5e7eb",
+                          }}
+                        >
+                          <Stack direction="row" spacing={0.5} alignItems="center">
+                            <Typography fontSize={13} fontWeight={700}>
+                              {selectedDriverDetail?.profile?.driverName || "차주 답글"}
+                            </Typography>
 
-                    <Rating
-                      value={Number(review.rating) || 0}
-                      precision={0.5}
-                      readOnly
-                      sx={{ mb: 1 }}
-                    />
+                            <Typography fontSize={12} color="text.secondary">
+                              · {formatDateTime(review.reply.createdAt)}
+                            </Typography>
+                          </Stack>
 
-                    <Typography variant="body2" sx={{ mb: 1 }}>
-                      <strong>화물명:</strong> {review.cargoType || "-"}
-                    </Typography>
-
-                    <Typography variant="body2" sx={{ mb: 1 }}>
-                      <strong>리뷰 내용:</strong> {review.comment || "-"}
-                    </Typography>
-                  </Box>
-                ))}
+                          <Typography fontSize={14} sx={{ whiteSpace: "pre-wrap", mt: 0.5 }}>
+                            {review.reply.content}
+                          </Typography>
+                        </Box>
+                      )}
+                    </Paper>
+                  );
+                })}
               </Stack>
             ) : (
               <Typography variant="body2" color="text.secondary">

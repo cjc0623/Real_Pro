@@ -11,7 +11,7 @@ const API_BASE =
    process.env.REACT_APP_API_BASE ||
 
    process.env.REACT_APP_API_BASE ||
-   "http://https://pro-2-ayf7.onrender.com";
+   "http://localhost:8080";
 
 // 토큰 유틸
 const saveTokens = ({ accessToken, refreshToken }) => {

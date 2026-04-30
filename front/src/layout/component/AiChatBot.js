@@ -26,7 +26,8 @@ const AiChatBot = () => {
         setLoading(true);
 
         try {
-            const res = await axios.post(`${process.env.REACT_APP_API_BASE}/api/ai/ask`, { question: input });
+            // 팀장님의 기존 백엔드 주소 유지
+            const res = await axios.post("http://localhost:8080/api/ai/ask", { question: input });
             setMessages(prev => [...prev, { role: 'ai', text: res.data.answer }]);
         } catch (err) {
             setMessages(prev => [...prev, { role: 'ai', text: "서버 연결 오류가 발생했습니다." }]);
@@ -109,8 +110,8 @@ const chatWinStyle = {
     position: 'absolute',
     bottom: '80px',
     right: '0',
-    width: '240px', 
-    height: '300px',
+    width: '320px', 
+    height: '450px', 
     backgroundColor: '#f5f5f5', 
     border: '1px solid #ddd', 
     borderRadius: '15px', 

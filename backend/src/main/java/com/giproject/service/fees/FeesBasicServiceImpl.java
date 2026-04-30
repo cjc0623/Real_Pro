@@ -20,9 +20,6 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import com.cloudinary.Cloudinary;
-import com.cloudinary.utils.ObjectUtils;
-
 @Service
 @RequiredArgsConstructor
 @Log4j2
@@ -110,37 +107,33 @@ public class FeesBasicServiceImpl implements FeesBasicService {
 		return feesBasicRepository.findAll().stream().map(this::entityToDTO).collect(Collectors.toList());
 	}
 
-@Value("${cloudinary.cloud-name}")
-private String cloudName;
+	@Override
+	public Map<String, String> uploadImg(Long tno, MultipartFile file) {
+		 try {
+			    FeesBasic basic = feesBasicRepository.findById(tno)
+			        .orElseThrow(() -> new RuntimeException("해당 차량이 존재하지 않음: " + tno));
 
-@Value("${cloudinary.api-key}")
-private String apiKey;
+			    Path base = Paths.get(uploadDir).toAbsolutePath().normalize();
+			    Files.createDirectories(base);
 
-@Value("${cloudinary.api-secret}")
-private String apiSecret;
+			    // 기존 파일 삭제
+			    if (basic.getCargoImage() != null && !basic.getCargoImage().isBlank()) {
+			      String oldName = Paths.get(basic.getCargoImage()).getFileName().toString();
+			      Files.deleteIfExists(base.resolve(oldName));
+			    }
 
-@Override
-public Map<String, String> uploadImg(Long tno, MultipartFile file) {
-    try {
-        FeesBasic basic = feesBasicRepository.findById(tno)
-            .orElseThrow(() -> new RuntimeException("해당 차량이 존재하지 않음: " + tno));
+			    String fileName = UUID.randomUUID() + "_" + Objects.requireNonNull(file.getOriginalFilename());
+			    Path savePath = base.resolve(fileName);
+			    file.transferTo(savePath.toFile());
 
-        Cloudinary cloudinary = new Cloudinary(ObjectUtils.asMap(
-            "cloud_name", cloudName,
-            "api_key", apiKey,
-            "api_secret", apiSecret
-        ));
+			    // DB에는 현재 컨벤션 유지: /g2i4/uploads/{fileName}
+			    basic.setCargoImage("/g2i4/uploads/" + fileName);
+			    feesBasicRepository.save(basic);
 
-        Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
-        String imageUrl = (String) uploadResult.get("secure_url");
-
-        basic.setCargoImage(imageUrl);
-        feesBasicRepository.save(basic);
-
-        return Map.of("이미지 업로드 성공", "success");
-    } catch (Exception e) {
-        e.printStackTrace();
-        return Map.of("이미지 업로드 실패", e.getMessage());
-    }
-}
+			    return Map.of("이미지 업로드 성공", "success");
+			  } catch (Exception e) {
+			    e.printStackTrace();
+			    return Map.of("이미지 업로드 실패", e.getMessage());
+			  }
+		 }
 }

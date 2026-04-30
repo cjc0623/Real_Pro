@@ -31,7 +31,7 @@ function getErrorMessage(data) {
 const API_BASE =
     process.env.REACT_APP_API_BASE ||
     process.env.REACT_APP_API_BASE ||
-    'http://https://pro-2-ayf7.onrender.com';
+    'http://localhost:8080';
 
 // 해시에 signup_ticket이 실려 온 경우를 대비한 파서
 function getTicketFromHash(hash) {
@@ -309,6 +309,7 @@ const SignUpComponent = () => {
         idChecked && idAvailable === true &&
         isPwValid && isPwMatch &&
         !!(emailLocked ? (emailLocal && emailDomain) : fullEmail) &&
+        (emailLocked || emailVerified) &&
         name.trim().length > 0 &&
         password1.length >= 8;
 
@@ -530,16 +531,24 @@ const SignUpComponent = () => {
                         />
                     </Box>
                     {/* 아래 줄: 인증 버튼 full-width */}
-<Button
-    variant="outlined"
-    color="primary"
-    fullWidth
-    sx={{ height: 48 }}
-    disabled={true}  // ← 항상 비활성화
->
-    인증하기
-</Button>
+                    <Button
+                        variant={emailVerified ? 'contained' : 'outlined'}
+                        color={emailVerified ? 'success' : 'primary'}
+                        fullWidth
+                        sx={{ height: 48 }}
+                        onClick={onClickVerifyEmail}
+                        disabled={emailLocked || !canOpenVerify}
+                    >
+                        {emailLocked ? '인증완료' : (emailVerified ? '인증완료' : '인증하기')}
+                    </Button>
                 </Box>
+
+                <EmailVerifyDialog
+                    open={openEmailModal}
+                    email={fullEmail}
+                    onClose={() => setOpenEmailModal(false)}
+                    onVerified={handleEmailVerified}
+                />
 
                 {/* 이름, 전화번호, 주소 */}
                 <TextField
@@ -586,7 +595,7 @@ const SignUpComponent = () => {
                             <Typography sx={{ width: '20%', ml: 1 }}>화물차 무게</Typography>
                             <Autocomplete
                                 disablePortal
-                                options={['1톤','2톤', '3톤', '4톤', '5톤 이상']}
+                                options={['1톤', '1.4톤', '2.5톤', '5톤', '8톤', '11톤', '25톤', '25톤 이상']}
                                 renderInput={(params) => <TextField {...params} label="톤수 선택" variant="outlined" />}
                                 sx={{ width: '80%' }}
                             />
