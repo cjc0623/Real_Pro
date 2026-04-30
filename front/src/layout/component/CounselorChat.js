@@ -29,7 +29,7 @@ const CounselorChat = () => {
         const newMsg = { senderName: '사용자', message: input };
 
         try {
-            const res = await axios.post('/api/chat/send', newMsg);
+            const res = await axios.post(`${process.env.REACT_APP_API_BASE}/api/chat/send`, newMsg);
             setMessages([...messages, res.data]);
             setInput('');
 
