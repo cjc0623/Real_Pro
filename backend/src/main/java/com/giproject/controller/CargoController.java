@@ -1,5 +1,7 @@
 package com.giproject.controller;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.giproject.dto.cargo.CargoDTO;
 import com.giproject.entity.cargo.Cargo;
 import com.giproject.entity.cargo.CargoOwner;
@@ -7,12 +9,12 @@ import com.giproject.repository.cargo.CargoOwnerRepository;
 import com.giproject.repository.cargo.CargoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.nio.file.*;
 import java.util.*;
 
 @Slf4j
@@ -25,33 +27,41 @@ public class CargoController {
     private final CargoRepository cargoRepository;
     private final CargoOwnerRepository cargoOwnerRepository;
 
-    // 절대경로 설정
-    private static final Path UPLOAD_ROOT = Paths.get("../uploads").toAbsolutePath().normalize();
-    private static final Path CARGO_DIR   = UPLOAD_ROOT.resolve("cargo");
+    @Value("${cloudinary.cloud-name}")
+    private String cloudName;
 
-    /**
-     * 차량 목록 조회
-     */
+    @Value("${cloudinary.api-key}")
+    private String apiKey;
+
+    @Value("${cloudinary.api-secret}")
+    private String apiSecret;
+
+    private String uploadToCloudinary(MultipartFile file) throws Exception {
+        Cloudinary cloudinary = new Cloudinary(ObjectUtils.asMap(
+            "cloud_name", cloudName,
+            "api_key", apiKey,
+            "api_secret", apiSecret
+        ));
+        Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
+        return (String) uploadResult.get("secure_url");
+    }
+
     @GetMapping("/list/{cargoId}")
     public ResponseEntity<List<Cargo>> getCargoList(@PathVariable("cargoId") String cargoId) {
         List<Cargo> list = cargoRepository.findByCargoOwner_CargoId(cargoId);
         return ResponseEntity.ok(list);
     }
 
-    /**
-     * 차량 등록 (통합 버전)
-     * 🚨 중요: 프론트엔드에서 'dto'와 'image'라는 키로 FormData를 보내야 합니다.
-     */
     @PostMapping("/add/{cargoId}")
     @Transactional
     public ResponseEntity<?> registerCargo(
-            @PathVariable("cargoId") String cargoId, 
-            @RequestPart("dto") CargoDTO dto,              
-            @RequestPart("image") MultipartFile file       
+            @PathVariable("cargoId") String cargoId,
+            @RequestPart("dto") CargoDTO dto,
+            @RequestPart("image") MultipartFile file
     ) {
         try {
-            // 1. 필수 입력 검증 (전산직 무결성 원칙)
-            if (file == null || file.isEmpty()) return ResponseEntity.badRequest().body("차량 사진 등록은 필수입니다.");
+            if (file == null || file.isEmpty())
+                return ResponseEntity.badRequest().body("차량 사진 등록은 필수입니다.");
             if (dto.getName() == null || dto.getName().isBlank() ||
                 dto.getAddress() == null || dto.getAddress().isBlank() ||
                 dto.getWeight() == null || dto.getWeight().isBlank() ||
@@ -62,24 +72,16 @@ public class CargoController {
             CargoOwner owner = cargoOwnerRepository.findById(cargoId)
                     .orElseThrow(() -> new RuntimeException("소유자 없음"));
 
-            // 2. 이미지 파일 저장 처리
-            Files.createDirectories(CARGO_DIR);
-            String original = file.getOriginalFilename();
-            String ext = (original != null && original.lastIndexOf('.') != -1)
-                    ? original.substring(original.lastIndexOf('.')).toLowerCase() : "";
-            String savedFilename = UUID.randomUUID() + ext;
-            Path savePath = CARGO_DIR.resolve(savedFilename).normalize();
-            file.transferTo(savePath.toFile());
-            String webPath = "/g2i4/uploads/cargo/" + savedFilename;
+            // ✅ Cloudinary 업로드만 수행
+            String webPath = uploadToCloudinary(file);
 
-            // 3. 엔티티 생성 및 필드 셋팅
             Cargo cargo = new Cargo();
             cargo.setCargoName(dto.getName());
-            cargo.setCargoType(dto.getAddress());   
+            cargo.setCargoType(dto.getAddress());
             cargo.setCargoCapacity(dto.getWeight());
-            cargo.setCargoNumber(dto.getCargoNumber()); 
-            cargo.setCargoImage(webPath);           // 이미지 경로 강제 주입
-            cargo.setStatus("PENDING");             // 무조건 승인대기 상태
+            cargo.setCargoNumber(dto.getCargoNumber());
+            cargo.setCargoImage(webPath);
+            cargo.setStatus("PENDING");
             cargo.setCargoOwner(owner);
 
             Cargo saved = cargoRepository.save(cargo);
@@ -90,12 +92,11 @@ public class CargoController {
         }
     }
 
-    /**
-     * 차량 수정
-     */
     @PutMapping("/update/{cargoNo}")
     @Transactional
-    public ResponseEntity<?> updateCargo(@PathVariable("cargoNo") Integer cargoNo, @RequestBody CargoDTO dto) {
+    public ResponseEntity<?> updateCargo(
+            @PathVariable("cargoNo") Integer cargoNo,
+            @RequestBody CargoDTO dto) {
         try {
             Cargo cargo = cargoRepository.findById(cargoNo)
                     .orElseThrow(() -> new IllegalArgumentException("차량 없음: " + cargoNo));
@@ -104,20 +105,14 @@ public class CargoController {
             cargo.setCargoType(dto.getAddress());
             cargo.setCargoCapacity(dto.getWeight());
             cargo.setCargoNumber(dto.getCargoNumber());
-            
-            // 정보 수정 시 다시 검증받도록 대기중으로 변경
-            cargo.setStatus("PENDING"); 
+            cargo.setStatus("PENDING");
 
-            Cargo updated = cargoRepository.save(cargo);
-            return ResponseEntity.ok(updated);
+            return ResponseEntity.ok(cargoRepository.save(cargo));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("수정 실패: " + e.getMessage());
         }
     }
 
-    /**
-     * 차량 삭제
-     */
     @DeleteMapping("/delete/{cargoNo}")
     public ResponseEntity<?> deleteCargo(@PathVariable("cargoNo") Integer cargoNo) {
         try {
@@ -128,9 +123,7 @@ public class CargoController {
         }
     }
 
-    /**
-     * 이미지 단독 업로드 및 교체 (기존 호환성 및 개별 수정을 위해 유지)
-     */
+    // ✅ 이미지 단독 교체도 Cloudinary로 변경
     @PostMapping("/upload/{cargoNo}")
     public ResponseEntity<?> uploadImage(
             @PathVariable("cargoNo") Integer cargoNo,
@@ -139,24 +132,10 @@ public class CargoController {
             Cargo cargo = cargoRepository.findById(cargoNo)
                     .orElseThrow(() -> new RuntimeException("차량 없음: " + cargoNo));
 
-            if (file.isEmpty()) return ResponseEntity.badRequest().body("파일이 없습니다.");
-            
-            Files.createDirectories(CARGO_DIR);
+            if (file.isEmpty())
+                return ResponseEntity.badRequest().body("파일이 없습니다.");
 
-            // 기존 파일 삭제
-            if (cargo.getCargoImage() != null && !cargo.getCargoImage().isBlank()) {
-                String prevName = cargo.getCargoImage().substring(cargo.getCargoImage().lastIndexOf("/") + 1);
-                Files.deleteIfExists(CARGO_DIR.resolve(prevName));
-            }
-
-            String original = file.getOriginalFilename();
-            String ext = (original != null && original.lastIndexOf('.') != -1)
-                    ? original.substring(original.lastIndexOf('.')).toLowerCase() : "";
-            String savedFilename = UUID.randomUUID() + ext;
-            Path savePath = CARGO_DIR.resolve(savedFilename).normalize();
-            file.transferTo(savePath.toFile());
-
-            String webPath = "/g2i4/uploads/cargo/" + savedFilename;
+            String webPath = uploadToCloudinary(file);
             cargo.setCargoImage(webPath);
             cargoRepository.save(cargo);
 
@@ -167,14 +146,10 @@ public class CargoController {
             return ResponseEntity.status(500).body("업로드 실패: " + e.getMessage());
         }
     }
-    /**
-     * 승인된 모든 차량 목록 조회 (에러 방지 및 관리자용)
-     * 리액트에서 호출하는 /g2i4/cargo/all/approved 대응
-     */
+
     @GetMapping("/all/approved")
     public ResponseEntity<List<Cargo>> getAllApprovedCargo() {
-        // "APPROVED" 상태인 차량만 조회하거나, 일단 에러가 안 나게 전체 리스트라도 반환
-        List<Cargo> approvedList = cargoRepository.findAll(); // 혹은 findByStatus("APPROVED")
+        List<Cargo> approvedList = cargoRepository.findAll();
         return ResponseEntity.ok(approvedList);
     }
 }
