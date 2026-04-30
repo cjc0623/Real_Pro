@@ -7,7 +7,6 @@ import com.giproject.entity.member.Member;
 import com.giproject.repository.cargo.CargoOwnerRepository;
 import com.giproject.repository.member.MemberRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -25,25 +24,8 @@ public class UserInfoController {
 
     private final MemberRepository memberRepository;
     private final CargoOwnerRepository cargoOwnerRepository;
+    private final Cloudinary cloudinary;
 
-    @Value("${cloudinary.cloud-name}")
-    private String cloudName;
-
-    @Value("${cloudinary.api-key}")
-    private String apiKey;
-
-    @Value("${cloudinary.api-secret}")
-    private String apiSecret;
-
-    private Cloudinary getCloudinary() {
-        return new Cloudinary(ObjectUtils.asMap(
-            "cloud_name", cloudName,
-            "api_key", apiKey,
-            "api_secret", apiSecret
-        ));
-    }
-
-    // ✅ URL을 그대로 DB에 저장하므로 webPath = profileImage URL 그 자체
     @GetMapping("/info")
     public ResponseEntity<?> getUserInfo(Authentication auth) {
         if (auth == null || !auth.isAuthenticated() || auth instanceof AnonymousAuthenticationToken) {
@@ -53,7 +35,7 @@ public class UserInfoController {
 
         Member m = memberRepository.findById(userId).orElse(null);
         if (m != null) {
-            String imageUrl = m.getProfileImage(); // 이제 Cloudinary URL 전체
+            String imageUrl = m.getProfileImage();
 
             Map<String, Object> data = new LinkedHashMap<>();
             data.put("mem_id", m.getMemId());
@@ -63,7 +45,7 @@ public class UserInfoController {
             data.put("mem_address", m.getMemAddress());
             data.put("mem_create_id_date_time", m.getMemCreateIdDateTime());
             data.put("profileImage", imageUrl);
-            data.put("webPath", imageUrl); // ✅ URL 그대로
+            data.put("webPath", imageUrl);
 
             boolean isAdmin = m.getMemberRoleList().contains("ADMIN");
 
@@ -75,7 +57,7 @@ public class UserInfoController {
 
         CargoOwner c = cargoOwnerRepository.findById(userId).orElse(null);
         if (c != null) {
-            String imageUrl = c.getProfileImage(); // 이제 Cloudinary URL 전체
+            String imageUrl = c.getProfileImage();
 
             Map<String, Object> data = new LinkedHashMap<>();
             data.put("cargo_id", c.getCargoId());
@@ -85,7 +67,7 @@ public class UserInfoController {
             data.put("cargo_address", c.getCargoAddress());
             data.put("cargo_created_datetime", c.getCargoCreatedDateTime());
             data.put("profileImage", imageUrl);
-            data.put("webPath", imageUrl); // ✅ URL 그대로
+            data.put("webPath", imageUrl);
 
             Map<String, Object> body = new LinkedHashMap<>();
             body.put("userType", "CARGO_OWNER");
@@ -96,7 +78,6 @@ public class UserInfoController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "NOT_FOUND"));
     }
 
-    // ✅ 로컬 저장 완전 제거 → Cloudinary 업로드 후 URL을 DB에 저장
     @PostMapping("/upload-image")
     public ResponseEntity<?> uploadProfileImage(
             @RequestParam("image") MultipartFile file,
@@ -106,16 +87,16 @@ public class UserInfoController {
         if (file.isEmpty()) return ResponseEntity.badRequest().body("파일이 없습니다.");
 
         try {
-            Map uploadResult = getCloudinary().uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
+            Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
             String imageUrl = (String) uploadResult.get("secure_url");
 
             if ("MEMBER".equalsIgnoreCase(userType)) {
                 Member m = memberRepository.findById(id).orElseThrow();
-                m.setProfileImage(imageUrl); // ✅ URL 전체 저장
+                m.setProfileImage(imageUrl);
                 memberRepository.save(m);
             } else if ("CARGO_OWNER".equalsIgnoreCase(userType)) {
                 CargoOwner c = cargoOwnerRepository.findById(id).orElseThrow();
-                c.setProfileImage(imageUrl); // ✅ URL 전체 저장
+                c.setProfileImage(imageUrl);
                 cargoOwnerRepository.save(c);
             } else {
                 return ResponseEntity.badRequest().body("userType이 잘못되었습니다.");
@@ -128,7 +109,6 @@ public class UserInfoController {
         }
     }
 
-    // ✅ Cloudinary에서 삭제 후 DB null 처리
     @DeleteMapping("/profile-image")
     public ResponseEntity<?> deleteProfileImage(Authentication auth) {
         if (auth == null || !auth.isAuthenticated() || auth instanceof AnonymousAuthenticationToken) {
@@ -152,17 +132,13 @@ public class UserInfoController {
             }
         }
 
-        // ✅ Cloudinary에서도 실제 파일 삭제
         if (imageUrl != null && !imageUrl.isBlank()) {
             try {
-                // URL에서 public_id 추출: .../upload/v123456/파일명.확장자 → 파일명
                 String publicId = imageUrl
                     .substring(imageUrl.lastIndexOf("/") + 1)
-                    .replaceAll("\\.[^.]+$", ""); // 확장자 제거
-                getCloudinary().uploader().destroy(publicId, ObjectUtils.emptyMap());
-            } catch (Exception ignore) {
-                // 삭제 실패해도 DB는 이미 null 처리됐으므로 무시
-            }
+                    .replaceAll("\\.[^.]+$", "");
+                cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
+            } catch (Exception ignore) {}
         }
 
         return ResponseEntity.ok(Map.of("removed", true));
