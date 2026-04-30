@@ -9,7 +9,6 @@ import com.giproject.repository.cargo.CargoOwnerRepository;
 import com.giproject.repository.cargo.CargoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -26,22 +25,9 @@ public class CargoController {
 
     private final CargoRepository cargoRepository;
     private final CargoOwnerRepository cargoOwnerRepository;
-
-    @Value("${cloudinary.cloud-name}")
-    private String cloudName;
-
-    @Value("${cloudinary.api-key}")
-    private String apiKey;
-
-    @Value("${cloudinary.api-secret}")
-    private String apiSecret;
+    private final Cloudinary cloudinary;
 
     private String uploadToCloudinary(MultipartFile file) throws Exception {
-        Cloudinary cloudinary = new Cloudinary(ObjectUtils.asMap(
-            "cloud_name", cloudName,
-            "api_key", apiKey,
-            "api_secret", apiSecret
-        ));
         Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
         return (String) uploadResult.get("secure_url");
     }
@@ -72,15 +58,14 @@ public class CargoController {
             CargoOwner owner = cargoOwnerRepository.findById(cargoId)
                     .orElseThrow(() -> new RuntimeException("소유자 없음"));
 
-            // ✅ Cloudinary 업로드만 수행
-            String webPath = uploadToCloudinary(file);
+            String imageUrl = uploadToCloudinary(file);
 
             Cargo cargo = new Cargo();
             cargo.setCargoName(dto.getName());
             cargo.setCargoType(dto.getAddress());
             cargo.setCargoCapacity(dto.getWeight());
             cargo.setCargoNumber(dto.getCargoNumber());
-            cargo.setCargoImage(webPath);
+            cargo.setCargoImage(imageUrl);
             cargo.setStatus("PENDING");
             cargo.setCargoOwner(owner);
 
@@ -123,7 +108,6 @@ public class CargoController {
         }
     }
 
-    // ✅ 이미지 단독 교체도 Cloudinary로 변경
     @PostMapping("/upload/{cargoNo}")
     public ResponseEntity<?> uploadImage(
             @PathVariable("cargoNo") Integer cargoNo,
@@ -135,13 +119,11 @@ public class CargoController {
             if (file.isEmpty())
                 return ResponseEntity.badRequest().body("파일이 없습니다.");
 
-            String webPath = uploadToCloudinary(file);
-            cargo.setCargoImage(webPath);
+            String imageUrl = uploadToCloudinary(file);
+            cargo.setCargoImage(imageUrl);
             cargoRepository.save(cargo);
 
-            Map<String, Object> res = new HashMap<>();
-            res.put("webPath", webPath);
-            return ResponseEntity.ok(res);
+            return ResponseEntity.ok(Map.of("webPath", imageUrl));
         } catch (Exception e) {
             return ResponseEntity.status(500).body("업로드 실패: " + e.getMessage());
         }
