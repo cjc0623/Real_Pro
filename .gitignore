@@ -10,7 +10,7 @@ backend/src/main/java/com/giproject/dto/.DS_Store
 backend/src/main/java/com/giproject/entity/.DS_Store
 backend/src/main/java/com/giproject/repository/.DS_Store
 backend/src/main/java/com/giproject/service/.DS_Store
-
+backend/src/main/resources/application.properties
 # Logs
 logs
 *.log
