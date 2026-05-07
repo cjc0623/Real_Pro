@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.giproject.dto.review.DriverDetailDTO;
 import com.giproject.dto.review.DriverProfileCardDTO;
+import com.giproject.dto.review.DriverTrustScoreDTO;
 import com.giproject.dto.review.MyReviewListDTO;
 import com.giproject.dto.review.MyReviewWithDriverIdDTO;
 import com.giproject.dto.review.ReviewCreateRequest;
@@ -73,7 +74,7 @@ public class ReviewController {
 
     @DeleteMapping("/{reviewNo}")
     public ResponseEntity<String> remove(
-            @PathVariable Long reviewNo,
+            @PathVariable(name = "reviewNo") Long reviewNo,
             Authentication authentication) {
 
         String loginId = authentication.getName();
@@ -180,6 +181,12 @@ public class ReviewController {
             @PathVariable (name = "reviewNo") Long reviewNo) {
 
         return ResponseEntity.ok(reviewService.getReplyByReviewNo(reviewNo));
+    }
+    @GetMapping("/trust-score/{cargoId}")
+    public ResponseEntity<DriverTrustScoreDTO> getDriverTrustScore(
+            @PathVariable(name = "cargoId") String cargoId) {
+
+        return ResponseEntity.ok(reviewService.getDriverTrustScore(cargoId));
     }
     
     

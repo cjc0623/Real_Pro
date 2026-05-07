@@ -3,6 +3,18 @@ import { API_SERVER_HOST } from "../serverConfig";
 
 const prefix = `${API_SERVER_HOST}/g2i4/review`;
 
+export const getDriverTrustScore = async (cargoId) => {
+  const token = sessionStorage.getItem("accessToken");
+
+  const res = await axios.get(`${prefix}/trust-score/${cargoId}`, {
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+
+  return res.data;
+};
+
 export const createReview = async (formData) => {
   const token = sessionStorage.getItem("accessToken");
 

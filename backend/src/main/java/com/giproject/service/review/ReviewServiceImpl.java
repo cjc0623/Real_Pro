@@ -20,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.giproject.dto.review.DriverDetailDTO;
 import com.giproject.dto.review.DriverProfileCardDTO;
+import com.giproject.dto.review.DriverTrustScoreDTO;
 import com.giproject.dto.review.MyReviewListDTO;
 import com.giproject.dto.review.MyReviewWithDriverIdDTO;
 import com.giproject.dto.review.ReviewCreateRequest;
@@ -55,6 +56,8 @@ public class ReviewServiceImpl implements ReviewService {
     @Value("${com.fullstack.upload.path}")
     private String uploadPath;
 
+    
+    
     @Override
     public Long register(ReviewCreateRequest request, String loginId) {
 
@@ -662,6 +665,175 @@ public class ReviewServiceImpl implements ReviewService {
 	            .updatedAt(reply.getUpdatedAt())
 	            .build();
 	}
+	
+	//신뢰도 점수
+	@Override
+	@Transactional(readOnly = true)
+	public DriverTrustScoreDTO getDriverTrustScore(String cargoId) {
 
+	    List<Review> reviews = reviewRepository.findByTargetCargoId(cargoId);
 
+	    long reviewCount = reviews.size();
+
+	    BigDecimal averageRating = reviews.stream()
+	            .map(Review::getRating)
+	            .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+	    if (reviewCount > 0) {
+	        averageRating = averageRating.divide(
+	                BigDecimal.valueOf(reviewCount),
+	                1,
+	                java.math.RoundingMode.HALF_UP
+	        );
+	    }
+
+	    Map<String, Long> sentimentMap = reviews.stream()
+	            .collect(Collectors.groupingBy(
+	                    review -> analyzeSentiment(review.getComment()),
+	                    Collectors.counting()
+	            ));
+
+	    long positiveCount = sentimentMap.getOrDefault("POSITIVE", 0L);
+	    long negativeCount = sentimentMap.getOrDefault("NEGATIVE", 0L);
+	    long neutralCount = sentimentMap.getOrDefault("NEUTRAL", 0L);
+
+	    long completedDeliveryCount =
+	            deliveryRepository.countByCargoOwner_CargoIdAndStatus(
+	                    cargoId,
+	                    DeliveryStatus.COMPLETED
+	            );
+
+	    DriverProfileCardDTO profile = getDriverProfileCard(cargoId);
+	    boolean verified = Boolean.TRUE.equals(profile.getIsVerified());
+
+	    int ratingScore = calculateRatingScore(averageRating);
+	    int reviewScore = calculateReviewScore(reviewCount);
+	    int deliveryScore = calculateDeliveryScore(completedDeliveryCount);
+	    int verifiedScore = verified ? 10 : 0;
+	    int sentimentScore = calculateSentimentScore(
+	            reviewCount,
+	            positiveCount,
+	            negativeCount
+	    );
+	    
+	    int trustScore =
+	            ratingScore
+	            + reviewScore
+	            + deliveryScore
+	            + verifiedScore
+	            + sentimentScore;
+
+	    trustScore = Math.max(0, Math.min(trustScore, 100));
+
+	    return DriverTrustScoreDTO.builder()
+	            .cargoId(cargoId)
+	            .trustScore(trustScore)
+	            .trustGrade(toTrustGrade(trustScore))
+	            .averageRating(averageRating)
+	            .reviewCount(reviewCount)
+	            .positiveReviewCount(positiveCount)
+	            .neutralReviewCount(neutralCount)
+	            .negativeReviewCount(negativeCount)
+	            .completedDeliveryCount(completedDeliveryCount)
+	            .verified(verified)
+	            .ratingScore(ratingScore)
+	            .reviewScore(reviewScore)
+	            .deliveryScore(deliveryScore)
+	            .sentimentScore(sentimentScore)
+	            .verifiedScore(verifiedScore)
+	            .build();
+	}
+	private String analyzeSentiment(String comment) {
+	    if (comment == null || comment.isBlank()) {
+	        return "NEUTRAL";
+	    }
+
+	    String text = comment
+	            .toLowerCase()
+	            .replaceAll("\\s+", "");
+
+	    List<String> positiveKeywords = List.of(
+	            "친절", "빠름", "빨라", "정확", "안전", "만족", "좋",
+	            "추천", "깔끔", "최고", "완벽", "신속", "믿음", "믿을",
+	            "책임감", "프로", "정시", "안심", "감사", "편함",
+	            "꼼꼼", "성실", "원활", "빠르게", "잘해",
+	            "문제없이", "약속", "시간맞"
+	    );
+
+	    List<String> negativeKeywords = List.of(
+	            "늦", "지연", "불친절", "파손", "연락안",
+	            "불만", "최악", "별로", "문제", "위험", "느림",
+	            "불안", "짜증", "실망", "대충", "불편", "화남",
+	            "손상", "깨짐", "누락", "미흡", "답답", "시간안",
+	            "약속안"
+	    );
+
+	    boolean hasPositive = positiveKeywords.stream().anyMatch(text::contains);
+	    boolean hasNegative = negativeKeywords.stream().anyMatch(text::contains);
+
+	    /*
+	     * 부정 키워드가 하나라도 있으면 부정으로 우선 판정.
+	     * 예: "빠른 배송이었지만 물건이 파손됨"
+	     */
+	    if (hasNegative) {
+	        return "NEGATIVE";
+	    }
+
+	    if (hasPositive) {
+	        return "POSITIVE";
+	    }
+
+	    return "NEUTRAL";
+	}
+	
+	private int calculateRatingScore(BigDecimal averageRating) {
+	    if (averageRating == null) {
+	        return 0;
+	    }
+
+	    // 평균 평점 0.0 ~ 5.0 → 최대 40점
+	    return averageRating
+	            .multiply(BigDecimal.valueOf(8))
+	            .intValue();
+	}
+	private int calculateReviewScore(long reviewCount) {
+	    // 리뷰 수 최대 15점
+	    return (int) Math.min(reviewCount, 15);
+	}
+	private int calculateDeliveryScore(long completedDeliveryCount) {
+	    // 배송 완료 수 최대 20점
+	    return (int) Math.min(completedDeliveryCount, 20);
+	}
+	private int calculateSentimentScore(
+	        long reviewCount,
+	        long positiveCount,
+	        long negativeCount
+	) {
+	    if (reviewCount == 0) {
+	        return 0;
+	    }
+
+	    long sentimentBase = positiveCount + negativeCount;
+
+	    // 감성 판단 가능한 리뷰가 없으면 낮은 기본점만 부여
+	    if (sentimentBase == 0) {
+	        return 5;
+	    }
+
+	    double positiveRatio = (double) positiveCount / sentimentBase;
+
+	    int score = (int) Math.round(positiveRatio * 15);
+
+	    // 부정 리뷰 패널티
+	    int penalty = (int) Math.min(negativeCount * 2, 10);
+
+	    return Math.max(0, score - penalty);
+	}
+	private String toTrustGrade(int score) {
+	    if (score >= 85) return "매우 신뢰";
+	    if (score >= 70) return "신뢰";
+	    if (score >= 50) return "보통";
+	    return "주의";
+	}
+	
 }

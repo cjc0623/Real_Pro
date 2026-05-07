@@ -23,6 +23,9 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 	List<Review> findAllByOrderByCreatedAtDesc();
 	
 
+	//신뢰도 전용 
+	List<Review> findByTargetCargoId(String targetCargoId);
+	
 	// 리뷰 작성자 memId 찾기
 	@Query("""
 	        SELECT r.writerMemberId

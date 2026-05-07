@@ -18,6 +18,11 @@ import {
   MenuItem,
   Stack,
   Avatar,
+  Snackbar,
+  Alert,
+  Chip,
+  LinearProgress,
+  Divider,
 } from "@mui/material";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 
@@ -28,6 +33,7 @@ import * as PortOne from "@portone/browser-sdk/v2";
 import PageComponent from "../common/PageComponent";
 import { getReceivedReviews } from "../../../api/reviewApi/reviewApi";
 import { getMyReceivedReviewSummary } from "../../../api/reviewApi/reviewApi";
+import { getDriverTrustScore } from "../../../api/reviewApi/reviewApi.js";
 import {
   createReviewReply,
   modifyReviewReply,
@@ -133,7 +139,24 @@ const ReceivedReviewInform = () => {
   const [editingReplyReviewNo, setEditingReplyReviewNo] = useState(null);
   const [inlineReplyContent, setInlineReplyContent] = useState("");
 
+  const [trustData, setTrustData] = useState(null);
+
   const [selectedImage, setSelectedImage] = useState(null);
+  const [openDeleteReplyDialog, setOpenDeleteReplyDialog] = useState(false);
+  const [deleteReplyTarget, setDeleteReplyTarget] = useState(null);
+
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+  const showSnackbar = (message, severity = "success") => {
+    setSnackbar({
+      open: true,
+      message,
+      severity,
+    });
+  };
   const [sortType, setSortType] = useState("latest");
 
   const [profileInfo, setProfileInfo] = useState({
@@ -201,7 +224,7 @@ const ReceivedReviewInform = () => {
 
       // 실패 응답
       if (response?.code !== undefined) {
-        alert(response.message || "본인인증에 실패했습니다.");
+        showSnackbar(response.message || "본인인증 실패", "error");
         return;
       }
 
@@ -213,10 +236,10 @@ const ReceivedReviewInform = () => {
       // 여기 추가: 서버에서 최신 상태 다시 읽기
       await fetchVerificationStatus();
 
-      alert("본인인증이 완료되었습니다.");
+      showSnackbar("본인인증이 완료되었습니다.");
     } catch (error) {
       console.error("본인인증 시작 실패:", error);
-      alert("본인인증 시작에 실패했습니다.");
+      showSnackbar("본인인증 시작 실패", "error");
     } finally {
       setLoading(false);
     }
@@ -254,7 +277,35 @@ const ReceivedReviewInform = () => {
       cancelled = true;
     };
   }, []);
+  useEffect(() => {
+    let cancelled = false;
 
+    const fetchTrustScore = async () => {
+      try {
+        const cargoId = profileInfo?.id;
+
+        if (!cargoId) return;
+
+        const data = await getDriverTrustScore(cargoId);
+
+        if (!cancelled) {
+          setTrustData(data);
+        }
+      } catch (error) {
+        console.error("신뢰도 조회 실패:", error);
+
+        if (!cancelled) {
+          setTrustData(null);
+        }
+      }
+    };
+
+    fetchTrustScore();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [profileInfo]);
   useEffect(() => {
     let cancelled = false;
 
@@ -359,27 +410,62 @@ const ReceivedReviewInform = () => {
 
   const saveInlineReply = async (item) => {
     if (!inlineReplyContent.trim()) {
-      alert("답글 내용을 입력하세요.");
+      showSnackbar("답글 내용을 입력하세요.", "warning");
       return;
     }
 
-    if (item.reply) {
-      await modifyReviewReply(item.reviewNo, inlineReplyContent.trim());
-    } else {
-      await createReviewReply(item.reviewNo, inlineReplyContent.trim());
+    try {
+      if (item.reply) {
+        await modifyReviewReply(item.reviewNo, inlineReplyContent.trim());
+        showSnackbar("답글이 수정되었습니다.");
+      } else {
+        await createReviewReply(item.reviewNo, inlineReplyContent.trim());
+        showSnackbar("답글이 등록되었습니다.");
+      }
+
+      await refreshReceivedReviews();
+      closeInlineReplyEditor();
+    } catch (e) {
+      console.error("답글 저장 실패:", e);
+      showSnackbar("답글 저장에 실패했습니다.", "error");
     }
-
-    await refreshReceivedReviews();
-    closeInlineReplyEditor();
   };
 
-  const removeInlineReply = async (item) => {
-    if (!window.confirm("답글을 삭제할까요?")) return;
-
-    await deleteReviewReply(item.reviewNo);
-    await refreshReceivedReviews();
-    closeInlineReplyEditor();
+  const handleOpenDeleteReplyDialog = (item) => {
+    setDeleteReplyTarget(item);
+    setOpenDeleteReplyDialog(true);
   };
+
+  const closeDeleteReplyDialog = () => {
+    setDeleteReplyTarget(null);
+    setOpenDeleteReplyDialog(false);
+  };
+
+  const removeInlineReply = async () => {
+    if (!deleteReplyTarget) return;
+
+    try {
+      await deleteReviewReply(deleteReplyTarget.reviewNo);
+      await refreshReceivedReviews();
+
+      setSnackbar({
+        open: true,
+        message: "답글이 삭제되었습니다.",
+        severity: "success",
+      });
+
+      closeDeleteReplyDialog();
+    } catch (e) {
+      console.error(e);
+
+      setSnackbar({
+        open: true,
+        message: "답글 삭제 실패",
+        severity: "error",
+      });
+    }
+  };
+
 
   const refreshReceivedReviews = async () => {
     const data = await getReceivedReviews();
@@ -615,7 +701,7 @@ const ReceivedReviewInform = () => {
 
                       <IconButton
                         size="small"
-                        onClick={() => removeInlineReply(item)}
+                        onClick={() => handleOpenDeleteReplyDialog(item)}
                         sx={{
                           width: 28,
                           height: 28,
@@ -693,7 +779,6 @@ const ReceivedReviewInform = () => {
           내가 받은 리뷰
         </Typography>
 
-
         <Box sx={{ mb: 4 }}>
           <DriverProfileCard
             title="프로필"
@@ -705,7 +790,262 @@ const ReceivedReviewInform = () => {
             verifyButtonLoading={loading}
             onVerifyClick={handleVerificationClick}
           />
+
+          {trustData && (
+            <Paper
+              elevation={0}
+              sx={{
+                mt: 2,
+                p: { xs: 2.5, sm: 3 },
+                borderRadius: 4,
+                border: "1px solid #e5e7eb",
+                bgcolor: "#ffffff",
+                boxShadow: "0 12px 30px rgba(15, 23, 42, 0.06)",
+              }}
+            >
+              {/* 헤더 */}
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                  gap: 2,
+                  mb: 3,
+                }}
+              >
+                <Box>
+                  <Typography fontSize={13} color="text.secondary" fontWeight={700}>
+                    DRIVER TRUST INSIGHT
+                  </Typography>
+
+                  <Typography variant="h6" fontWeight={900}>
+                    차주 신뢰도 분석
+                  </Typography>
+
+                  <Typography fontSize={13} color="text.secondary" sx={{ mt: 0.5 }}>
+                    평점, 배송 이력, 인증 여부, 리뷰 감성을 종합해 산정한 점수입니다.
+                  </Typography>
+                </Box>
+
+                <Chip
+                  label={trustData.trustGrade}
+                  sx={{
+                    fontWeight: 800,
+                    bgcolor:
+                      trustData.trustScore >= 85
+                        ? "#ecfdf5"
+                        : trustData.trustScore >= 70
+                          ? "#eff6ff"
+                          : trustData.trustScore >= 50
+                            ? "#fffbeb"
+                            : "#fef2f2",
+                    color:
+                      trustData.trustScore >= 85
+                        ? "#047857"
+                        : trustData.trustScore >= 70
+                          ? "#1d4ed8"
+                          : trustData.trustScore >= 50
+                            ? "#b45309"
+                            : "#b91c1c",
+                  }}
+                />
+              </Box>
+
+              {/* 상단 핵심 지표 */}
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: { xs: "1fr", md: "1.2fr 2fr" },
+                  gap: 2.5,
+                }}
+              >
+                {/* 점수 메인 카드 */}
+                <Box
+                  sx={{
+                    p: 2.5,
+                    borderRadius: 3,
+                    background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
+                    color: "#fff",
+                  }}
+                >
+                  <Typography fontSize={13} sx={{ color: "#cbd5e1" }}>
+                    종합 신뢰 점수
+                  </Typography>
+
+                  <Box sx={{ display: "flex", alignItems: "flex-end", gap: 0.5, mt: 1 }}>
+                    <Typography fontSize={48} fontWeight={900} lineHeight={1}>
+                      {trustData.trustScore}
+                    </Typography>
+                    <Typography fontSize={18} fontWeight={800} sx={{ mb: 0.5 }}>
+                      / 100
+                    </Typography>
+                  </Box>
+
+                  <LinearProgress
+                    variant="determinate"
+                    value={Math.min(Number(trustData.trustScore) || 0, 100)}
+                    sx={{
+                      mt: 2,
+                      height: 9,
+                      borderRadius: 999,
+                      bgcolor: "rgba(255,255,255,0.18)",
+                      "& .MuiLinearProgress-bar": {
+                        borderRadius: 999,
+                        bgcolor:
+                          trustData.trustScore >= 85
+                            ? "#34d399"
+                            : trustData.trustScore >= 70
+                              ? "#60a5fa"
+                              : trustData.trustScore >= 50
+                                ? "#fbbf24"
+                                : "#f87171",
+                      },
+                    }}
+                  />
+
+                  <Typography fontSize={13} sx={{ mt: 1.5, color: "#cbd5e1" }}>
+                    현재 등급은 <b style={{ color: "#fff" }}>{trustData.trustGrade}</b> 입니다.
+                  </Typography>
+                </Box>
+
+                {/* 요약 카드 4개 */}
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: { xs: "1fr 1fr", sm: "repeat(4, 1fr)" },
+                    gap: 1.5,
+                  }}
+                >
+                  {[
+                    ["평균 평점", `${trustData.averageRating ?? 0}`, "5점 만점"],
+                    ["배송 완료", `${trustData.completedDeliveryCount ?? 0}건`, "완료 이력"],
+                    ["리뷰 수", `${trustData.reviewCount ?? 0}개`, "누적 리뷰"],
+                    ["본인 인증", trustData.verified ? "완료" : "미완료", "신원 확인"],
+                  ].map(([label, value, sub]) => (
+                    <Box
+                      key={label}
+                      sx={{
+                        p: 2,
+                        borderRadius: 3,
+                        bgcolor: "#f8fafc",
+                        border: "1px solid #e5e7eb",
+                      }}
+                    >
+                      <Typography fontSize={12} color="text.secondary" fontWeight={700}>
+                        {label}
+                      </Typography>
+                      <Typography fontSize={22} fontWeight={900} sx={{ mt: 0.5 }}>
+                        {value}
+                      </Typography>
+                      <Typography fontSize={12} color="text.secondary">
+                        {sub}
+                      </Typography>
+                    </Box>
+                  ))}
+                </Box>
+              </Box>
+
+              <Divider sx={{ my: 3 }} />
+
+              {/* 점수 산정 근거 + 감성 분석 */}
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: { xs: "1fr", md: "1.2fr 1fr" },
+                  gap: 2.5,
+                }}
+              >
+                {/* 점수 breakdown */}
+                <Box>
+                  <Typography fontWeight={900} sx={{ mb: 1.5 }}>
+                    점수 산정 근거
+                  </Typography>
+
+                  {[
+                    ["평점 점수", trustData.ratingScore, 40],
+                    ["리뷰 경험", trustData.reviewScore, 15],
+                    ["배송 경험", trustData.deliveryScore, 20],
+                    ["감성 분석", trustData.sentimentScore, 15],
+                    ["본인 인증", trustData.verifiedScore, 10],
+                  ].map(([label, score, max]) => {
+                    const value = Math.min(((Number(score) || 0) / max) * 100, 100);
+
+                    return (
+                      <Box key={label} sx={{ mb: 1.6 }}>
+                        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
+                          <Typography fontSize={13} color="text.secondary" fontWeight={700}>
+                            {label}
+                          </Typography>
+                          <Typography fontSize={13} fontWeight={900}>
+                            +{score ?? 0} / {max}
+                          </Typography>
+                        </Box>
+
+                        <LinearProgress
+                          variant="determinate"
+                          value={value}
+                          sx={{
+                            height: 8,
+                            borderRadius: 999,
+                            bgcolor: "#eef2f7",
+                            "& .MuiLinearProgress-bar": {
+                              borderRadius: 999,
+                              background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
+                            },
+                          }}
+                        />
+                      </Box>
+                    );
+                  })}
+                </Box>
+
+                {/* 리뷰 감성 분석 */}
+                <Box
+                  sx={{
+                    p: 2,
+                    borderRadius: 3,
+                    bgcolor: "#f8fafc",
+                    border: "1px solid #e5e7eb",
+                  }}
+                >
+                  <Typography fontWeight={900} sx={{ mb: 1.5 }}>
+                    리뷰 감성 분석
+                  </Typography>
+
+                  <Stack spacing={1.2}>
+                    <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                      <Typography fontSize={14} color="success.main" fontWeight={800}>
+                        긍정 리뷰
+                      </Typography>
+                      <Typography fontSize={14} fontWeight={900}>
+                        {trustData.positiveReviewCount ?? 0}개
+                      </Typography>
+                    </Box>
+
+                    <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                      <Typography fontSize={14} color="text.secondary" fontWeight={800}>
+                        중립 리뷰
+                      </Typography>
+                      <Typography fontSize={14} fontWeight={900}>
+                        {trustData.neutralReviewCount ?? 0}개
+                      </Typography>
+                    </Box>
+
+                    <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                      <Typography fontSize={14} color="error.main" fontWeight={800}>
+                        부정 리뷰
+                      </Typography>
+                      <Typography fontSize={14} fontWeight={900}>
+                        {trustData.negativeReviewCount ?? 0}개
+                      </Typography>
+                    </Box>
+                  </Stack>
+                </Box>
+              </Box>
+            </Paper>
+          )}
         </Box>
+
         <Box mt={6}>
           <Typography variant="h6" fontWeight="bold" gutterBottom>
 
@@ -773,6 +1113,43 @@ const ReceivedReviewInform = () => {
           <Button onClick={() => setSelectedImage(null)}>닫기</Button>
         </DialogActions>
       </Dialog>
+      <Dialog
+        open={openDeleteReplyDialog}
+        onClose={closeDeleteReplyDialog}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>답글 삭제</DialogTitle>
+
+        <DialogContent>
+          <Typography fontSize={14}>
+            이 답글을 삭제할까요? 삭제하면 복구할 수 없습니다.
+          </Typography>
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={closeDeleteReplyDialog}>취소</Button>
+
+          <Button color="error" variant="contained" onClick={removeInlineReply}>
+            삭제
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={2500}
+        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          severity={snackbar.severity}
+          variant="filled"
+          onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

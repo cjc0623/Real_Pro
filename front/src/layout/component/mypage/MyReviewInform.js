@@ -19,6 +19,8 @@ import {
   MenuItem,
   IconButton,
   Avatar,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
@@ -126,6 +128,21 @@ const MyReviewInform = () => {
   const [editReviewContent, setEditReviewContent] = useState("");
 
   const [selectedImage, setSelectedImage] = useState(null);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [deleteTargetReviewNo, setDeleteTargetReviewNo] = useState(null);
+
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+  const showSnackbar = (message, severity = "success") => {
+    setSnackbar({
+      open: true,
+      message,
+      severity,
+    });
+  };
   const [openDriverDetailModal, setOpenDriverDetailModal] = useState(false);
   const [selectedDriverDetail, setSelectedDriverDetail] = useState(null);
   const [driverReviewSortType, setDriverReviewSortType] = useState("latest");
@@ -137,7 +154,7 @@ const MyReviewInform = () => {
 
   const handleOpenDriverDetailModal = async (item) => {
     if (!item?.driverId) {
-      alert("차주 식별 정보가 없습니다.");
+      showSnackbar("차주 식별 정보가 없습니다.", "warning");
       return;
     }
 
@@ -149,7 +166,7 @@ const MyReviewInform = () => {
       setOpenDriverDetailModal(true);
     } catch (error) {
       console.error("차주 상세 조회 실패:", error);
-      alert("차주 상세 정보를 불러오지 못했습니다.");
+      showSnackbar("차주 상세 정보를 불러오지 못했습니다.", "error");
     }
   };
   const handleCloseDriverDetailModal = () => {
@@ -202,16 +219,38 @@ const MyReviewInform = () => {
     setNewEditImages([]);
   };
 
-  const handleDelete = async (reviewNo) => {
-    if (!window.confirm("정말 삭제하시겠습니까?")) return;
+  const handleOpenDeleteDialog = (reviewNo) => {
+    setDeleteTargetReviewNo(reviewNo);
+    setOpenDeleteDialog(true);
+  };
+
+  const handleCloseDeleteDialog = () => {
+    setOpenDeleteDialog(false);
+    setDeleteTargetReviewNo(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTargetReviewNo) return;
 
     try {
-      await deleteReview(reviewNo);
-      alert("삭제 완료");
+      await deleteReview(deleteTargetReviewNo);
       await reloadMyReviews();
+
+      setSnackbar({
+        open: true,
+        message: "리뷰가 삭제되었습니다.",
+        severity: "success",
+      });
     } catch (e) {
       console.error("리뷰 삭제 실패:", e);
-      alert("삭제 실패");
+
+      setSnackbar({
+        open: true,
+        message: "리뷰 삭제에 실패했습니다.",
+        severity: "error",
+      });
+    } finally {
+      handleCloseDeleteDialog();
     }
   };
   const validateImageFiles = (files) => {
@@ -245,12 +284,12 @@ const MyReviewInform = () => {
     if (!selectedReview) return;
 
     if (editReviewScore === 0) {
-      alert("별점을 선택해야 합니다.");
+      showSnackbar("별점을 선택해야 합니다.", "warning");
       return;
     }
 
     if (!editReviewContent.trim()) {
-      alert("리뷰 내용을 입력해야 합니다.");
+      showSnackbar("리뷰 내용을 입력해야 합니다.", "warning");
       return;
     }
 
@@ -269,12 +308,12 @@ const MyReviewInform = () => {
 
       await modifyReview(selectedReview.reviewNo, formData);
 
-      alert("수정 완료");
+      showSnackbar("리뷰가 수정되었습니다.");
       handleCloseEditModal();
       await reloadMyReviews();
     } catch (e) {
       console.error("리뷰 수정 실패:", e);
-      alert("수정 실패");
+      showSnackbar("리뷰 수정에 실패했습니다.", "error");
     }
   };
 
@@ -340,6 +379,21 @@ const MyReviewInform = () => {
                 border: "1px solid #e5e7eb",
                 borderRadius: 2,
                 bgcolor: "#fff",
+                position: "relative",
+
+                "& .review-actions": {
+                  opacity: { xs: 1, md: 0 },
+                  transform: {
+                    xs: "translateY(0)",
+                    md: "translateY(-2px)",
+                  },
+                  transition: "all 0.18s ease",
+                },
+
+                "&:hover .review-actions": {
+                  opacity: 1,
+                  transform: "translateY(0)",
+                },
               }}
             >
               <Box
@@ -396,6 +450,7 @@ const MyReviewInform = () => {
                 <Stack
                   direction="row"
                   spacing={0.5}
+                  className="review-actions"
                   sx={{ flexShrink: 0 }}
                 >
                   <IconButton
@@ -413,7 +468,7 @@ const MyReviewInform = () => {
 
                   <IconButton
                     size="small"
-                    onClick={() => handleDelete(item.reviewNo)}
+                    onClick={() => handleOpenDeleteDialog(item.reviewNo)}
                     sx={{
                       width: 32,
                       height: 32,
@@ -635,48 +690,62 @@ const MyReviewInform = () => {
             onChange={(e) => setEditReviewContent(e.target.value)}
             sx={{ mt: 2 }}
           />
-          <Box sx={{ mt: 3 }}>
-            <Typography variant="subtitle2" sx={{ mb: 1 }}>
-              기존 이미지
-            </Typography>
+          <Box sx={{ display: "flex", gap: 1.2, flexWrap: "wrap" }}>
+            {editReviewImages.map((img) => {
+              const imageId = img.reviewImageNo;
+              const checked = deleteImageIds.includes(imageId);
 
-            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-              {editReviewImages.map((img) => {
-                const imageId = img.reviewImageNo;
-                const checked = deleteImageIds.includes(imageId);
+              return (
+                <Box
+                  key={imageId}
+                  sx={{
+                    position: "relative",
+                    width: 100,
+                    height: 100,
+                    borderRadius: 1,
+                    overflow: "hidden",
+                    border: checked ? "2px solid #ef4444" : "1px solid #ddd",
+                    opacity: checked ? 0.45 : 1,
+                  }}
+                >
+                  <img
+                    src={`${API_SERVER_HOST}/${img.imagePath}`}
+                    alt={`review-${imageId}`}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                      display: "block",
+                    }}
+                  />
 
-                return (
-                  <Box key={imageId} sx={{ textAlign: "center" }}>
-                    <img
-                      src={`${API_SERVER_HOST}/${img.imagePath}`}
-                      alt={`review-${imageId}`}
-                      style={{
-                        width: 100,
-                        height: 100,
-                        objectFit: "cover",
-                        borderRadius: 8,
-                        border: checked ? "2px solid red" : "1px solid #ddd",
-                        opacity: checked ? 0.5 : 1,
-                      }}
-                    />
-
-                    <Button
-                      size="small"
-                      color={checked ? "success" : "error"}
-                      onClick={() => {
-                        setDeleteImageIds((prev) =>
-                          checked
-                            ? prev.filter((id) => id !== imageId)
-                            : [...prev, imageId]
-                        );
-                      }}
-                    >
-                      {checked ? "복원" : "삭제"}
-                    </Button>
-                  </Box>
-                );
-              })}
-            </Box>
+                  <IconButton
+                    size="small"
+                    onClick={() => {
+                      setDeleteImageIds((prev) =>
+                        checked
+                          ? prev.filter((id) => id !== imageId)
+                          : [...prev, imageId]
+                      );
+                    }}
+                    sx={{
+                      position: "absolute",
+                      top: 4,
+                      right: 4,
+                      width: 24,
+                      height: 24,
+                      bgcolor: checked ? "#16a34a" : "rgba(0,0,0,0.55)",
+                      color: "#fff",
+                      "&:hover": {
+                        bgcolor: checked ? "#15803d" : "rgba(0,0,0,0.75)",
+                      },
+                    }}
+                  >
+                    {checked ? "↺" : <CloseRoundedIcon sx={{ fontSize: 16 }} />}
+                  </IconButton>
+                </Box>
+              );
+            })}
           </Box>
 
           <Box sx={{ mt: 3 }}>
@@ -937,6 +1006,49 @@ const MyReviewInform = () => {
           <Button onClick={() => setSelectedImage(null)}>닫기</Button>
         </DialogActions>
       </Dialog>
+      <Dialog
+        open={openDeleteDialog}
+        onClose={handleCloseDeleteDialog}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>리뷰 삭제</DialogTitle>
+
+        <DialogContent>
+          <Typography fontSize={14}>
+            이 리뷰를 삭제할까요? 삭제하면 복구할 수 없습니다.
+          </Typography>
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={handleCloseDeleteDialog}>
+            취소
+          </Button>
+
+          <Button
+            color="error"
+            variant="contained"
+            onClick={handleConfirmDelete}
+          >
+            삭제
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={2500}
+        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          severity={snackbar.severity}
+          variant="filled"
+          onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
 
   );

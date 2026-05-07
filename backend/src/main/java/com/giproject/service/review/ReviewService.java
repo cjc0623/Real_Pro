@@ -1,5 +1,6 @@
 package com.giproject.service.review;
 
+import com.giproject.dto.review.DriverTrustScoreDTO;
 import com.giproject.dto.review.ReviewReplyDTO;
 import com.giproject.dto.review.ReviewReplyRequest;
 import java.util.List;
@@ -19,6 +20,9 @@ import com.giproject.dto.review.ReviewSummaryDTO;
 
 
 public interface ReviewService {
+	//신뢰도 점수
+	DriverTrustScoreDTO getDriverTrustScore(String cargoId);
+	
 	//등록(create) + 다중 사진 첨부
 	Long register(ReviewCreateRequest request, String loginId);
 	
