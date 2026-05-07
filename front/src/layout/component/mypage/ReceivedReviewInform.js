@@ -2,13 +2,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import {
   Box,
   Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Paper,
+  IconButton,
   Container,
   Rating,
   Button,
@@ -17,24 +12,35 @@ import {
   DialogContent,
   DialogActions,
   TextField,
-  Card,
-  CardContent,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
-  LinearProgress,
   Stack,
-  Divider,
   Avatar,
+  Snackbar,
+  Alert,
+  Chip,
+  LinearProgress,
+  Divider,
 } from "@mui/material";
+import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
+
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+
 import * as PortOne from "@portone/browser-sdk/v2";
 import PageComponent from "../common/PageComponent";
 import { getReceivedReviews } from "../../../api/reviewApi/reviewApi";
 import { getMyReceivedReviewSummary } from "../../../api/reviewApi/reviewApi";
+import { getDriverTrustScore } from "../../../api/reviewApi/reviewApi.js";
+import {
+  createReviewReply,
+  modifyReviewReply,
+  deleteReviewReply
+} from "../../../api/reviewApi/reviewApi";
 import { getMyVerificationStatus, startVerification, confirmVerification } from "../../../api/verificationApi/verificationApi";
 import DriverProfileCard from "../common/DriverProfileCard.js";
-console.log("DriverProfileCard =", DriverProfileCard);
 
 const API_BASE =
   process.env.REACT_APP_API_BASE ||
@@ -52,13 +58,6 @@ const normalizeProfileUrl = (v) => {
   return `${API_BASE}/g2i4/uploads/user_profile/${encodeURIComponent(v)}`;
 };
 
-const ratingRows = [
-  { key: "five", value: 5, label: "5점" },
-  { key: "four", value: 4, label: "4점" },
-  { key: "three", value: 3, label: "3점" },
-  { key: "two", value: 2, label: "2점" },
-  { key: "one", value: 1, label: "1점" },
-];
 const initState = {
   dtoList: [],
   pageNumList: [],
@@ -89,6 +88,20 @@ const formatDateTime = (v) => {
     hour12: false,
   });
 };
+const InfoRow = ({ label, value }) => (
+  <Box sx={{ display: "flex", gap: 1, mb: 0.5 }}>
+    <Typography
+      component="span"
+      sx={{ width: 70, flexShrink: 0, color: "text.secondary", fontSize: 13 }}
+    >
+      {label}
+    </Typography>
+    <Typography component="span" sx={{ fontSize: 13, fontWeight: 600 }}>
+      {value || "-"}
+    </Typography>
+  </Box>
+);
+
 
 const paginate = (data, { page, size }) => {
   const totalCount = data.length;
@@ -123,9 +136,27 @@ const ReceivedReviewInform = () => {
   const [serverData, setServerData] = useState(initState);
   const [pageParams, setPageParams] = useState({ page: 1, size: 5 });
 
-  const [openDetailModal, setOpenDetailModal] = useState(false);
-  const [selectedDetailReview, setSelectedDetailReview] = useState(null);
+  const [editingReplyReviewNo, setEditingReplyReviewNo] = useState(null);
+  const [inlineReplyContent, setInlineReplyContent] = useState("");
+
+  const [trustData, setTrustData] = useState(null);
+
   const [selectedImage, setSelectedImage] = useState(null);
+  const [openDeleteReplyDialog, setOpenDeleteReplyDialog] = useState(false);
+  const [deleteReplyTarget, setDeleteReplyTarget] = useState(null);
+
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+  const showSnackbar = (message, severity = "success") => {
+    setSnackbar({
+      open: true,
+      message,
+      severity,
+    });
+  };
   const [sortType, setSortType] = useState("latest");
 
   const [profileInfo, setProfileInfo] = useState({
@@ -193,7 +224,7 @@ const ReceivedReviewInform = () => {
 
       // 실패 응답
       if (response?.code !== undefined) {
-        alert(response.message || "본인인증에 실패했습니다.");
+        showSnackbar(response.message || "본인인증 실패", "error");
         return;
       }
 
@@ -205,10 +236,10 @@ const ReceivedReviewInform = () => {
       // 여기 추가: 서버에서 최신 상태 다시 읽기
       await fetchVerificationStatus();
 
-      alert("본인인증이 완료되었습니다.");
+      showSnackbar("본인인증이 완료되었습니다.");
     } catch (error) {
       console.error("본인인증 시작 실패:", error);
-      alert("본인인증 시작에 실패했습니다.");
+      showSnackbar("본인인증 시작 실패", "error");
     } finally {
       setLoading(false);
     }
@@ -246,7 +277,35 @@ const ReceivedReviewInform = () => {
       cancelled = true;
     };
   }, []);
+  useEffect(() => {
+    let cancelled = false;
 
+    const fetchTrustScore = async () => {
+      try {
+        const cargoId = profileInfo?.id;
+
+        if (!cargoId) return;
+
+        const data = await getDriverTrustScore(cargoId);
+
+        if (!cancelled) {
+          setTrustData(data);
+        }
+      } catch (error) {
+        console.error("신뢰도 조회 실패:", error);
+
+        if (!cancelled) {
+          setTrustData(null);
+        }
+      }
+    };
+
+    fetchTrustScore();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [profileInfo]);
   useEffect(() => {
     let cancelled = false;
 
@@ -339,15 +398,81 @@ const ReceivedReviewInform = () => {
     setServerData(paginate(sorted, nextPageParams));
   };
 
-  const handleOpenDetailModal = (item) => {
-    setSelectedDetailReview(item);
-    setOpenDetailModal(true);
+  const openInlineReplyEditor = (item) => {
+    setEditingReplyReviewNo(item.reviewNo);
+    setInlineReplyContent(item.reply?.content || "");
   };
 
-  const handleCloseDetailModal = () => {
-    setOpenDetailModal(false);
-    setSelectedDetailReview(null);
-    setSelectedImage(null);
+  const closeInlineReplyEditor = () => {
+    setEditingReplyReviewNo(null);
+    setInlineReplyContent("");
+  };
+
+  const saveInlineReply = async (item) => {
+    if (!inlineReplyContent.trim()) {
+      showSnackbar("답글 내용을 입력하세요.", "warning");
+      return;
+    }
+
+    try {
+      if (item.reply) {
+        await modifyReviewReply(item.reviewNo, inlineReplyContent.trim());
+        showSnackbar("답글이 수정되었습니다.");
+      } else {
+        await createReviewReply(item.reviewNo, inlineReplyContent.trim());
+        showSnackbar("답글이 등록되었습니다.");
+      }
+
+      await refreshReceivedReviews();
+      closeInlineReplyEditor();
+    } catch (e) {
+      console.error("답글 저장 실패:", e);
+      showSnackbar("답글 저장에 실패했습니다.", "error");
+    }
+  };
+
+  const handleOpenDeleteReplyDialog = (item) => {
+    setDeleteReplyTarget(item);
+    setOpenDeleteReplyDialog(true);
+  };
+
+  const closeDeleteReplyDialog = () => {
+    setDeleteReplyTarget(null);
+    setOpenDeleteReplyDialog(false);
+  };
+
+  const removeInlineReply = async () => {
+    if (!deleteReplyTarget) return;
+
+    try {
+      await deleteReviewReply(deleteReplyTarget.reviewNo);
+      await refreshReceivedReviews();
+
+      setSnackbar({
+        open: true,
+        message: "답글이 삭제되었습니다.",
+        severity: "success",
+      });
+
+      closeDeleteReplyDialog();
+    } catch (e) {
+      console.error(e);
+
+      setSnackbar({
+        open: true,
+        message: "답글 삭제 실패",
+        severity: "error",
+      });
+    }
+  };
+
+
+  const refreshReceivedReviews = async () => {
+    const data = await getReceivedReviews();
+    const list = Array.isArray(data) ? data : [];
+
+    setAllReviews(list);
+    applyPagedData(list, pageParams, sortType);
   };
 
   useEffect(() => {
@@ -388,102 +513,235 @@ const ReceivedReviewInform = () => {
     applyPagedData(allReviews, pageParams, sortType);
   }, [pageParams, sortType, allReviews]);
 
-  const tableColgroup = useMemo(
-    () => (
-      <colgroup>
-        <col style={{ width: "16%" }} />
-        <col style={{ width: "12%" }} />
-        <col style={{ width: "14%" }} />
-        <col style={{ width: "10%" }} />
-        <col style={{ width: "26%" }} />
-        <col style={{ width: "12%" }} />
-        <col style={{ width: "10%" }} />
-      </colgroup>
-    ),
-    []
-  );
-
-  const renderRows = () => {
+  const renderReviewCards = () => {
     if (loading) {
       return (
-        <TableRow>
-          <TableCell colSpan={7} align="center">
-            불러오는 중...
-          </TableCell>
-        </TableRow>
+        <Paper sx={{ p: 4, textAlign: "center" }}>
+          불러오는 중...
+        </Paper>
       );
     }
 
     if (!serverData.dtoList || serverData.dtoList.length === 0) {
       return (
-        <TableRow>
-          <TableCell colSpan={7} align="center">
-            받은 리뷰가 없습니다.
-          </TableCell>
-        </TableRow>
+        <Paper sx={{ p: 4, textAlign: "center" }}>
+          받은 리뷰가 없습니다.
+        </Paper>
       );
     }
 
-    return serverData.dtoList.map((item) => {
-      const firstImage = item.images?.[0];
-      const thumbnailPath = firstImage?.thumbnailPath || firstImage?.imagePath;
+    return (
+      <Stack spacing={2}>
+        {serverData.dtoList.map((item) => {
+          const firstImage = item.images?.[0];
+          const thumbnailPath = firstImage?.thumbnailPath || firstImage?.imagePath;
 
-      return (
-        <TableRow key={item.reviewNo}>
-          <TableCell align="center">{item.cargoType || "-"}</TableCell>
-          <TableCell align="center">{item.writerId || "-"}</TableCell>
-          <TableCell align="center">
-            <Rating value={Number(item.rating) || 0} precision={0.5} readOnly />
-          </TableCell>
-          <TableCell align="center">
-            {item.images?.length > 0 ? (
-              <img
-                src={`${API_BASE}/${thumbnailPath}`}
-                alt="thumbnail"
-                onClick={() => setSelectedImage(item.images[0].imagePath)}
-                style={{
-                  width: 50,
-                  height: 50,
-                  objectFit: "cover",
-                  borderRadius: 6,
-                  border: "1px solid #ddd",
-                  cursor: "pointer",
-                }}
-              />
-            ) : (
-              "-"
-            )}
-          </TableCell>
-
-          <TableCell align="left">
-            <Box
+          return (
+            <Paper
+              key={item.reviewNo}
+              elevation={0}
               sx={{
-                maxWidth: 420,
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
+                p: { xs: 2, sm: 2.5 },
+                border: "1px solid #e5e7eb",
+                borderRadius: 2,
+                bgcolor: "#fff",
               }}
-              title={item.comment || ""}
             >
-              {item.comment || "-"}
-            </Box>
-          </TableCell>
-          <TableCell align="center">
-            {formatDateTime(item.createdAt)}
-          </TableCell>
+              {/* 상단: 작성자 / 날짜 / 별점 */}
+              <Box sx={{ display: "flex", gap: 1.5, alignItems: "center", mb: 1.5 }}>
+                <Avatar
+                  src={normalizeProfileUrl(item.writerProfileImage) || DEFAULT_AVATAR}
+                  sx={{ width: 42, height: 42 }}
+                >
+                  {item.writerName?.[0] || item.writerId?.[0]?.toUpperCase() || "U"}
+                </Avatar>
 
-          <TableCell align="center">
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={() => handleOpenDetailModal(item)}
-            >
-              상세
-            </Button>
-          </TableCell>
-        </TableRow>
-      );
-    });
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Box sx={{ display: "flex", gap: 1, alignItems: "center", flexWrap: "wrap" }}>
+                    <Typography fontWeight={700} fontSize={14}>
+                      {item.writerName || item.writerId || "작성자"}
+                    </Typography>
+
+                    <Typography fontSize={13} color="text.secondary">
+                      {formatDateTime(item.createdAt)}
+                    </Typography>
+                  </Box>
+
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                    <Rating
+                      value={Number(item.rating) || 0}
+                      precision={0.5}
+                      readOnly
+                      size="small"
+                    />
+                    <Typography fontSize={13} fontWeight={700}>
+                      {Number(item.rating || 0).toFixed(1)}
+                    </Typography>
+                  </Box>
+                </Box>
+
+              </Box>
+
+              {/* 정보 박스 */}
+              <Box
+                sx={{
+                  bgcolor: "#f3f4f6",
+                  borderRadius: 1,
+                  p: 1.5,
+                  mb: 1.5,
+                }}
+              >
+                <InfoRow label="화물명" value={item.cargoType} />
+                <InfoRow label="무게" value={item.cargoWeight} />
+                <InfoRow label="운송구간" value={`${item.startAddress || "-"} → ${item.endAddress || "-"}`} />
+                <InfoRow label="배송완료" value={formatDateTime(item.deliveryCompletedAt)} />
+              </Box>
+
+              {/* 이미지 */}
+              {thumbnailPath && (
+                <Box sx={{ mb: 1.5 }}>
+                  <img
+                    src={`${API_BASE}/${thumbnailPath}`}
+                    alt="review-thumbnail"
+                    onClick={() => setSelectedImage(firstImage.imagePath)}
+                    style={{
+                      width: 180,
+                      maxWidth: "100%",
+                      height: 180,
+                      objectFit: "cover",
+                      borderRadius: 8,
+                      border: "1px solid #ddd",
+                      cursor: "pointer",
+                    }}
+                  />
+                </Box>
+              )}
+
+              {/* 리뷰 내용 */}
+              <Typography fontSize={14} sx={{ whiteSpace: "pre-wrap", mb: 1 }}>
+                {item.comment || "-"}
+              </Typography>
+
+              {editingReplyReviewNo === item.reviewNo ? (
+                <Box sx={{ mt: 1.5 }}>
+                  <TextField
+                    fullWidth
+                    multiline
+                    minRows={3}
+                    size="small"
+                    label="차주 답글"
+                    value={inlineReplyContent}
+                    onChange={(e) => setInlineReplyContent(e.target.value)}
+                  />
+
+                  <Stack direction="row" spacing={1} justifyContent="flex-end" sx={{ mt: 1 }}>
+                    <Button size="small" onClick={closeInlineReplyEditor}>
+                      취소
+                    </Button>
+
+                    <Button
+                      size="small"
+                      variant="contained"
+                      onClick={() => saveInlineReply(item)}
+                    >
+                      {item.reply ? "수정 완료" : "등록"}
+                    </Button>
+                  </Stack>
+                </Box>
+              ) : item.reply ? (
+                <Box
+                  sx={{
+                    mt: 1.5,
+                    p: 1.5,
+                    borderRadius: 1,
+                    bgcolor: "#f8fafc",
+                    border: "1px solid #e5e7eb",
+                    position: "relative",
+                  }}
+                >
+                  <Stack direction="row" justifyContent="space-between" alignItems="center">
+                    <Stack direction="row" spacing={1.2} alignItems="flex-start">
+                      <Avatar
+                        src={normalizeProfileUrl(item.driverProfileImage) || DEFAULT_AVATAR}
+                        sx={{ width: 30, height: 30 }}
+                      >
+                        {item.driverName?.[0] || "차"}
+                      </Avatar>
+
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Stack direction="row" alignItems="center" spacing={0.5}>
+                          <Typography fontSize={13} fontWeight={700}>
+                            {item.driverName || "차주 답글"}
+                          </Typography>
+
+                          <Typography fontSize={12} color="text.secondary">
+                            · {formatDateTime(item.reply.createdAt)}
+                          </Typography>
+                        </Stack>
+
+                        <Typography fontSize={14} sx={{ whiteSpace: "pre-wrap", mt: 0.5 }}>
+                          {item.reply.content}
+                        </Typography>
+                      </Box>
+                    </Stack>
+
+                    <Stack direction="row" spacing={0.5}>
+                      <IconButton
+                        size="small"
+                        onClick={() => openInlineReplyEditor(item)}
+                        sx={{
+                          width: 28,
+                          height: 28,
+                          color: "#6b7280",
+                          "&:hover": { bgcolor: "#eef2ff", color: "#4f46e5" },
+                        }}
+                      >
+                        <EditOutlinedIcon fontSize="small" />
+                      </IconButton>
+
+                      <IconButton
+                        size="small"
+                        onClick={() => handleOpenDeleteReplyDialog(item)}
+                        sx={{
+                          width: 28,
+                          height: 28,
+                          color: "#9ca3af",
+                          "&:hover": { bgcolor: "#fef2f2", color: "#dc2626" },
+                        }}
+                      >
+                        <CloseRoundedIcon fontSize="small" />
+                      </IconButton>
+                    </Stack>
+                  </Stack>
+                </Box>
+              ) : (
+                <Button
+                  size="small"
+                  variant="outlined"
+                  startIcon={<ChatBubbleOutlineIcon />}
+                  onClick={() => openInlineReplyEditor(item)}
+                  sx={{
+                    mt: 1,
+                    borderColor: "#d1d5db",
+                    color: "#111827",
+                    bgcolor: "#fff",
+                    borderRadius: 1.5,
+                    fontWeight: 600,
+                    px: 1.5,
+                    "&:hover": {
+                      bgcolor: "#f9fafb",
+                      borderColor: "#9ca3af",
+                    },
+                  }}
+                >
+                  답글 작성
+                </Button>
+              )}
+            </Paper>
+          );
+        })}
+      </Stack>
+    );
   };
   const reviewStats = useMemo(() => {
     const stats = {
@@ -521,7 +779,6 @@ const ReceivedReviewInform = () => {
           내가 받은 리뷰
         </Typography>
 
-
         <Box sx={{ mb: 4 }}>
           <DriverProfileCard
             title="프로필"
@@ -533,7 +790,262 @@ const ReceivedReviewInform = () => {
             verifyButtonLoading={loading}
             onVerifyClick={handleVerificationClick}
           />
+
+          {trustData && (
+            <Paper
+              elevation={0}
+              sx={{
+                mt: 2,
+                p: { xs: 2.5, sm: 3 },
+                borderRadius: 4,
+                border: "1px solid #e5e7eb",
+                bgcolor: "#ffffff",
+                boxShadow: "0 12px 30px rgba(15, 23, 42, 0.06)",
+              }}
+            >
+              {/* 헤더 */}
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                  gap: 2,
+                  mb: 3,
+                }}
+              >
+                <Box>
+                  <Typography fontSize={13} color="text.secondary" fontWeight={700}>
+                    DRIVER TRUST INSIGHT
+                  </Typography>
+
+                  <Typography variant="h6" fontWeight={900}>
+                    차주 신뢰도 분석
+                  </Typography>
+
+                  <Typography fontSize={13} color="text.secondary" sx={{ mt: 0.5 }}>
+                    평점, 배송 이력, 인증 여부, 리뷰 감성을 종합해 산정한 점수입니다.
+                  </Typography>
+                </Box>
+
+                <Chip
+                  label={trustData.trustGrade}
+                  sx={{
+                    fontWeight: 800,
+                    bgcolor:
+                      trustData.trustScore >= 85
+                        ? "#ecfdf5"
+                        : trustData.trustScore >= 70
+                          ? "#eff6ff"
+                          : trustData.trustScore >= 50
+                            ? "#fffbeb"
+                            : "#fef2f2",
+                    color:
+                      trustData.trustScore >= 85
+                        ? "#047857"
+                        : trustData.trustScore >= 70
+                          ? "#1d4ed8"
+                          : trustData.trustScore >= 50
+                            ? "#b45309"
+                            : "#b91c1c",
+                  }}
+                />
+              </Box>
+
+              {/* 상단 핵심 지표 */}
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: { xs: "1fr", md: "1.2fr 2fr" },
+                  gap: 2.5,
+                }}
+              >
+                {/* 점수 메인 카드 */}
+                <Box
+                  sx={{
+                    p: 2.5,
+                    borderRadius: 3,
+                    background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
+                    color: "#fff",
+                  }}
+                >
+                  <Typography fontSize={13} sx={{ color: "#cbd5e1" }}>
+                    종합 신뢰 점수
+                  </Typography>
+
+                  <Box sx={{ display: "flex", alignItems: "flex-end", gap: 0.5, mt: 1 }}>
+                    <Typography fontSize={48} fontWeight={900} lineHeight={1}>
+                      {trustData.trustScore}
+                    </Typography>
+                    <Typography fontSize={18} fontWeight={800} sx={{ mb: 0.5 }}>
+                      / 100
+                    </Typography>
+                  </Box>
+
+                  <LinearProgress
+                    variant="determinate"
+                    value={Math.min(Number(trustData.trustScore) || 0, 100)}
+                    sx={{
+                      mt: 2,
+                      height: 9,
+                      borderRadius: 999,
+                      bgcolor: "rgba(255,255,255,0.18)",
+                      "& .MuiLinearProgress-bar": {
+                        borderRadius: 999,
+                        bgcolor:
+                          trustData.trustScore >= 85
+                            ? "#34d399"
+                            : trustData.trustScore >= 70
+                              ? "#60a5fa"
+                              : trustData.trustScore >= 50
+                                ? "#fbbf24"
+                                : "#f87171",
+                      },
+                    }}
+                  />
+
+                  <Typography fontSize={13} sx={{ mt: 1.5, color: "#cbd5e1" }}>
+                    현재 등급은 <b style={{ color: "#fff" }}>{trustData.trustGrade}</b> 입니다.
+                  </Typography>
+                </Box>
+
+                {/* 요약 카드 4개 */}
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: { xs: "1fr 1fr", sm: "repeat(4, 1fr)" },
+                    gap: 1.5,
+                  }}
+                >
+                  {[
+                    ["평균 평점", `${trustData.averageRating ?? 0}`, "5점 만점"],
+                    ["배송 완료", `${trustData.completedDeliveryCount ?? 0}건`, "완료 이력"],
+                    ["리뷰 수", `${trustData.reviewCount ?? 0}개`, "누적 리뷰"],
+                    ["본인 인증", trustData.verified ? "완료" : "미완료", "신원 확인"],
+                  ].map(([label, value, sub]) => (
+                    <Box
+                      key={label}
+                      sx={{
+                        p: 2,
+                        borderRadius: 3,
+                        bgcolor: "#f8fafc",
+                        border: "1px solid #e5e7eb",
+                      }}
+                    >
+                      <Typography fontSize={12} color="text.secondary" fontWeight={700}>
+                        {label}
+                      </Typography>
+                      <Typography fontSize={22} fontWeight={900} sx={{ mt: 0.5 }}>
+                        {value}
+                      </Typography>
+                      <Typography fontSize={12} color="text.secondary">
+                        {sub}
+                      </Typography>
+                    </Box>
+                  ))}
+                </Box>
+              </Box>
+
+              <Divider sx={{ my: 3 }} />
+
+              {/* 점수 산정 근거 + 감성 분석 */}
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: { xs: "1fr", md: "1.2fr 1fr" },
+                  gap: 2.5,
+                }}
+              >
+                {/* 점수 breakdown */}
+                <Box>
+                  <Typography fontWeight={900} sx={{ mb: 1.5 }}>
+                    점수 산정 근거
+                  </Typography>
+
+                  {[
+                    ["평점 점수", trustData.ratingScore, 40],
+                    ["리뷰 경험", trustData.reviewScore, 15],
+                    ["배송 경험", trustData.deliveryScore, 20],
+                    ["감성 분석", trustData.sentimentScore, 15],
+                    ["본인 인증", trustData.verifiedScore, 10],
+                  ].map(([label, score, max]) => {
+                    const value = Math.min(((Number(score) || 0) / max) * 100, 100);
+
+                    return (
+                      <Box key={label} sx={{ mb: 1.6 }}>
+                        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
+                          <Typography fontSize={13} color="text.secondary" fontWeight={700}>
+                            {label}
+                          </Typography>
+                          <Typography fontSize={13} fontWeight={900}>
+                            +{score ?? 0} / {max}
+                          </Typography>
+                        </Box>
+
+                        <LinearProgress
+                          variant="determinate"
+                          value={value}
+                          sx={{
+                            height: 8,
+                            borderRadius: 999,
+                            bgcolor: "#eef2f7",
+                            "& .MuiLinearProgress-bar": {
+                              borderRadius: 999,
+                              background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
+                            },
+                          }}
+                        />
+                      </Box>
+                    );
+                  })}
+                </Box>
+
+                {/* 리뷰 감성 분석 */}
+                <Box
+                  sx={{
+                    p: 2,
+                    borderRadius: 3,
+                    bgcolor: "#f8fafc",
+                    border: "1px solid #e5e7eb",
+                  }}
+                >
+                  <Typography fontWeight={900} sx={{ mb: 1.5 }}>
+                    리뷰 감성 분석
+                  </Typography>
+
+                  <Stack spacing={1.2}>
+                    <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                      <Typography fontSize={14} color="success.main" fontWeight={800}>
+                        긍정 리뷰
+                      </Typography>
+                      <Typography fontSize={14} fontWeight={900}>
+                        {trustData.positiveReviewCount ?? 0}개
+                      </Typography>
+                    </Box>
+
+                    <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                      <Typography fontSize={14} color="text.secondary" fontWeight={800}>
+                        중립 리뷰
+                      </Typography>
+                      <Typography fontSize={14} fontWeight={900}>
+                        {trustData.neutralReviewCount ?? 0}개
+                      </Typography>
+                    </Box>
+
+                    <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                      <Typography fontSize={14} color="error.main" fontWeight={800}>
+                        부정 리뷰
+                      </Typography>
+                      <Typography fontSize={14} fontWeight={900}>
+                        {trustData.negativeReviewCount ?? 0}개
+                      </Typography>
+                    </Box>
+                  </Stack>
+                </Box>
+              </Box>
+            </Paper>
+          )}
         </Box>
+
         <Box mt={6}>
           <Typography variant="h6" fontWeight="bold" gutterBottom>
 
@@ -557,143 +1069,24 @@ const ReceivedReviewInform = () => {
               </Select>
             </FormControl>
           </Box>
-          <TableContainer
-            component={Paper}
-            elevation={1}
-            sx={{ height: 470, position: "relative", pb: 0 }}
-          >
-            <Table sx={{ "& .MuiTableCell-root": { height: 60, py: 0 } }}>
-              {tableColgroup}
-              <TableHead>
-                <TableRow>
-
-                  <TableCell align="center">화물명</TableCell>
-                  <TableCell align="center">작성자</TableCell>
-                  <TableCell align="center">별점</TableCell>
-                  <TableCell align="center">사진</TableCell>
-                  <TableCell align="center">리뷰 내용</TableCell>
-                  <TableCell align="center">작성일</TableCell>
-                  <TableCell align="center">상세</TableCell>
-                </TableRow>
-              </TableHead>
-
-              <TableBody>{renderRows()}</TableBody>
-            </Table>
+          <Box>
+            {renderReviewCards()}
 
             <Box
               sx={{
-                position: "absolute",
-                left: 0,
-                right: 0,
-                bottom: 0,
+                mt: 2,
                 py: 1.5,
                 display: "flex",
                 justifyContent: "center",
-                bgcolor: "background.paper",
+                bgcolor: "transparent",
               }}
             >
               <PageComponent serverData={serverData} movePage={movePage} />
             </Box>
-          </TableContainer>
+          </Box>
         </Box>
       </Container>
 
-      <Dialog
-        open={openDetailModal}
-        onClose={handleCloseDetailModal}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>받은 리뷰 상세보기</DialogTitle>
-
-        <DialogContent>
-          <Typography variant="body2" sx={{ mb: 1 }}>
-            <strong>화물명:</strong> {selectedDetailReview?.cargoType || "-"}
-          </Typography>
-
-          <Typography variant="body2" sx={{ mb: 1 }}>
-            <strong>무게:</strong> {selectedDetailReview?.cargoWeight || "-"}
-          </Typography>
-
-          <Typography variant="body2" sx={{ mb: 1 }}>
-            <strong>출발지:</strong> {selectedDetailReview?.startAddress || "-"}
-          </Typography>
-
-          <Typography variant="body2" sx={{ mb: 1 }}>
-            <strong>도착지:</strong> {selectedDetailReview?.endAddress || "-"}
-          </Typography>
-
-          <Typography variant="body2" sx={{ mb: 1 }}>
-            <strong>배송 완료일:</strong> {formatDateTime(selectedDetailReview?.deliveryCompletedAt)}
-          </Typography>
-
-          <Typography variant="body2" sx={{ mb: 2 }}>
-            <strong>작성자:</strong> {selectedDetailReview?.writerId || "-"}
-          </Typography>
-
-          <Typography variant="body2" sx={{ mb: 2 }}>
-            <strong>상태:</strong>{" "}
-            {selectedDetailReview?.deliveryStatus === "COMPLETED"
-              ? "배송 완료"
-              : selectedDetailReview?.deliveryStatus === "IN_TRANSIT"
-                ? "배송 중"
-                : selectedDetailReview?.deliveryStatus === "PENDING"
-                  ? "대기"
-                  : "-"}
-          </Typography>
-
-          <Typography gutterBottom>별점</Typography>
-          <Rating
-            value={Number(selectedDetailReview?.rating) || 0}
-            precision={0.5}
-            readOnly
-          />
-
-          <Typography variant="body2" sx={{ mt: 3, mb: 1 }}>
-            <strong>작성일:</strong> {formatDateTime(selectedDetailReview?.createdAt)}
-          </Typography>
-
-          <TextField
-            fullWidth
-            multiline
-            rows={5}
-            label="리뷰 내용"
-            value={selectedDetailReview?.comment || ""}
-            InputProps={{ readOnly: true }}
-            sx={{ mt: 2 }}
-          />
-          {selectedDetailReview?.images?.length > 0 && (
-            <Box sx={{ mt: 3 }}>
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                첨부 사진
-              </Typography>
-
-              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-                {selectedDetailReview.images.map((img) => (
-                  <img
-                    key={img.reviewImageNo}
-                    src={`http://localhost:8080/${img.imagePath}`}
-                    alt="review"
-                    onClick={() => setSelectedImage(img.imagePath)}
-                    style={{
-                      width: 120,
-                      height: 120,
-                      objectFit: "cover",
-                      borderRadius: 8,
-                      border: "1px solid #ddd",
-                      cursor: "pointer",
-                    }}
-                  />
-                ))}
-              </Box>
-            </Box>
-          )}
-        </DialogContent>
-
-        <DialogActions>
-          <Button onClick={handleCloseDetailModal}>닫기</Button>
-        </DialogActions>
-      </Dialog>
       <Dialog
         open={!!selectedImage}
         onClose={() => setSelectedImage(null)}
@@ -720,6 +1113,43 @@ const ReceivedReviewInform = () => {
           <Button onClick={() => setSelectedImage(null)}>닫기</Button>
         </DialogActions>
       </Dialog>
+      <Dialog
+        open={openDeleteReplyDialog}
+        onClose={closeDeleteReplyDialog}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>답글 삭제</DialogTitle>
+
+        <DialogContent>
+          <Typography fontSize={14}>
+            이 답글을 삭제할까요? 삭제하면 복구할 수 없습니다.
+          </Typography>
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={closeDeleteReplyDialog}>취소</Button>
+
+          <Button color="error" variant="contained" onClick={removeInlineReply}>
+            삭제
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={2500}
+        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          severity={snackbar.severity}
+          variant="filled"
+          onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

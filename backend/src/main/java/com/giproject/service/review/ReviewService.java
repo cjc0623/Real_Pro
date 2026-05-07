@@ -1,10 +1,13 @@
 package com.giproject.service.review;
 
+import com.giproject.dto.review.DriverTrustScoreDTO;
+import com.giproject.dto.review.ReviewReplyDTO;
+import com.giproject.dto.review.ReviewReplyRequest;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.transaction.annotation.Transactional;
+
 
 import com.giproject.dto.review.DriverDetailDTO;
 import com.giproject.dto.review.DriverProfileCardDTO;
@@ -17,8 +20,11 @@ import com.giproject.dto.review.ReviewSummaryDTO;
 
 
 public interface ReviewService {
+	//신뢰도 점수
+	DriverTrustScoreDTO getDriverTrustScore(String cargoId);
+	
 	//등록(create) + 다중 사진 첨부
-	Long register(ReviewCreateRequest request);
+	Long register(ReviewCreateRequest request, String loginId);
 	
 	//리뷰 상세+사진
 	ReviewDTO getByReviewNo(Long reviewNo);
@@ -57,5 +63,19 @@ public interface ReviewService {
 	DriverProfileCardDTO getDriverProfileCard(String cargoId);
 	
 	DriverDetailDTO getDriverDetail(String cargoId);
+	
+	// 차주 댓글 작성
+	ReviewReplyDTO createReply(Long reviewNo, ReviewReplyRequest request, String cargoOwnerId);
+
+	// 차주 댓글 수정
+	ReviewReplyDTO modifyReply(Long reviewNo, ReviewReplyRequest request, String cargoOwnerId);
+
+	// 차주 댓글 삭제
+	void removeReply(Long reviewNo, String cargoOwnerId);
+
+	// 리뷰 댓글 조회
+	ReviewReplyDTO getReplyByReviewNo(Long reviewNo);
+	
+	
 }
 	 
