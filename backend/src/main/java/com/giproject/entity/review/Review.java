@@ -55,5 +55,10 @@ public class Review {
     public void changeComment(String comment) {
         this.comment = comment;
     }
+    @Column(name = "writer_member_id", nullable = false)
+    private String writerMemberId;
+
+    @Column(name = "target_cargo_id", nullable = false)
+    private String targetCargoId;
     
 }

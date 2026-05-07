@@ -14,6 +14,8 @@ import java.util.Optional;
 
 public interface DeliveryRepository extends JpaRepository<Delivery, Long> {
 
+	long countByCargoOwner_CargoIdAndStatus(String cargoId, DeliveryStatus status);
+	
     @Query("SELECT FUNCTION('DATE_FORMAT', d.completTime, '%Y-%m'), COUNT(d) FROM Delivery d GROUP BY FUNCTION('DATE_FORMAT', d.completTime, '%Y-%m')")
     List<Object[]> findMonthlyDeliveries();
 

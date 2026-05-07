@@ -21,30 +21,25 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 	Optional<Review> findByDeliveryNo(Long deliveryNo);
 
 	List<Review> findAllByOrderByCreatedAtDesc();
+	
 
+	//신뢰도 전용 
+	List<Review> findByTargetCargoId(String targetCargoId);
+	
 	// 리뷰 작성자 memId 찾기
 	@Query("""
-			    select e.member.memId
-			    from Review r, Delivery d
-			    join d.payment p
-			    join p.orderSheet os
-			    join os.matching m
-			    join m.estimate e
-			    where r.reviewNo = :reviewNo
-			      and r.deliveryNo = d.deliveryNo
-			""")
+	        SELECT r.writerMemberId
+	        FROM Review r
+	        WHERE r.reviewNo = :reviewNo
+	        """)
 	Optional<String> findWriterMemIdByReviewNo(@Param("reviewNo") Long reviewNo);
 
 	// 리뷰의 cargoId 찾기
 	@Query("""
-			    select m.cargoOwner.cargoId
-			    from Review r, Delivery d
-			    join d.payment p
-			    join p.orderSheet os
-			    join os.matching m
-			    where r.reviewNo = :reviewNo
-			      and r.deliveryNo = d.deliveryNo
-			""")
+	        SELECT r.targetCargoId
+	        FROM Review r
+	        WHERE r.reviewNo = :reviewNo
+	        """)
 	Optional<String> findTargetCargoIdByReviewNo(@Param("reviewNo") Long reviewNo);
 
 	@Query("""
@@ -109,7 +104,12 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 			    d.completTime,
 			    m.cargoOwner.cargoName,
 			    d.status,
-			    e.member.memId
+			    e.member.memId,
+			    e.member.memName,
+			    e.member.profileImage,
+				m.cargoOwner.cargoId,
+				m.cargoOwner.profileImage
+			    
 			)
 			FROM Review r
 			JOIN Delivery d ON r.deliveryNo = d.deliveryNo
@@ -117,7 +117,7 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 			JOIN p.orderSheet os
 			JOIN os.matching m
 			JOIN m.estimate e
-			WHERE e.member.memId = :memId
+			WHERE r.writerMemberId = :memId
 			ORDER BY r.createdAt DESC
 			""")
 	List<MyReviewListDTO> findMyReviewsByWriterMemId(@Param("memId") String memId);
@@ -136,7 +136,11 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 			    d.completTime,
 			    m.cargoOwner.cargoName,
 			    d.status,
-			    e.member.memId
+			    e.member.memId,
+			    e.member.memName,
+				e.member.profileImage,
+				m.cargoOwner.cargoId,
+				m.cargoOwner.profileImage
 			)
 			FROM Review r
 			JOIN Delivery d ON r.deliveryNo = d.deliveryNo
@@ -144,37 +148,38 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 			JOIN p.orderSheet os
 			JOIN os.matching m
 			JOIN m.estimate e
-			WHERE m.cargoOwner.cargoId = :cargoId
+			WHERE r.targetCargoId = :cargoId
 			ORDER BY r.createdAt DESC
 			""")
 	List<MyReviewListDTO> findReceivedReviewsByCargoId(@Param("cargoId") String cargoId);
 	
 	@Query("""
-		    SELECT new com.giproject.dto.review.MyReviewWithDriverIdDTO(
-		        r.reviewNo,
-		        r.deliveryNo,
-		        r.rating,
-		        r.comment,
-		        r.createdAt,
-		        e.cargoType,
-		        e.cargoWeight,
-		        e.startAddress,
-		        e.endAddress,
-		        d.completTime,
-		        m.cargoOwner.cargoId,
-		        m.cargoOwner.cargoName,
-		        d.status,
-		        e.member.memId
-		    )
-		    FROM Review r
-		    JOIN Delivery d ON r.deliveryNo = d.deliveryNo
-		    JOIN d.payment p
-		    JOIN p.orderSheet os
-		    JOIN os.matching m
-		    JOIN m.estimate e
-		    WHERE e.member.memId = :memId
-		    ORDER BY r.createdAt DESC
-		    """)
+			SELECT new com.giproject.dto.review.MyReviewWithDriverIdDTO(
+			    r.reviewNo,
+			    r.deliveryNo,
+			    r.rating,
+			    r.comment,
+			    r.createdAt,
+			    e.cargoType,
+			    e.cargoWeight,
+			    e.startAddress,
+			    e.endAddress,
+			    d.completTime,
+			    m.cargoOwner.cargoId,
+				m.cargoOwner.cargoName,
+				m.cargoOwner.profileImage,
+				d.status,
+				e.member.memId      
+			)
+			FROM Review r
+			JOIN Delivery d ON r.deliveryNo = d.deliveryNo
+			JOIN d.payment p
+			JOIN p.orderSheet os
+			JOIN os.matching m
+			JOIN m.estimate e
+			WHERE r.writerMemberId = :memId
+			ORDER BY r.createdAt DESC
+			""")
 		List<MyReviewWithDriverIdDTO> findMyReviewsWithDriverIdByWriterMemId(@Param("memId") String memId);
 
 	
