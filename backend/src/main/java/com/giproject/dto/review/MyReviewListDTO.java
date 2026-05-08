@@ -5,8 +5,6 @@ import java.util.List;
 
 import com.giproject.entity.delivery.DeliveryStatus;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -31,6 +29,11 @@ public class MyReviewListDTO {
     private DeliveryStatus deliveryStatus;
 
     private String writerId;
+    private String writerName;
+    private String writerProfileImage;
+
+    private String driverId;
+    private String driverProfileImage;
 
     private List<ReviewImageDTO> images;
 
@@ -47,7 +50,11 @@ public class MyReviewListDTO {
             LocalDateTime deliveryCompletedAt,
             String driverName,
             DeliveryStatus deliveryStatus,
-            String writerId) {
+            String writerId,
+            String writerName,
+            String writerProfileImage,
+            String driverId,
+            String driverProfileImage) {
         this.reviewNo = reviewNo;
         this.deliveryNo = deliveryNo;
         this.rating = rating;
@@ -61,5 +68,10 @@ public class MyReviewListDTO {
         this.driverName = driverName;
         this.deliveryStatus = deliveryStatus;
         this.writerId = writerId;
+        this.writerName = writerName;
+        this.writerProfileImage = writerProfileImage;
+        this.driverId = driverId;
+        this.driverProfileImage = driverProfileImage;
     }
+    private ReviewReplyDTO reply;
 }

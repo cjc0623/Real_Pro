@@ -27,6 +27,8 @@ public class MyReviewWithDriverIdDTO {
 
     private String driverId;
     private String driverName;
+    
+    private String driverProfileImage;
 
     private DeliveryStatus deliveryStatus;
     private String writerId;
@@ -45,6 +47,7 @@ public class MyReviewWithDriverIdDTO {
             LocalDateTime deliveryCompletedAt,
             String driverId,
             String driverName,
+            String driverProfileImage,
             DeliveryStatus deliveryStatus,
             String writerId) {
         this.reviewNo = reviewNo;
@@ -59,7 +62,9 @@ public class MyReviewWithDriverIdDTO {
         this.deliveryCompletedAt = deliveryCompletedAt;
         this.driverId = driverId;
         this.driverName = driverName;
+        this.driverProfileImage = driverProfileImage;
         this.deliveryStatus = deliveryStatus;
         this.writerId = writerId;
     }
+    private ReviewReplyDTO reply;
 }

@@ -1,8 +1,10 @@
 package com.giproject.service.review;
 
+
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -18,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.giproject.dto.review.DriverDetailDTO;
 import com.giproject.dto.review.DriverProfileCardDTO;
+import com.giproject.dto.review.DriverTrustScoreDTO;
 import com.giproject.dto.review.MyReviewListDTO;
 import com.giproject.dto.review.MyReviewWithDriverIdDTO;
 import com.giproject.dto.review.ReviewCreateRequest;
@@ -32,6 +35,10 @@ import com.giproject.entity.review.ReviewImage;
 import com.giproject.repository.delivery.DeliveryRepository;
 import com.giproject.repository.review.ReviewImageRepository;
 import com.giproject.repository.review.ReviewRepository;
+import com.giproject.dto.review.ReviewReplyDTO;
+import com.giproject.dto.review.ReviewReplyRequest;
+import com.giproject.entity.review.ReviewReply;
+import com.giproject.repository.review.ReviewReplyRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -42,15 +49,17 @@ import net.coobird.thumbnailator.Thumbnails;
 @RequiredArgsConstructor
 @Log4j2
 public class ReviewServiceImpl implements ReviewService {
-
+	private final ReviewReplyRepository reviewReplyRepository;
     private final ReviewRepository reviewRepository;
     private final DeliveryRepository deliveryRepository;
     private final ReviewImageRepository reviewImageRepository;
     @Value("${com.fullstack.upload.path}")
     private String uploadPath;
 
+    
+    
     @Override
-    public Long register(ReviewCreateRequest request) {
+    public Long register(ReviewCreateRequest request, String loginId) {
 
         //필수값 검증
         if (request.getDeliveryNo() == null) {
@@ -90,6 +99,8 @@ public class ReviewServiceImpl implements ReviewService {
         //저장
         Review review = Review.builder()
                 .deliveryNo(request.getDeliveryNo())
+                .writerMemberId(loginId)
+                .targetCargoId(delivery.getCargoOwner().getCargoId())
                 .rating(rating)
                 .comment(request.getComment())
                 .build();
@@ -248,6 +259,7 @@ public class ReviewServiceImpl implements ReviewService {
 	            .orElseThrow(() -> new IllegalStateException("삭제할 리뷰가 존재하지 않습니다."));
 
 	    if (isAdmin) {
+	    	reviewReplyRepository.deleteByReview_ReviewNo(reviewNo);
 	        deleteAllReviewImageFiles(review);
 	        reviewRepository.delete(review);
 	        return;
@@ -259,7 +271,7 @@ public class ReviewServiceImpl implements ReviewService {
 	    if (!writerMemId.equals(loginId)) {
 	        throw new IllegalStateException("본인이 작성한 리뷰만 삭제할 수 있습니다.");
 	    }
-
+	    reviewReplyRepository.deleteByReview_ReviewNo(reviewNo);
 	    deleteAllReviewImageFiles(review);
 	    reviewRepository.delete(review);
 	}
@@ -405,7 +417,45 @@ public class ReviewServiceImpl implements ReviewService {
 	@Override
 	@Transactional(readOnly = true)
 	public List<MyReviewListDTO> getMyReviews(String memId) {
-	    return reviewRepository.findMyReviewsByWriterMemId(memId);
+		List<MyReviewListDTO> list = reviewRepository.findMyReviewsByWriterMemId(memId);
+
+		if (list.isEmpty()) {
+		    return list;
+		}
+
+		List<Long> reviewNos = list.stream()
+		        .map(MyReviewListDTO::getReviewNo)
+		        .toList();
+
+		List<ReviewImage> allImages = reviewImageRepository.findAllByReviewNos(reviewNos);
+
+		Map<Long, List<ReviewImageDTO>> imageMap = allImages.stream()
+		        .collect(Collectors.groupingBy(
+		                image -> image.getReview().getReviewNo(),
+		                Collectors.mapping(
+		                        image -> ReviewImageDTO.builder()
+		                                .reviewImageNo(image.getReviewImageNo())
+		                                .imagePath(image.getImagePath())
+		                                .thumbnailPath(image.getThumbnailPath())
+		                                .build(),
+		                        Collectors.toList()
+		                )
+		        ));
+
+		List<ReviewReply> replies = reviewReplyRepository.findByReviewNos(reviewNos);
+
+		Map<Long, ReviewReplyDTO> replyMap = replies.stream()
+		        .collect(Collectors.toMap(
+		                r -> r.getReview().getReviewNo(),
+		                this::replyToDTO
+		        ));
+
+		list.forEach(dto -> {
+		    dto.setImages(imageMap.getOrDefault(dto.getReviewNo(), List.of()));
+		    dto.setReply(replyMap.get(dto.getReviewNo()));
+		});
+
+		return list;
 	}
 	@Override
 	@Transactional(readOnly = true)
@@ -429,14 +479,24 @@ public class ReviewServiceImpl implements ReviewService {
 	                            image -> ReviewImageDTO.builder()
 	                                    .reviewImageNo(image.getReviewImageNo())
 	                                    .imagePath(image.getImagePath())
+	                                    .thumbnailPath(image.getThumbnailPath())
 	                                    .build(),
 	                            Collectors.toList()
 	                    )
 	            ));
 
-	    list.forEach(dto ->
-	            dto.setImages(imageMap.getOrDefault(dto.getReviewNo(), List.of()))
-	    );
+	    List<ReviewReply> replies = reviewReplyRepository.findByReviewNos(reviewNos);
+
+	    Map<Long, ReviewReplyDTO> replyMap = replies.stream()
+	            .collect(Collectors.toMap(
+	                    r -> r.getReview().getReviewNo(),
+	                    this::replyToDTO
+	            ));
+
+	    list.forEach(dto -> {
+	        dto.setImages(imageMap.getOrDefault(dto.getReviewNo(), List.of()));
+	        dto.setReply(replyMap.get(dto.getReviewNo()));
+	    });
 
 	    return list;
 	}
@@ -464,15 +524,24 @@ public class ReviewServiceImpl implements ReviewService {
 	                            image -> ReviewImageDTO.builder()
 	                                    .reviewImageNo(image.getReviewImageNo())
 	                                    .imagePath(image.getImagePath())
+	                                    .thumbnailPath(image.getThumbnailPath())
 	                                    .build(),
 	                            Collectors.toList()
 	                    )
 	            ));
 
-	    list.forEach(dto ->
-	            dto.setImages(imageMap.getOrDefault(dto.getReviewNo(), List.of()))
-	    );
+	    List<ReviewReply> replies = reviewReplyRepository.findByReviewNos(reviewNos);
 
+	    Map<Long, ReviewReplyDTO> replyMap = replies.stream()
+	            .collect(Collectors.toMap(
+	                    r -> r.getReview().getReviewNo(),
+	                    this::replyToDTO
+	            ));
+
+	    list.forEach(dto -> {
+	        dto.setImages(imageMap.getOrDefault(dto.getReviewNo(), List.of()));
+	        dto.setReply(replyMap.get(dto.getReviewNo()));
+	    });
 	    return list;
 	}
 
@@ -498,7 +567,8 @@ public class ReviewServiceImpl implements ReviewService {
 	@Override
 	public DriverDetailDTO getDriverDetail(String cargoId) {
 	    DriverProfileCardDTO profile = getDriverProfileCard(cargoId);
-	    List<MyReviewListDTO> reviews = reviewRepository.findReceivedReviewsByCargoId(cargoId);
+	    
+	    List<MyReviewListDTO> reviews = getReceivedReviews(cargoId);
 
 	    return DriverDetailDTO.builder()
 	            .profile(profile)
@@ -513,7 +583,257 @@ public class ReviewServiceImpl implements ReviewService {
 
 	    return entityToDTO(review);
 	}
+	@Override
+	public ReviewReplyDTO createReply(Long reviewNo, ReviewReplyRequest request, String cargoOwnerId) {
+
+	    Review review = reviewRepository.findById(reviewNo)
+	            .orElseThrow(() -> new IllegalStateException("리뷰가 존재하지 않습니다."));
+
+	    if (!review.getTargetCargoId().equals(cargoOwnerId)) {
+	        throw new IllegalStateException("본인에게 작성된 리뷰에만 댓글을 작성할 수 있습니다.");
+	    }
+
+	    if (reviewReplyRepository.existsByReview_ReviewNo(reviewNo)) {
+	        throw new IllegalStateException("이미 댓글이 작성된 리뷰입니다.");
+	    }
+
+	    if (request.getContent() == null || request.getContent().isBlank()) {
+	        throw new IllegalArgumentException("댓글 내용을 입력해주세요.");
+	    }
+
+	    ReviewReply reply = ReviewReply.builder()
+	            .review(review)
+	            .cargoOwnerId(cargoOwnerId)
+	            .content(request.getContent())
+	            .createdAt(LocalDateTime.now())
+	            .build();
+
+	    ReviewReply savedReply = reviewReplyRepository.save(reply);
+
+	    return replyToDTO(savedReply);
+	}
+
+	@Override
+	public ReviewReplyDTO modifyReply(Long reviewNo, ReviewReplyRequest request, String cargoOwnerId) {
+
+	    ReviewReply reply = reviewReplyRepository.findByReview_ReviewNo(reviewNo)
+	            .orElseThrow(() -> new IllegalStateException("댓글이 존재하지 않습니다."));
+
+	    if (!reply.getCargoOwnerId().equals(cargoOwnerId)) {
+	        throw new IllegalStateException("본인이 작성한 댓글만 수정할 수 있습니다.");
+	    }
+
+	    if (request.getContent() == null || request.getContent().isBlank()) {
+	        throw new IllegalArgumentException("댓글 내용을 입력해주세요.");
+	    }
+
+	    reply.setContent(request.getContent());
+	    reply.setUpdatedAt(LocalDateTime.now());
+
+	    return replyToDTO(reply);
+	}
+
+	@Override
+	public void removeReply(Long reviewNo, String cargoOwnerId) {
+
+	    ReviewReply reply = reviewReplyRepository.findByReview_ReviewNo(reviewNo)
+	            .orElseThrow(() -> new IllegalStateException("댓글이 존재하지 않습니다."));
+
+	    if (!reply.getCargoOwnerId().equals(cargoOwnerId)) {
+	        throw new IllegalStateException("본인이 작성한 댓글만 삭제할 수 있습니다.");
+	    }
+
+	    reviewReplyRepository.delete(reply);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public ReviewReplyDTO getReplyByReviewNo(Long reviewNo) {
+
+	    return reviewReplyRepository.findByReview_ReviewNo(reviewNo)
+	            .map(this::replyToDTO)
+	            .orElse(null);
+	}
+
+	private ReviewReplyDTO replyToDTO(ReviewReply reply) {
+	    return ReviewReplyDTO.builder()
+	            .replyNo(reply.getReplyNo())
+	            .reviewNo(reply.getReview().getReviewNo())
+	            .cargoOwnerId(reply.getCargoOwnerId())
+	            .content(reply.getContent())
+	            .createdAt(reply.getCreatedAt())
+	            .updatedAt(reply.getUpdatedAt())
+	            .build();
+	}
 	
+	//신뢰도 점수
+	@Override
+	@Transactional(readOnly = true)
+	public DriverTrustScoreDTO getDriverTrustScore(String cargoId) {
 
+	    List<Review> reviews = reviewRepository.findByTargetCargoId(cargoId);
 
+	    long reviewCount = reviews.size();
+
+	    BigDecimal averageRating = reviews.stream()
+	            .map(Review::getRating)
+	            .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+	    if (reviewCount > 0) {
+	        averageRating = averageRating.divide(
+	                BigDecimal.valueOf(reviewCount),
+	                1,
+	                java.math.RoundingMode.HALF_UP
+	        );
+	    }
+
+	    Map<String, Long> sentimentMap = reviews.stream()
+	            .collect(Collectors.groupingBy(
+	                    review -> analyzeSentiment(review.getComment()),
+	                    Collectors.counting()
+	            ));
+
+	    long positiveCount = sentimentMap.getOrDefault("POSITIVE", 0L);
+	    long negativeCount = sentimentMap.getOrDefault("NEGATIVE", 0L);
+	    long neutralCount = sentimentMap.getOrDefault("NEUTRAL", 0L);
+
+	    long completedDeliveryCount =
+	            deliveryRepository.countByCargoOwner_CargoIdAndStatus(
+	                    cargoId,
+	                    DeliveryStatus.COMPLETED
+	            );
+
+	    DriverProfileCardDTO profile = getDriverProfileCard(cargoId);
+	    boolean verified = Boolean.TRUE.equals(profile.getIsVerified());
+
+	    int ratingScore = calculateRatingScore(averageRating);
+	    int reviewScore = calculateReviewScore(reviewCount);
+	    int deliveryScore = calculateDeliveryScore(completedDeliveryCount);
+	    int verifiedScore = verified ? 10 : 0;
+	    int sentimentScore = calculateSentimentScore(
+	            reviewCount,
+	            positiveCount,
+	            negativeCount
+	    );
+	    
+	    int trustScore =
+	            ratingScore
+	            + reviewScore
+	            + deliveryScore
+	            + verifiedScore
+	            + sentimentScore;
+
+	    trustScore = Math.max(0, Math.min(trustScore, 100));
+
+	    return DriverTrustScoreDTO.builder()
+	            .cargoId(cargoId)
+	            .trustScore(trustScore)
+	            .trustGrade(toTrustGrade(trustScore))
+	            .averageRating(averageRating)
+	            .reviewCount(reviewCount)
+	            .positiveReviewCount(positiveCount)
+	            .neutralReviewCount(neutralCount)
+	            .negativeReviewCount(negativeCount)
+	            .completedDeliveryCount(completedDeliveryCount)
+	            .verified(verified)
+	            .ratingScore(ratingScore)
+	            .reviewScore(reviewScore)
+	            .deliveryScore(deliveryScore)
+	            .sentimentScore(sentimentScore)
+	            .verifiedScore(verifiedScore)
+	            .build();
+	}
+	private String analyzeSentiment(String comment) {
+	    if (comment == null || comment.isBlank()) {
+	        return "NEUTRAL";
+	    }
+
+	    String text = comment
+	            .toLowerCase()
+	            .replaceAll("\\s+", "");
+
+	    List<String> positiveKeywords = List.of(
+	            "친절", "빠름", "빨라", "정확", "안전", "만족", "좋",
+	            "추천", "깔끔", "최고", "완벽", "신속", "믿음", "믿을",
+	            "책임감", "프로", "정시", "안심", "감사", "편함",
+	            "꼼꼼", "성실", "원활", "빠르게", "잘해",
+	            "문제없이", "약속", "시간맞"
+	    );
+
+	    List<String> negativeKeywords = List.of(
+	            "늦", "지연", "불친절", "파손", "연락안",
+	            "불만", "최악", "별로", "문제", "위험", "느림",
+	            "불안", "짜증", "실망", "대충", "불편", "화남",
+	            "손상", "깨짐", "누락", "미흡", "답답", "시간안",
+	            "약속안"
+	    );
+
+	    boolean hasPositive = positiveKeywords.stream().anyMatch(text::contains);
+	    boolean hasNegative = negativeKeywords.stream().anyMatch(text::contains);
+
+	    /*
+	     * 부정 키워드가 하나라도 있으면 부정으로 우선 판정.
+	     * 예: "빠른 배송이었지만 물건이 파손됨"
+	     */
+	    if (hasNegative) {
+	        return "NEGATIVE";
+	    }
+
+	    if (hasPositive) {
+	        return "POSITIVE";
+	    }
+
+	    return "NEUTRAL";
+	}
+	
+	private int calculateRatingScore(BigDecimal averageRating) {
+	    if (averageRating == null) {
+	        return 0;
+	    }
+
+	    // 평균 평점 0.0 ~ 5.0 → 최대 40점
+	    return averageRating
+	            .multiply(BigDecimal.valueOf(8))
+	            .intValue();
+	}
+	private int calculateReviewScore(long reviewCount) {
+	    // 리뷰 수 최대 15점
+	    return (int) Math.min(reviewCount, 15);
+	}
+	private int calculateDeliveryScore(long completedDeliveryCount) {
+	    // 배송 완료 수 최대 20점
+	    return (int) Math.min(completedDeliveryCount, 20);
+	}
+	private int calculateSentimentScore(
+	        long reviewCount,
+	        long positiveCount,
+	        long negativeCount
+	) {
+	    if (reviewCount == 0) {
+	        return 0;
+	    }
+
+	    long sentimentBase = positiveCount + negativeCount;
+
+	    // 감성 판단 가능한 리뷰가 없으면 낮은 기본점만 부여
+	    if (sentimentBase == 0) {
+	        return 5;
+	    }
+
+	    double positiveRatio = (double) positiveCount / sentimentBase;
+
+	    int score = (int) Math.round(positiveRatio * 15);
+
+	    // 부정 리뷰 패널티
+	    int penalty = (int) Math.min(negativeCount * 2, 10);
+
+	    return Math.max(0, score - penalty);
+	}
+	private String toTrustGrade(int score) {
+	    if (score >= 85) return "매우 신뢰";
+	    if (score >= 70) return "신뢰";
+	    if (score >= 50) return "보통";
+	    return "주의";
+	}
+	
 }
