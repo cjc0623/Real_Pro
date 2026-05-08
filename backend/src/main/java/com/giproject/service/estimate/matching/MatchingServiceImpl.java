@@ -82,9 +82,9 @@ public class MatchingServiceImpl implements MatchingService {
 
         Page<Matching> result;
 
-        // 🔥 핵심 수정: 관리자 우선 처리
+        // 관리자 우선 처리
         if (isAdmin) {
-            // 수정: 관리자 → 승인/미승인 전체 조회
+            // 관리자 → 승인/미승인 전체 조회
             result = matchingRepository.findAll(pageable);
 
         } else if (owner != null) {
@@ -135,6 +135,7 @@ public class MatchingServiceImpl implements MatchingService {
         Estimate estimate = esmateRepository.findById(estimateNo)
                 .orElseThrow(() -> new RuntimeException("해당 견적이 존재하지 않습니다"));
 
+        // 1. 차주가 보유한 차량 중 '승인(APPROVED)'된 차량 목록 조회
         List<Cargo> approvedCargos =
                 cargoRepository.findByCargoOwner_CargoIdAndStatus(cargoOwner.getCargoId(), "APPROVED");
 
@@ -142,12 +143,25 @@ public class MatchingServiceImpl implements MatchingService {
             throw new RuntimeException("관리자 승인이 완료된 차량이 등록되어 있어야 견적을 수락할 수 있습니다.");
         }
 
+
+        
         boolean hasRightVehicle = approvedCargos.stream()
-                .anyMatch(cargo -> cargo.getCargoCapacity().equals(estimate.getCargoWeight()));
+                .anyMatch(cargo -> {
+                    try {
+                        // 문자열에서 숫자만 추출 (예: "1톤" -> 1, "2.5톤" -> 2.5)
+                        double reqWeight = Double.parseDouble(estimate.getCargoWeight().replaceAll("[^0-9.]", ""));
+                        double myCapacity = Double.parseDouble(cargo.getCargoCapacity().replaceAll("[^0-9.]", ""));
+                        
+                        return myCapacity >= reqWeight; // 차주 차량이 요청 무게보다 크거나 같으면 수락 가능
+                    } catch (Exception e) {
+                        // 숫자 변환 실패 시 기존 equals 방식으로 폴백(Fallback) 하거나 에러 처리
+                        return cargo.getCargoCapacity().equals(estimate.getCargoWeight());
+                    }
+                });
 
         if (!hasRightVehicle) {
             throw new RuntimeException(
-                    "수락 불가: 해당 견적(" + estimate.getCargoWeight() + ")에 맞는 승인된 차량을 보유하고 있지 않습니다."
+                    "수락 불가: 해당 견적(" + estimate.getCargoWeight() + ")을 운송할 수 있는 승인된 차량(요청 톤수 이상)을 보유하고 있지 않습니다."
             );
         }
 
