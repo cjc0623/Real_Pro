@@ -1,4 +1,4 @@
-<img width="880" height="136" alt="image" src="front/src/assets/logo.png" /># 🚚 FIRST ROAD
+# 🚚 FIRST ROAD
 
 <div align="center">
   <img src="front/src/assets/logo.png" width="450" alt="프로젝트 로고"/>
