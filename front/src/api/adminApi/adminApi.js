@@ -15,8 +15,12 @@ export const saveFeeBasicCell = (data) => axios.post(`${FEES_PREFIX}/basic`, dat
 
 // 행 목록 추가/삭제
 export const getBasicRows = () => axios.get(`${FEES_PREFIX}/basic/rows`);
-export const addBasicRow = (name, cargoName) =>
-  axios.post(`${FEES_PREFIX}/basic/rows`, { name, cargoName });
+
+export const addBasicRow = (name) =>
+  axios.post(`${FEES_PREFIX}/basic/rows`, {
+    name,
+    cargoName: "미지정",
+  });
 
 export const deleteBasicRow = (name) =>
   axios.delete(`${FEES_PREFIX}/basic/rows`, { params: { weight: name } });
@@ -30,9 +34,9 @@ export const saveFeeExtraCell = (data) =>
 export const getExtraRows = () => axios.get(`${FEES_PREFIX}/extra/rows`);
 
 export const addExtraRow = (name) =>
-  axios.post(`${FEES_PREFIX}/extra/rows`, { name });
+  axios.post(`${FEES_PREFIX}/extra/rows`, {
+    name,
+  });
 
 export const deleteExtraRow = (name) =>
   axios.delete(`${FEES_PREFIX}/extra/rows`, { params: { title: name } });
-
-
