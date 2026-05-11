@@ -588,20 +588,7 @@ const SignUpComponent = () => {
                     sx={{ width: '100%', mb: 1.5 }}
                 />
 
-                {/* 차주 전용 추가 정보 (선택) */}
-                {alignment === 'car' && (
-                    <Box>
-                        <Box display="flex" alignItems="center" gap={1} sx={{ mb: 2 }}>
-                            <Typography sx={{ width: '20%', ml: 1 }}>화물차 무게</Typography>
-                            <Autocomplete
-                                disablePortal
-                                options={['1톤', '1.4톤', '2.5톤', '5톤', '8톤', '11톤', '25톤', '25톤 이상']}
-                                renderInput={(params) => <TextField {...params} label="톤수 선택" variant="outlined" />}
-                                sx={{ width: '80%' }}
-                            />
-                        </Box>
-                    </Box>
-                )}
+                
 
                 {/* 서버 에러 */}
                 {submitError && (
