@@ -1,4 +1,4 @@
-<img width="880" height="136" alt="image" src="https://github.com/user-attachments/assets/e515b2b8-dd33-4978-be72-651655c2c6b0" /># 🚚 FIRST ROAD
+<img width="880" height="136" alt="image" src="front/src/assets/logo.png" /># 🚚 FIRST ROAD
 
 <div align="center">
   <img src="front/src/assets/logo.png" width="450" alt="프로젝트 로고"/>
