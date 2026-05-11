@@ -7,6 +7,9 @@ const CounselorChat = () => {
     const [input, setInput] = useState('');
     const scrollRef = useRef();
 
+    // ✅ 채팅 보안 패턴: 태그나 스크립트에 사용되는 위험 문자 차단 (꺽쇠, 세미콜론, 슬래시 등)
+    const CHAT_SAFE_REGEX = /[<>\\/;]/g;
+
     useEffect(() => {
         if (isOpen && messages.length === 0) {
             setMessages([{
@@ -26,7 +29,17 @@ const CounselorChat = () => {
 
     const handleSend = async () => {
         if (!input.trim()) return;
-        const newMsg = { senderName: '사용자', message: input };
+
+        // ✅ 보안 처리: 입력된 값에서 위험 문자를 공백으로 치환 (무기 압수)
+        const sanitizedInput = input.replace(CHAT_SAFE_REGEX, "");
+
+        // 만약 특수문자만 입력해서 내용이 비어버렸다면 전송 중단
+        if (!sanitizedInput.trim()) {
+            setInput('');
+            return;
+        }
+
+        const newMsg = { senderName: '사용자', message: sanitizedInput };
 
         try {
             const res = await axios.post('/api/chat/send', newMsg);

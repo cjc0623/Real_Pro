@@ -17,6 +17,10 @@ import {
 } from '@mui/material';
 import { Save as SaveIcon, Cancel as CancelIcon } from '@mui/icons-material';
 
+// ✅ 보안 패턴: 한글, 영문, 숫자, 공백, 그리고 기본적인 문장부호(. , ? ! /)만 허용
+// SQL 인젝션 위험이 있는 따옴표(' "), 세미콜론(;), 태그(< >), 백슬래시(\) 등을 원천 차단합니다.
+const SECURITY_SAFE_REGEX = /[^a-zA-Z0-9ㄱ-ㅎㅏ-ㅣ가-힣\s.,?!/]/g;
+
 const QAEditForm = ({ item, categories, onSave, onCancel, isVisible }) => {
   const [formData, setFormData] = useState({
     title: '',
@@ -41,7 +45,13 @@ const QAEditForm = ({ item, categories, onSave, onCancel, isVisible }) => {
   if (!isVisible) return null;
 
   const handleChange = (field) => (event) => {
-    const value = field === 'isPrivate' ? event.target.checked : event.target.value;
+    let value = field === 'isPrivate' ? event.target.checked : event.target.value;
+    
+    // ✅ 제목과 내용 입력 시 실시간 보안 필터링 (인젝션 공격 시도 즉시 무력화)
+    if (field === 'title' || field === 'content') {
+        value = value.replace(SECURITY_SAFE_REGEX, "");
+    }
+
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -137,6 +147,7 @@ const QAEditForm = ({ item, categories, onSave, onCancel, isVisible }) => {
               variant="outlined"
               disabled={isSubmitting}
               required
+              helperText={formData.title.length > 0 ? "특수문자(', \", ;, <, >)는 입력할 수 없습니다." : ""}
             />
 
             <FormControl fullWidth required>

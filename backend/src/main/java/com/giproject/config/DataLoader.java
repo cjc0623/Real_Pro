@@ -57,22 +57,11 @@ public class DataLoader implements CommandLineRunner {
     private void createAccountData() {
         if (!memberRepository.existsByMemEmail("admin@admin.com")) {
             userIndexRepository.save(UserIndex.builder().loginId("admin").email("admin@admin.com").role(UserIndex.Role.ADMIN).build());
-            Member admin = Member.builder().memId("admin").memEmail("admin@admin.com").memPw(passwordEncoder.encode("qwer1234@")).memName("관리자").memPhone("010-0000-0000").build();
+            Member admin = Member.builder().memId("admin").memEmail("admin@admin.com").memPw(passwordEncoder.encode("admin1234@")).memName("관리자").memPhone("010-0000-0000").build();
             admin.addRole("ADMIN");
             memberRepository.save(admin);
         }
-        if (!memberRepository.existsByMemEmail("test1@test.com")) {
-            userIndexRepository.save(UserIndex.builder().loginId("test1").email("test1@test.com").role(UserIndex.Role.SHIPPER).build());
-            Member shipper = Member.builder().memId("test1").memEmail("test1@test.com").memPw(passwordEncoder.encode("qwer1234@")).memName("테스트화물주").memPhone("010-1111-1111").build();
-            shipper.addRole("USER");
-            memberRepository.save(shipper);
-        }
-        if (!cargoOwnerRepository.existsById("test2")) {
-            if (!userIndexRepository.existsById("test2")) {
-                userIndexRepository.save(UserIndex.builder().loginId("test2").email("test2@test.com").role(UserIndex.Role.DRIVER).build());
-            }
-            cargoOwnerRepository.save(CargoOwner.builder().cargoId("test2").cargoEmail("test2@test.com").cargoPw(passwordEncoder.encode("qwer1234@")).cargoName("테스트차주").cargoPhone("010-2222-2222").cargoAddress("서울시 테스트구").social(false).build());
-        }
+        
     }
 
     private void createFeeData() {
@@ -86,7 +75,7 @@ public class DataLoader implements CommandLineRunner {
                 {"3톤 차량", "3톤", 1800L, 110000L},
                 {"4톤 차량", "4톤", 2200L, 150000L},
                 {"5톤 차량", "5톤", 2800L, 200000L},
-                {"5톤 초과(대형)", "5톤 이상", 3500L, 300000L}
+                {"5톤 초과(대형)", "5톤 초과", 3500L, 300000L}
             };
             
             for (Object[] row : basicData) {

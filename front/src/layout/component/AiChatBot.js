@@ -1,33 +1,55 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 
+// ✅ AI 챗봇 전용 보안 패턴: 한글, 영문, 숫자, 공백, 기본적인 문장부호(. , ? ! /)만 허용
+// 태그(< >), 따옴표(' "), 세미콜론(;), 백슬래시(\) 등 모든 실행 가능 문자를 실시간 차단합니다.
+const AI_SECURITY_REGEX = /[^a-zA-Z0-9ㄱ-ㅎㅏ-ㅣ가-힣\s.,?!/]/g;
+
 const AiChatBot = () => {
     const scrollRef = useRef(null);
     const [messages, setMessages] = useState([
-        { role: 'ai', text: 'G2I4 화물운송 AI 상담원입니다. 무엇을 도와드릴까요?' }
+        { role: 'ai', text: '퍼스트로드 AI 상담원입니다. 무엇을 도와드릴까요?' }
     ]);
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
 
     // 메시지 추가 시 자동 스크롤
-
     useEffect(() => {
         if (scrollRef.current) {
             scrollRef.current.scrollIntoView({ behavior: 'smooth' });
         }
     }, [messages]);
 
+    // ✅ 실시간 입력 필터링 핸들러 (인젝션 공격 코드 타이핑 즉시 삭제)
+    const handleInputChange = (e) => {
+        const { value } = e.target;
+        const sanitizedValue = value.replace(AI_SECURITY_REGEX, "");
+        setInput(sanitizedValue);
+    };
+
     const handleSend = async () => {
-        if (!input.trim()) return;
-        const userMsg = { role: 'user', text: input };
+        // 공백 제외 필터링 후 검사
+        const trimmedInput = input.trim();
+        if (!trimmedInput) return;
+
+        // 최종 전송 전 한 번 더 샌니타이징 (보안 2중 잠금)
+        const finalInput = trimmedInput.replace(AI_SECURITY_REGEX, "");
+        if (!finalInput) {
+            setInput('');
+            return;
+        }
+
+        const userMsg = { role: 'user', text: finalInput };
         setMessages(prev => [...prev, userMsg]);
         setInput('');
         setLoading(true);
 
         try {
             // 팀장님의 기존 백엔드 주소 유지
-            const res = await axios.post("http://localhost:8080/api/ai/ask", { question: input });
+            const res = await axios.post("http://localhost:8080/api/ai/ask", { question: finalInput });
+            
+            // AI 답변도 혹시 모를 태그 포함 여부를 대비해 텍스트로만 렌더링 (리액트 기본 기능)
             setMessages(prev => [...prev, { role: 'ai', text: res.data.answer }]);
         } catch (err) {
             setMessages(prev => [...prev, { role: 'ai', text: "서버 연결 오류가 발생했습니다." }]);
@@ -53,7 +75,7 @@ const AiChatBot = () => {
                 <div style={chatWinStyle}>
                     {/* 헤더 안내 (CounselorChat의 noticeStyle 활용) */}
                     <div style={noticeStyle}>
-                        ✨ G2I4 지능형 AI 상담 서비스
+                        ✨ 퍼스트로드 지능형 AI 상담 서비스
                     </div>
 
                     {/* 메시지 리스트 */}
@@ -75,7 +97,7 @@ const AiChatBot = () => {
                     <div style={inputArea}>
                         <input
                             value={input}
-                            onChange={(e) => setInput(e.target.value)}
+                            onChange={handleInputChange} // ✅ 보안 필터 적용
                             onKeyPress={(e) => e.key === 'Enter' && handleSend()}
                             placeholder="AI에게 질문하기..."
                             style={{ flex: 1, border: 'none', outline: 'none', fontSize: '13px' }}
@@ -85,7 +107,6 @@ const AiChatBot = () => {
                 </div>
             )}
         </div>
-
     );
 };
 

@@ -44,6 +44,9 @@ import QAEditForm from './QAEditForm';
 import useCustomLogin from '../../../hooks/useCustomLogin';
 import { getPostVisibility, getActionPermissions } from './qaPermissionUtils';
 
+// ✅ 보안 패턴: 한글, 영문, 숫자, 공백, 기본적인 문장부호(. , ? ! /)만 허용 (인젝션 공격 차단용)
+const SECURITY_SAFE_REGEX = /[^a-zA-Z0-9ㄱ-ㅎㅏ-ㅣ가-힣\s.,?!/]/g;
+
 const QABoardMUI = () => {
   const dispatch = useDispatch();
   const { isAdmin, currentUserId, loginState } = useCustomLogin();
@@ -85,6 +88,27 @@ const QABoardMUI = () => {
     { id: 'service', name: '서비스이용' },
     { id: 'etc', name: '기타' }
   ];
+
+  // ✅ 새 문의 작성 시 실시간 보안 필터링 핸들러 (추가)
+  const handleNewInquiryChange = (field) => (e) => {
+    let value = field === 'isPrivate' ? e.target.checked : e.target.value;
+    
+    // 제목과 내용 입력 시 위험한 특수문자 즉시 제거
+    if (field === 'title' || field === 'content') {
+        value = value.replace(SECURITY_SAFE_REGEX, "");
+    }
+    
+    setNewInquiry(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  // ✅ 검색어 보안 필터링 핸들러 (추가)
+  const handleSearchChange = (e) => {
+    const sanitizedValue = e.target.value.replace(SECURITY_SAFE_REGEX, "");
+    setSearchTerm(sanitizedValue);
+  };
 
   const fetchPostList = async () => {
     setLoading(true);
@@ -382,7 +406,7 @@ const QABoardMUI = () => {
             fullWidth
             placeholder="궁금한 내용을 검색해보세요..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={handleSearchChange} // ✅ 보안 필터링 적용
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -629,7 +653,7 @@ const QABoardMUI = () => {
                 label="제목"
                 fullWidth
                 value={newInquiry.title}
-                onChange={(e) => setNewInquiry({ ...newInquiry, title: e.target.value })}
+                onChange={handleNewInquiryChange('title')} // ✅ 필터 적용
               />
 
               <FormControl fullWidth>
@@ -637,7 +661,7 @@ const QABoardMUI = () => {
                 <Select
                   value={newInquiry.category}
                   label="카테고리"
-                  onChange={(e) => setNewInquiry({ ...newInquiry, category: e.target.value })}
+                  onChange={handleNewInquiryChange('category')} // ✅ 변경된 핸들러 사용
                 >
                   {categories.filter(c => c.id !== 'all').map((category) => (
                     <MenuItem key={category.id} value={category.id}>
@@ -653,7 +677,7 @@ const QABoardMUI = () => {
                 rows={4}
                 fullWidth
                 value={newInquiry.content}
-                onChange={(e) => setNewInquiry({ ...newInquiry, content: e.target.value })}
+                onChange={handleNewInquiryChange('content')} // ✅ 필터 적용
                 placeholder="문의 내용을 자세히 작성해주세요"
               />
 
@@ -661,7 +685,7 @@ const QABoardMUI = () => {
                 control={
                   <Checkbox
                     checked={newInquiry.isPrivate}
-                    onChange={(e) => setNewInquiry({ ...newInquiry, isPrivate: e.target.checked })}
+                    onChange={handleNewInquiryChange('isPrivate')} // ✅ 변경된 핸들러 사용
                   />
                 }
                 label="비공개 문의"

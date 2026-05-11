@@ -21,6 +21,8 @@ import { useSelector } from "react-redux";
 import { useRef } from "react";
 import { isCurrentUserAdmin } from "../../../utils/jwtUtils";
 
+// ✅ 보안 패턴: 한글, 영문, 숫자, 공백만 허용 (특수문자 및 공격 코드 차단용)
+const SECURITY_SAFE_REGEX = /[^a-zA-Z0-9ㄱ-ㅎㅏ-ㅣ가-힣\s]/g;
 
 const tomorrowStart = dayjs().add(1, "day").hour(9).minute(0).second(0).millisecond(0);
 
@@ -131,7 +133,9 @@ const EstimateComponent = () => {
   const handleAddressSearch = (setter) => {
     new window.daum.Postcode({
       oncomplete: function (data) {
-        setter(data.address);
+        // ✅ 주소 데이터도 저장 전 특수문자 정화 (보안 강화)
+        const sanitizedAddr = data.address.replace(SECURITY_SAFE_REGEX, "");
+        setter(sanitizedAddr);
       },
     }).open();
   };
@@ -176,8 +180,14 @@ const EstimateComponent = () => {
     }
   }
   const handleChangeEstimate = (e) => {
-    estimate[e.target.name] = e.target.value
-    setEstimate({ ...estimate })
+    let { name, value } = e.target;
+
+    // ✅ 화물 종류 입력 시 특수문자 즉시 제거 (인젝션 원천 차단)
+    if (name === "cargoType") {
+        value = value.replace(SECURITY_SAFE_REGEX, "");
+    }
+
+    setEstimate({ ...estimate, [name]: value })
   }
   const handleClickSave = () => {
     postSaveEs(estimate)

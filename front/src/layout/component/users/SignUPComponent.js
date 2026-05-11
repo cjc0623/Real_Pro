@@ -14,6 +14,11 @@ import useIdForm from '../../../hooks/useIdForm';
 import usePasswordForm from '../../../hooks/usePasswordForm';
 import EmailVerifyDialog from '../auth/EmailVerifyDialog';
 
+// ✅ 보안 패턴 정의: SQL Injection 및 XSS 방지를 위한 금지 문자 (홑따옴표, 쌍따옴표, 세미콜론, 태그, 슬래시, 백슬래시)
+const FORBIDDEN_REGEX = /[ '"\\;<>\/]/;
+// ✅ 아이디 전용 패턴: 영문 대소문자와 숫자만 허용
+const ID_STRICT_REGEX = /^[a-zA-Z0-9]*$/;
+
 // ✅ 공통 에러 메시지 헬퍼: 객체/배열/Error 모두 문자열로 변환
 function getErrorMessage(data) {
     if (data == null) return '요청에 실패했습니다.';
@@ -93,6 +98,9 @@ const SignUpComponent = () => {
     } = usePasswordForm();
     const [pw1Touched, setPw1Touched] = React.useState(false);
     const [pw2Touched, setPw2Touched] = React.useState(false);
+
+    // ✅ 비밀번호 보안 패턴 체크 (실시간 검증용)
+    const isPwSafe = React.useMemo(() => !FORBIDDEN_REGEX.test(password1), [password1]);
 
     // 기타 폼
     const domainOptions = ['gmail.com', 'naver.com', 'daum.net'];
@@ -307,7 +315,7 @@ const SignUpComponent = () => {
     const canSubmit =
         isIdValid &&
         idChecked && idAvailable === true &&
-        isPwValid && isPwMatch &&
+        isPwValid && isPwMatch && isPwSafe && // ✅ 보안 패턴 통과 추가
         !!(emailLocked ? (emailLocal && emailDomain) : fullEmail) &&
         (emailLocked || emailVerified) &&
         name.trim().length > 0 &&
@@ -411,17 +419,22 @@ const SignUpComponent = () => {
                         label="ID"
                         value={id}
                         onChange={(e) => {
-                            handleChange(e);
-                            setIdChecked(false);
-                            setIdAvailable(null);
-                            setIdStatus('idle');
+                            // ✅ 영문/숫자만 허용하는 Strict 패턴 적용
+                            if (ID_STRICT_REGEX.test(e.target.value)) {
+                                handleChange(e);
+                                setIdChecked(false);
+                                setIdAvailable(null);
+                                setIdStatus('idle');
+                            }
                         }}
                         onFocus={() => setIdTouched(true)}
                         onBlur={() => setIdTouched(false)}
                         error={(idTouched || idChecked) && id !== '' && (idStatus === 'error' || !isIdValid || idAvailable === false)}
                         helperText={
                             (idTouched || idChecked) && id !== ''
-                                ? (!idChecked
+                                ? (!ID_STRICT_REGEX.test(id) 
+                                    ? '특수문자는 사용 불가능합니다.' 
+                                    : !idChecked
                                     ? '8~15자, 영문 대소문자와 숫자만 허용됩니다.'
                                     : idStatus === 'checking'
                                         ? '확인 중...'
@@ -454,7 +467,7 @@ const SignUpComponent = () => {
                 </Box>
 
                 {/* 비밀번호 */}
-                <FormControl sx={{ width: '100%', mb: 1.5 }} variant="outlined" error={pw1Touched && isPwValid === false}>
+                <FormControl sx={{ width: '100%', mb: 1.5 }} variant="outlined" error={(pw1Touched && isPwValid === false) || !isPwSafe}>
                     <InputLabel htmlFor="password1">Password</InputLabel>
                     <OutlinedInput
                         id="password1"
@@ -475,7 +488,9 @@ const SignUpComponent = () => {
                     />
                     {pw1Touched && (
                         <FormHelperText>
-                            {isPwValid === null ? '' : isPwValid ? '사용 가능한 비밀번호입니다.' : '영문, 숫자, 특수문자 포함 8~20자여야 합니다.'}
+                            {!isPwSafe 
+                                ? '금지된 특수문자(\' " ; < > / \\)가 포함되어 있습니다.' 
+                                : isPwValid === null ? '' : isPwValid ? '사용 가능한 비밀번호입니다.' : '영문, 숫자, 특수문자 포함 8~20자여야 합니다.'}
                         </FormHelperText>
                     )}
                 </FormControl>
@@ -587,8 +602,6 @@ const SignUpComponent = () => {
                     variant="outlined"
                     sx={{ width: '100%', mb: 1.5 }}
                 />
-
-                
 
                 {/* 서버 에러 */}
                 {submitError && (
