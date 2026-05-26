@@ -9,23 +9,37 @@ const HeroSection = () => {
     <section className="relative w-full h-screen overflow-hidden">
       
       {/* 배경 비디오 */}
-      <video className="absolute top-0 left-0 w-full h-full object-cover z-0" autoPlay loop muted playsInline>
+      <video
+        className="absolute top-0 left-0 w-full h-full object-cover z-0"
+        autoPlay
+        loop
+        muted
+        playsInline
+      >
         <source src={mainVideo} type="video/mp4" />
       </video>
       
+      {/* 어두운 오버레이 */}
       <div className="absolute top-0 left-0 w-full h-full bg-black/60 z-10"></div>
 
       <div className="relative z-20 flex flex-col w-full h-full">
         <div className="flex-grow flex flex-col justify-center items-center text-center text-white px-4 font-sans">
           
-          <h1 className="text-4xl md:text-6xl font-black mb-8 leading-tight drop-shadow-2xl">
+          {/* PC */}
+          <h1 className="hidden md:block text-4xl md:text-6xl font-black mb-8 leading-tight drop-shadow-2xl">
             <br />
             여러분과 함께 달리는<br />
             <span className="text-red-500">퍼스트로드</span>입니다.
           </h1>
+
+          {/* 모바일 / 태블릿 */}
+          <h1 className="block md:hidden text-3xl sm:text-5xl font-black mb-8 leading-tight drop-shadow-2xl break-keep">
+            여러분과 함께 달리는 <span className="text-red-500">퍼스트로드</span>입니다.
+          </h1>
           
           <p className="text-xl md:text-3xl mb-16 drop-shadow-lg font-medium max-w-4xl break-keep">
-            가장 빠르고 안전한 물류의 시작,<br />
+            가장 빠르고 안전한 물류의 시작,
+            <br />
             퍼스트로드가 고객님의 비즈니스 성공을 싣고 달립니다.
           </p>
           

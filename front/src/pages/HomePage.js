@@ -161,7 +161,7 @@ const HomePage = () => {
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col lg:flex-row gap-16">
             <div className="w-full lg:w-1/3">
-              <div className="mb-12">
+              <div className="mb-4">
                 <h2 className="text-4xl md:text-5xl font-black mb-4">용달화물 서비스 소개</h2>
                 <p className="text-gray-600 text-lg">마이페이지에서 등록한 모든 차량이 실시간으로 공유됩니다.</p>
               </div>
@@ -172,7 +172,7 @@ const HomePage = () => {
                   <button
                     key={index}
                     onClick={() => setSelectedVehicleIndex(index)}
-                    className={`py-5 px-8 rounded-[2rem] flex justify-between items-center transition-all bg-white ${
+                    className={`py-3 px-5 rounded-[2rem] flex justify-between items-center transition-all bg-white ${
                       selectedVehicleIndex === index ? 'ring-2 ring-red-600 scale-105 shadow-lg' : 'border border-gray-100 shadow-sm'
                     }`}
                   >
@@ -186,18 +186,18 @@ const HomePage = () => {
               </div>
             </div>
 
-            <div className="w-full lg:w-2/3 flex flex-col justify-start gap-12 mt-12 lg:mt-0"> 
+            <div className="w-full lg:w-2/3 flex flex-col justify-start gap-12 mt-2 lg:mt-0"> 
               {displayVehicles[selectedVehicleIndex] && (
                 <>
-                  <div className="flex items-center gap-6 mb-8">
+                  <div className="flex items-center gap-4 mb-3">
                     <span className="font-bold text-3xl text-red-600">0{selectedVehicleIndex + 1}</span>
                     <h3 className="text-4xl md:text-5xl font-black">{displayVehicles[selectedVehicleIndex].name}</h3>
                   </div>
-                  <div className="flex-grow flex flex-col gap-8 mb-10">
+                  <div className="flex-grow flex flex-col gap-3 mb-2">
                       <div className="text-gray-800 text-lg md:text-xl font-bold">{displayVehicles[selectedVehicleIndex].desc1}</div>
                       <div className="text-gray-600 text-base">{displayVehicles[selectedVehicleIndex].desc2}</div>
                   </div>
-                  <div className="w-full flex justify-end">
+                  <div className="w-full flex justify-end -mt-4 lg:mt-0">
                       <img 
                         src={displayVehicles[selectedVehicleIndex].img} 
                         alt={displayVehicles[selectedVehicleIndex].name}
@@ -214,7 +214,7 @@ const HomePage = () => {
 
       <section className="py-24 bg-white border-t border-gray-100">
         <div className="max-w-7xl mx-auto px-6 flex flex-col items-center">
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-8 w-full">
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-8 w-full">
             {specialVehicleList.map((item, index) => (
               <div key={index} className="flex flex-col items-center text-center">
                 <div className="w-48 h-48 flex items-center justify-center mb-6 overflow-hidden">

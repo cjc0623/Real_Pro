@@ -5,8 +5,6 @@ import {
   Container,
   Typography,
   Card,
-  CardContent,
-  CardHeader,
   Button,
   Table,
   TableBody,
@@ -18,18 +16,18 @@ import {
   Chip,
   Pagination,
   CircularProgress,
-  Alert,
-  Stack
+  Alert
 } from '@mui/material';
+
 import { Add as AddIcon } from '@mui/icons-material';
 
 import { getNotices, getCategoryDisplayName } from '../../../api/noticeApi';
 import { isCurrentUserAdmin } from '../../../utils/jwtUtils';
 
-
 const BulletinBoard = () => {
   const navigate = useNavigate();
-  const [currentPage, setCurrentPage] = useState(0); // 백엔드는 0 기반 페이지
+
+  const [currentPage, setCurrentPage] = useState(0);
   const [notices, setNotices] = useState([]);
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
@@ -38,7 +36,6 @@ const BulletinBoard = () => {
   const [activeCategory, setActiveCategory] = useState('ALL');
   const [isAdmin, setIsAdmin] = useState(false);
 
-  // 공지사항 카테고리 정의
   const categories = [
     { id: 'ALL', name: '전체' },
     { id: 'GENERAL', name: '사용안내' },
@@ -47,15 +44,16 @@ const BulletinBoard = () => {
     { id: 'UPDATE', name: '업데이트' }
   ];
 
-  // 공지사항 목록 로드
   const loadNotices = async (page = 0) => {
     try {
       setLoading(true);
 
       const params = { page, size: 10 };
+
       if (activeCategory && activeCategory !== 'ALL') {
         params.category = activeCategory;
       }
+
       const response = await getNotices(params);
 
       setNotices(response.content || []);
@@ -70,7 +68,6 @@ const BulletinBoard = () => {
     }
   };
 
-  // 관리자 권한 확인
   useEffect(() => {
     setIsAdmin(isCurrentUserAdmin());
   }, []);
@@ -80,7 +77,7 @@ const BulletinBoard = () => {
   }, [currentPage, activeCategory]);
 
   const handlePageChange = (event, value) => {
-    setCurrentPage(value - 1); // MUI Pagination은 1 기반, 백엔드는 0 기반
+    setCurrentPage(value - 1);
   };
 
   const handleRowClick = (noticeId) => {
@@ -95,15 +92,21 @@ const BulletinBoard = () => {
     <Container maxWidth="lg" sx={{ py: 4 }}>
       {/* Header */}
       <Box textAlign="center" mb={4}>
-        <Typography variant="h3" component="h1" gutterBottom fontWeight="bold">
+        <Typography
+          variant="h3"
+          component="h1"
+          gutterBottom
+          fontWeight="bold"
+        >
           공지사항
         </Typography>
+
         <Typography variant="h6" color="text.secondary">
           최신 업데이트와 중요한 안내사항을 확인하세요
         </Typography>
       </Box>
 
-      {/* Category Tabs and New Post Button */}
+      {/* Category Tabs */}
       <Box
         sx={{
           display: 'flex',
@@ -114,7 +117,6 @@ const BulletinBoard = () => {
           gap: 2
         }}
       >
-        {/* Category Tabs */}
         <Box
           sx={{
             display: 'flex',
@@ -126,10 +128,14 @@ const BulletinBoard = () => {
           {categories.map((category) => (
             <Button
               key={category.id}
-              variant={activeCategory === category.id ? 'contained' : 'outlined'}
+              variant={
+                activeCategory === category.id
+                  ? 'contained'
+                  : 'outlined'
+              }
               onClick={() => {
                 setActiveCategory(category.id);
-                setCurrentPage(0); // 카테고리 변경 시 페이지 리셋
+                setCurrentPage(0);
               }}
               sx={{
                 minWidth: 100,
@@ -141,7 +147,7 @@ const BulletinBoard = () => {
           ))}
         </Box>
 
-        {/* New Post Button - 관리자만 표시 */}
+        {/* 관리자 버튼 */}
         {isAdmin && (
           <Box sx={{ flex: '0 0 auto' }}>
             <Button
@@ -160,48 +166,118 @@ const BulletinBoard = () => {
         )}
       </Box>
 
-      {/* Notice Table */}
+      {/* 공지사항 테이블 */}
       <Card sx={{ overflow: 'hidden', boxShadow: 2 }}>
         <TableContainer component={Paper}>
           <Table>
+
             <TableHead>
               <TableRow sx={{ bgcolor: 'grey.50' }}>
-                <TableCell sx={{ fontWeight: 'bold', width: 80 }}>번호</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>제목</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', width: 120 }}>작성자</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', width: 120 }}>작성일</TableCell>
+
+                <TableCell
+                  sx={{
+                    fontWeight: 'bold',
+                    width: { xs: 54, sm: 80 },
+                    fontSize: { xs: '13px', sm: '14px' }
+                  }}
+                >
+                  번호
+                </TableCell>
+
+                <TableCell
+                  sx={{
+                    fontWeight: 'bold',
+                    minWidth: { xs: 180, sm: 260 },
+                    fontSize: { xs: '13px', sm: '14px' }
+                  }}
+                >
+                  제목
+                </TableCell>
+
+                <TableCell
+                  className="hidden md:table-cell"
+                  sx={{
+                    fontWeight: 'bold',
+                    width: 120,
+                    fontSize: '14px'
+                  }}
+                >
+                  작성자
+                </TableCell>
+
+                <TableCell
+                  sx={{
+                    fontWeight: 'bold',
+                    width: { xs: 88, sm: 120 },
+                    fontSize: { xs: '13px', sm: '14px' }
+                  }}
+                >
+                  작성일
+                </TableCell>
+
               </TableRow>
             </TableHead>
+
             <TableBody>
+
               {loading ? (
+
                 <TableRow>
-                  <TableCell colSpan={4} sx={{ textAlign: 'center', py: 4 }}>
+                  <TableCell
+                    colSpan={4}
+                    sx={{
+                      textAlign: 'center',
+                      py: 4
+                    }}
+                  >
                     <CircularProgress size={24} />
+
                     <Typography variant="body2" sx={{ mt: 2 }}>
                       로딩 중...
                     </Typography>
                   </TableCell>
                 </TableRow>
+
               ) : error ? (
+
                 <TableRow>
-                  <TableCell colSpan={4} sx={{ textAlign: 'center', py: 4 }}>
-                    <Alert severity="error">{error}</Alert>
+                  <TableCell
+                    colSpan={4}
+                    sx={{
+                      textAlign: 'center',
+                      py: 4
+                    }}
+                  >
+                    <Alert severity="error">
+                      {error}
+                    </Alert>
                   </TableCell>
                 </TableRow>
+
               ) : notices.length === 0 ? (
+
                 <TableRow>
-                  <TableCell colSpan={4} sx={{ textAlign: 'center', py: 4 }}>
+                  <TableCell
+                    colSpan={4}
+                    sx={{
+                      textAlign: 'center',
+                      py: 4
+                    }}
+                  >
                     <Typography color="text.secondary">
                       등록된 공지사항이 없습니다.
                     </Typography>
                   </TableCell>
                 </TableRow>
+
               ) : (
-                // 💡 index를 추가하여 가상 번호를 계산합니다.
+
                 notices.map((notice, index) => {
-                  // 🔥 가상 번호 계산 공식 적용
+
                   const pageSize = 10;
-                  const virtualNumber = totalElements - (currentPage * pageSize) - index;
+
+                  const virtualNumber =
+                    totalElements - (currentPage * pageSize) - index;
 
                   return (
                     <TableRow
@@ -215,58 +291,137 @@ const BulletinBoard = () => {
                         }
                       }}
                     >
+
+                      {/* 번호 */}
                       <TableCell>
-                        <Typography variant="body2" color="text.secondary">
-                          {/* 💡 noticeId 대신 계산된 가상 번호를 보여줍니다. */}
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{
+                            fontSize: {
+                              xs: '13px',
+                              sm: '14px'
+                            }
+                          }}
+                        >
                           {virtualNumber}
                         </Typography>
                       </TableCell>
-                      <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+
+                      {/* 제목 */}
+                      <TableCell
+                        sx={{
+                          minWidth: {
+                            xs: 180,
+                            sm: 260
+                          },
+                          whiteSpace: 'normal',
+                          wordBreak: 'keep-all'
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1,
+                            flexWrap: {
+                              xs: 'wrap',
+                              sm: 'nowrap'
+                            }
+                          }}
+                        >
+
+                          {/* 카테고리 */}
                           <Chip
                             label={getCategoryDisplayName(notice.category)}
                             size="small"
                             color="primary"
                             variant="outlined"
+                            sx={{
+                              flexShrink: 0
+                            }}
                           />
+
+                          {/* 제목 */}
                           <Typography
                             variant="body2"
                             sx={{
                               color: 'text.primary',
+                              whiteSpace: 'normal',
+                              wordBreak: 'keep-all',
+                              lineHeight: 1.5,
+                              fontSize: {
+                                xs: '14px',
+                                sm: '16px'
+                              },
                               '&:hover': {
                                 color: 'primary.main'
                               }
                             }}
                           >
-                            {notice.title}
+                            {notice.title
+                              ?.replace('[업데이트]', '')
+                              ?.replace('[서비스]', '')
+                              ?.replace('[시스템]', '')
+                              ?.replace('[사용안내]', '')
+                              ?.trim()}
                           </Typography>
+
                         </Box>
                       </TableCell>
-                      <TableCell>
-                        <Typography variant="body2" color="text.secondary">
+
+                      {/* 작성자 */}
+                      <TableCell className="hidden md:table-cell">
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                        >
                           {notice.authorName}
                         </Typography>
                       </TableCell>
+
+                      {/* 작성일 */}
                       <TableCell>
-                        <Typography variant="body2" color="text.secondary">
-                          {new Date(notice.createdAt).toLocaleDateString('ko-KR')}
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{
+                            fontSize: {
+                              xs: '13px',
+                              sm: '14px'
+                            },
+                            whiteSpace: 'normal',
+                            wordBreak: 'keep-all'
+                          }}
+                        >
+                          {new Date(notice.createdAt)
+                            .toLocaleDateString('ko-KR')}
                         </Typography>
                       </TableCell>
+
                     </TableRow>
                   );
                 })
               )}
+
             </TableBody>
+
           </Table>
         </TableContainer>
       </Card>
 
-      {/* Pagination */}
+      {/* 페이지네이션 */}
       {totalPages > 1 && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            mt: 4
+          }}
+        >
           <Pagination
             count={totalPages}
-            page={currentPage + 1} // MUI는 1 기반, 백엔드는 0 기반
+            page={currentPage + 1}
             onChange={handlePageChange}
             color="primary"
             size="large"
@@ -275,6 +430,7 @@ const BulletinBoard = () => {
           />
         </Box>
       )}
+
     </Container>
   );
 };

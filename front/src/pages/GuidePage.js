@@ -1,32 +1,27 @@
 import React, { useState } from 'react';
-import { Box, Typography, Container, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
+import {
+  Box,
+  Typography,
+  Container,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper
+} from '@mui/material';
 
 const guideData = {
   '시작하기': [
-    // 🚨 명칭을 DB(DataLoader) 및 요금표와 100% 일치시켰습니다.
     { title: '기본 운송이란?', content: '차량만 대여하는 서비스로, 고객님께서 직접 화물의 상/하차를 해주셔야 합니다.' },
     { title: '상하차 도움이란?', content: '기사님이 차량 옆에서 화물을 싣고 내리는 작업을 함께 도와드리는 서비스입니다.' },
     { title: '상하차 + 인부 1명이란?', content: '기사님 외에 전문 인력이 추가 투입되어, 출발지부터 도착지까지 모든 운반 과정을 책임집니다.' },
   ],
   '요금안내': [
-    { 
-      title: '1. 차종별 기본 운임', 
-      content: '차종(중량)에 따른 기본 요금 및 거리당 단가표입니다.',
-      isTable: true,
-      tableType: 'basic'
-    },
-    { 
-      title: '2. 장거리 운송 자동 할인 혜택', 
-      content: '주행 거리에 따라 적용되는 자동 할인율 안내입니다.',
-      isTable: true,
-      tableType: 'discount'
-    },
-    { 
-      title: '3. 부가 서비스 요금', 
-      content: '상하차 방식에 따른 추가 옵션 요금표입니다.',
-      isTable: true,
-      tableType: 'extra'
-    }
+    { title: '1. 차종별 기본 운임', content: '차종(중량)에 따른 기본 요금 및 거리당 단가표입니다.', isTable: true, tableType: 'basic' },
+    { title: '2. 장거리 운송 자동 할인 혜택', content: '주행 거리에 따라 적용되는 자동 할인율 안내입니다.', isTable: true, tableType: 'discount' },
+    { title: '3. 부가 서비스 요금', content: '상하차 방식에 따른 추가 옵션 요금표입니다.', isTable: true, tableType: 'extra' }
   ],
   'FAQ': [
     { title: '회원가입을 해야되나요?', content: '네, 원활한 서비스 이용과 이용 내역 관리를 위해 회원가입이 필요합니다.' },
@@ -60,12 +55,11 @@ const GuidePage = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {/* 🚨 SQL 덤프 데이터와 토씨 하나 안 틀리고 일치시켰습니다. */}
               {[
-                ['0.5톤 차량', '25,000원', '800원'], 
-                ['1톤 차량', '45,000원', '1,000원'], 
-                ['2톤 차량', '80,000원', '1,400원'], 
-                ['3톤 차량', '110,000원', '1,800원'], 
+                ['0.5톤 차량', '25,000원', '800원'],
+                ['1톤 차량', '45,000원', '1,000원'],
+                ['2톤 차량', '80,000원', '1,400원'],
+                ['3톤 차량', '110,000원', '1,800원'],
                 ['4톤 차량', '150,000원', '2,200원'],
                 ['5톤 차량', '200,000원', '2,800원'],
                 ['5톤 이상', '300,000원', '3,500원']
@@ -81,6 +75,7 @@ const GuidePage = () => {
         </TableContainer>
       );
     }
+
     if (type === 'discount') {
       return (
         <TableContainer component={Paper} elevation={0} variant="outlined">
@@ -93,7 +88,12 @@ const GuidePage = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {[['100km 이상', '5%', '자동 차감'], ['200km 이상', '10%', '자동 차감'], ['300km 이상', '15%', '자동 차감'], ['400km 이상', '20%', '최대 할인']].map((row, i) => (
+              {[
+                ['100km 이상', '5%', '자동 차감'],
+                ['200km 이상', '10%', '자동 차감'],
+                ['300km 이상', '15%', '자동 차감'],
+                ['400km 이상', '20%', '최대 할인']
+              ].map((row, i) => (
                 <TableRow key={i}>
                   <TableCell>{row[0]}</TableCell>
                   <TableCell sx={{ color: '#d32f2f', fontWeight: 'bold' }}>{row[1]}</TableCell>
@@ -105,6 +105,7 @@ const GuidePage = () => {
         </TableContainer>
       );
     }
+
     if (type === 'extra') {
       return (
         <TableContainer component={Paper} elevation={0} variant="outlined">
@@ -117,9 +118,8 @@ const GuidePage = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {/* 🚨 용어를 '상하차 도움'으로 일원화했습니다. */}
               {[
-                ['상하차 도움', '50,000원', '기사님 작업 지원'], 
+                ['상하차 도움', '50,000원', '기사님 작업 지원'],
                 ['상하차 + 인부 1명', '85,000원', '전문 인력 추가 투입']
               ].map((row, i) => (
                 <TableRow key={i}>
@@ -136,29 +136,62 @@ const GuidePage = () => {
   };
 
   return (
-    <Box sx={{ bgcolor: '#f9fafb', minHeight: '100vh', py: 8 }}>
+    <Box sx={{ bgcolor: '#f9fafb', minHeight: '100vh', py: { xs: 4, md: 8 } }}>
       <Container maxWidth="lg">
-        <Typography variant="h3" fontWeight="900" mb={6} sx={{ color: '#111827' }}>
+        <Typography
+          variant="h3"
+          fontWeight="900"
+          mb={{ xs: 4, md: 6 }}
+          sx={{
+            color: '#111827',
+            fontSize: { xs: '36px', sm: '42px', md: '48px' },
+            lineHeight: 1.2,
+            wordBreak: 'keep-all'
+          }}
+        >
           퍼스트로드 용달 이용가이드
         </Typography>
 
         {/* 탭 네비게이션 */}
-        <Box sx={{ display: 'flex', borderBottom: '2px solid #e5e7eb', mb: 8 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            gap: { xs: 1, sm: 2 },
+            borderBottom: '2px solid #e5e7eb',
+            mb: { xs: 4, md: 8 },
+            overflowX: 'auto',
+            whiteSpace: 'nowrap',
+            // 추가: 좌우 여백 확보
+            px: { xs: 1, sm: 2 },
+
+            // 추가: 마지막 탭이 오른쪽에 붙어서 잘리는 것 방지
+            scrollPaddingRight: '16px',
+            '&::-webkit-scrollbar': {
+              display: 'none'
+            },
+            scrollbarWidth: 'none'
+          }}
+        >
           {Object.keys(guideData).map((tab) => (
             <button
               key={tab}
-              onClick={() => { setActiveTab(tab); setExpandedItem(null); }}
+              onClick={() => {
+                setActiveTab(tab);
+                setExpandedItem(null);
+              }}
               style={{
-                padding: '16px 32px',
-                fontSize: '1.125rem',
+                flex: '0 0 auto',
+                padding: '14px 14px',
+                fontSize: '15px',
                 fontWeight: '700',
                 border: 'none',
                 backgroundColor: 'transparent',
                 cursor: 'pointer',
                 transition: 'all 0.2s',
                 color: activeTab === tab ? '#dc2626' : '#6b7280',
-                borderBottom: activeTab === tab ? '4px solid #dc2626' : 'none',
-                marginBottom: '-2px'
+                borderBottom: activeTab === tab ? '4px solid #dc2626' : '4px solid transparent',
+                marginBottom: '-2px',
+                whiteSpace: 'nowrap'
               }}
             >
               {tab}
@@ -167,14 +200,35 @@ const GuidePage = () => {
         </Box>
 
         {/* 컨텐츠 영역 */}
-        <Box sx={{ bg: '#fff', borderRadius: '12px', boxShadow: '0 1px 3px 0 rgba(0,0,0,0.1)', border: '1px solid #e5e7eb', p: 4, minHeight: '400px', bgcolor: 'white' }}>
-          <Typography variant="h5" fontWeight="bold" mb={4} sx={{ color: '#1f2937' }}>
+        <Box
+          sx={{
+            borderRadius: '12px',
+            boxShadow: '0 1px 3px 0 rgba(0,0,0,0.1)',
+            border: '1px solid #e5e7eb',
+            p: { xs: 2.5, md: 4 },
+            minHeight: '400px',
+            bgcolor: 'white'
+          }}
+        >
+          <Typography
+            variant="h5"
+            fontWeight="bold"
+            mb={4}
+            sx={{ color: '#1f2937' }}
+          >
             {activeTab}
           </Typography>
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {guideData[activeTab].map((item, index) => (
-              <Box key={index} sx={{ border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden' }}>
+              <Box
+                key={index}
+                sx={{
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px',
+                  overflow: 'hidden'
+                }}
+              >
                 <button
                   onClick={() => handleToggle(index)}
                   style={{
@@ -182,19 +236,35 @@ const GuidePage = () => {
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
-                    padding: '20px',
+                    padding: '18px',
                     backgroundColor: '#fff',
                     border: 'none',
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    textAlign: 'left'
                   }}
                 >
-                  <Typography sx={{ fontWeight: '700', fontSize: '1.125rem', color: '#374151' }}>{item.title}</Typography>
-                  <Typography sx={{ 
-                    transform: expandedItem === index ? 'rotate(180deg)' : 'rotate(0deg)',
-                    transition: 'transform 0.3s'
-                  }}>▼</Typography>
+                  <Typography
+                    sx={{
+                      fontWeight: '700',
+                      fontSize: { xs: '16px', md: '18px' },
+                      color: '#374151',
+                      wordBreak: 'keep-all'
+                    }}
+                  >
+                    {item.title}
+                  </Typography>
+
+                  <Typography
+                    sx={{
+                      transform: expandedItem === index ? 'rotate(180deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.3s',
+                      ml: 2
+                    }}
+                  >
+                    ▼
+                  </Typography>
                 </button>
-                
+
                 {expandedItem === index && (
                   <Box sx={{ p: 3, bgcolor: '#f9fafb', borderTop: '1px solid #e5e7eb' }}>
                     {item.isTable ? (
