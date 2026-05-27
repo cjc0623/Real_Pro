@@ -1,25 +1,24 @@
 // src/layout/component/users/SignUpComponent.jsx
 import * as React from 'react';
-import ToggleButton from '@mui/material/ToggleButton';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import {
-    Container, FormControl, IconButton, InputAdornment, InputLabel, OutlinedInput,
-    Paper, Typography, TextField, FormHelperText, Box, Autocomplete, Button
+    FormControl, IconButton, InputAdornment, InputLabel, OutlinedInput,
+    TextField, FormHelperText, Box, Autocomplete, Button
 } from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import SearchIcon from '@mui/icons-material/Search';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import useIdForm from '../../../hooks/useIdForm';
 import usePasswordForm from '../../../hooks/usePasswordForm';
 import EmailVerifyDialog from '../auth/EmailVerifyDialog';
 
-// ✅ 보안 패턴 정의: SQL Injection 및 XSS 방지를 위한 금지 문자 (홑따옴표, 쌍따옴표, 세미콜론, 태그, 슬래시, 백슬래시)
+// ✅ 보안 패턴 정의: SQL Injection 및 XSS 방지를 위한 금지 문자
 const FORBIDDEN_REGEX = /[ '"\\;<>\/]/;
 // ✅ 아이디 전용 패턴: 영문 대소문자와 숫자만 허용
 const ID_STRICT_REGEX = /^[a-zA-Z0-9]*$/;
 
-// ✅ 공통 에러 메시지 헬퍼: 객체/배열/Error 모두 문자열로 변환
+// ✅ 공통 에러 메시지 헬퍼
 function getErrorMessage(data) {
     if (data == null) return '요청에 실패했습니다.';
     if (typeof data === 'string') return data;
@@ -73,6 +72,20 @@ function clearSignupTicket() {
 }
 /* ======================================== */
 
+/* ── 공통 sx ── */
+const redBtnSx = {
+    borderRadius: '10px',
+    textTransform: 'none',
+    fontWeight: 700,
+    fontSize: '15px',
+    boxShadow: 'none',
+    '&:hover:not(:disabled)': {
+        boxShadow: '0 4px 14px rgba(220,38,38,0.35)',
+        backgroundColor: '#B91C1C',
+    },
+    '&:disabled': { backgroundColor: '#e5e7eb', color: '#9ca3af' },
+};
+
 const SignUpComponent = () => {
     const navigate = useNavigate();
     const { hash } = useLocation();
@@ -85,8 +98,8 @@ const SignUpComponent = () => {
     // ID 폼 상태
     const { id, handleChange, isIdValid } = useIdForm();
     const [idChecked, setIdChecked] = React.useState(false);
-    const [idAvailable, setIdAvailable] = React.useState(null); // true | false | null
-    const [idStatus, setIdStatus] = React.useState('idle');     // idle | checking | available | taken | error
+    const [idAvailable, setIdAvailable] = React.useState(null);
+    const [idStatus, setIdStatus] = React.useState('idle');
     const [idTouched, setIdTouched] = React.useState(false);
 
     // 비밀번호 폼 상태
@@ -99,16 +112,15 @@ const SignUpComponent = () => {
     const [pw1Touched, setPw1Touched] = React.useState(false);
     const [pw2Touched, setPw2Touched] = React.useState(false);
 
-    // ✅ 비밀번호 보안 패턴 체크 (실시간 검증용)
+    // ✅ 비밀번호 보안 패턴 체크
     const isPwSafe = React.useMemo(() => !FORBIDDEN_REGEX.test(password1), [password1]);
 
     // 기타 폼
-    const domainOptions = ['gmail.com', 'naver.com', 'daum.net'];
     const [emailLocal, setEmailLocal] = React.useState('');
     const [emailDomain, setEmailDomain] = React.useState('');
     const [emailVerified, setEmailVerified] = React.useState(false);
     const [openEmailModal, setOpenEmailModal] = React.useState(false);
-    const [emailLocked, setEmailLocked] = React.useState(false); // ✅ 소셜 첫가입이면 true
+    const [emailLocked, setEmailLocked] = React.useState(false);
 
     const [name, setName] = React.useState('');
     const [phone, setPhone] = React.useState('');
@@ -116,7 +128,7 @@ const SignUpComponent = () => {
     const [detailAddress, setDetailAddress] = React.useState('');
 
     const [submitting, setSubmitting] = React.useState(false);
-    const [submitError, setSubmitError] = React.useState(''); // ✅ 문자열만 저장
+    const [submitError, setSubmitError] = React.useState('');
 
     const fullEmail = React.useMemo(() => {
         const l = emailLocal.trim(); const d = emailDomain.trim();
@@ -127,7 +139,7 @@ const SignUpComponent = () => {
     const canOpenVerify = !!fullEmail && emailRegex.test(fullEmail);
 
     const onClickVerifyEmail = () => {
-        if (emailLocked) return; // ✅ 소셜 이메일 잠금 시 인증 모달 금지
+        if (emailLocked) return;
         if (!canOpenVerify) return;
         setOpenEmailModal(true);
     };
@@ -137,12 +149,11 @@ const SignUpComponent = () => {
     };
 
     /* ===============================
-       소셜 첫가입 컨텍스트: 단일 가드 + 로더
+       소셜 첫가입 컨텍스트
        =============================== */
     React.useEffect(() => {
         const fromHash = getTicketFromHash(hash);
 
-        // A) 일반 경로(해시에 티켓 없음)
         if (!fromHash) {
             clearSignupTicket();
             setEmailLocked(false);
@@ -153,7 +164,6 @@ const SignUpComponent = () => {
             return;
         }
 
-        // B) 소셜 리다이렉트(해시에 티켓 있음) → 세션 저장 후 해시 제거
         saveSignupTicketRaw(fromHash);
         try {
             window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
@@ -170,7 +180,6 @@ const SignUpComponent = () => {
             return;
         }
 
-        // C) 소셜 컨텍스트 로드
         (async () => {
             try {
                 const r = await fetch(
@@ -186,14 +195,14 @@ const SignUpComponent = () => {
                     setName('');
                     return;
                 }
-                const data = await r.json(); // { email, provider, name }
+                const data = await r.json();
 
                 if (data?.email) {
                     const [local, ...rest] = String(data.email).split('@');
                     setEmailLocal(local || '');
                     setEmailDomain(rest.join('@') || '');
-                    setEmailVerified(true); // 서버 이메일이면 인증 완료 처리
-                    setEmailLocked(true);   // 읽기 전용
+                    setEmailVerified(true);
+                    setEmailLocked(true);
                 }
                 if (data?.name) setName(data.name);
             } catch {
@@ -207,17 +216,12 @@ const SignUpComponent = () => {
         })();
     }, [hash]);
 
-    /* ===============================
-       페이지 이탈(unmount) 시 티켓 정리 (추가 안전망)
-       =============================== */
     React.useEffect(() => {
-        return () => {
-            clearSignupTicket();
-        };
+        return () => { clearSignupTicket(); };
     }, []);
 
     // ===============================
-    // ID 중복 확인 (고정 경로: /api/auth/check-id)
+    // ID 중복 확인
     // ===============================
     const handleCheckId = (() => {
         let reqToken = 0;
@@ -225,7 +229,6 @@ const SignUpComponent = () => {
             if (!id || !isIdValid) return;
 
             const myToken = ++reqToken;
-
             setIdStatus('checking');
             setIdChecked(false);
             setIdAvailable(null);
@@ -282,24 +285,16 @@ const SignUpComponent = () => {
 
                 const available = toAvailable(data);
                 if (available === true) {
-                    setIdAvailable(true);
-                    setIdChecked(true);
-                    setIdStatus('available');
+                    setIdAvailable(true); setIdChecked(true); setIdStatus('available');
                 } else if (available === false) {
-                    setIdAvailable(false);
-                    setIdChecked(true);
-                    setIdStatus('taken');
+                    setIdAvailable(false); setIdChecked(true); setIdStatus('taken');
                 } else {
                     console.warn('Unrecognized check-id payload:', data);
-                    setIdAvailable(null);
-                    setIdChecked(true);
-                    setIdStatus('error');
+                    setIdAvailable(null); setIdChecked(true); setIdStatus('error');
                 }
             } catch (e) {
                 console.error(e);
-                setIdStatus('error');
-                setIdChecked(true);
-                setIdAvailable(null);
+                setIdStatus('error'); setIdChecked(true); setIdAvailable(null);
             }
         };
     })();
@@ -315,7 +310,7 @@ const SignUpComponent = () => {
     const canSubmit =
         isIdValid &&
         idChecked && idAvailable === true &&
-        isPwValid && isPwMatch && isPwSafe && // ✅ 보안 패턴 통과 추가
+        isPwValid && isPwMatch && isPwSafe &&
         !!(emailLocked ? (emailLocal && emailDomain) : fullEmail) &&
         (emailLocked || emailVerified) &&
         name.trim().length > 0 &&
@@ -330,13 +325,12 @@ const SignUpComponent = () => {
         setSubmitting(true);
 
         try {
-            // 공통 페이로드
             const payloadBase = {
-                role: roles, // "SHIPPER" | "DRIVER"
+                role: roles,
                 loginId: id,
                 password: password1,
                 name,
-                email: fullEmail, // (소셜의 경우 서버가 ticket의 email을 우선시)
+                email: fullEmail,
                 phone,
                 address: `${selectedAddress} ${detailAddress}`.trim()
             };
@@ -344,7 +338,6 @@ const SignUpComponent = () => {
             const signupTicket = loadSignupTicket();
 
             if (emailLocked && signupTicket) {
-                // ✅ 소셜 첫가입: signup_ticket 포함해 complete-signup 호출
                 const res = await fetch(`${API_BASE}/api/auth/social/complete-signup`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -356,13 +349,11 @@ const SignUpComponent = () => {
                 try { data = JSON.parse(text); } catch { data = text; }
 
                 if (!res.ok) {
-                    const msg = getErrorMessage(data) || '가입 실패';
-                    setSubmitError(msg);       // ✅ 문자열만 저장
+                    setSubmitError(getErrorMessage(data) || '가입 실패');
                     setSubmitting(false);
                     return;
                 }
 
-                // 성공 → 토큰 저장 후 홈
                 if (data?.accessToken) sessionStorage.setItem('accessToken', data.accessToken);
                 if (data?.refreshToken) sessionStorage.setItem('refreshToken', data.refreshToken);
                 clearSignupTicket();
@@ -370,7 +361,6 @@ const SignUpComponent = () => {
                 return;
             }
 
-            // ✅ 일반 가입: 기존 signup API 사용
             const res = await fetch(`${API_BASE}/api/auth/signup`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -383,13 +373,11 @@ const SignUpComponent = () => {
             try { data = JSON.parse(text); } catch { data = text; }
 
             if (!res.ok) {
-                const msg = getErrorMessage(data) || '가입 실패';
-                setSubmitError(msg);         // ✅ 문자열만 저장
+                setSubmitError(getErrorMessage(data) || '가입 실패');
                 setSubmitting(false);
                 return;
             }
 
-            // 일반 가입 성공 UX
             navigate('/login?joined=1', { replace: true });
         } catch (err) {
             console.error(err);
@@ -400,26 +388,53 @@ const SignUpComponent = () => {
     };
 
     return (
-        <Container maxWidth="sm" sx={{ mt: 8, mb: 8 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 2 }}>
-                <img src="/image/logo/main_logo.png" alt="로고" style={{ height: 60 }} />
-            </Box>
-            <Paper elevation={3} sx={{ p: { xs: 2, sm: 4 }, width: '100%' }} component="form" onSubmit={onSubmit}>
-                <Typography variant="h5" align="center" gutterBottom sx={{ mb: 2 }}>회원가입</Typography>
+        <div className="flex flex-col items-center w-full font-sans px-4 py-12">
 
-                <ToggleButtonGroup value={alignment} exclusive onChange={handleAlignment} fullWidth sx={{ mb: 2 }}>
-                    <ToggleButton value="user" sx={{ width: '50%' }}>화주</ToggleButton>
-                    <ToggleButton value="car" sx={{ width: '50%' }}>차주</ToggleButton>
-                </ToggleButtonGroup>
+            {/* ── 로고 ── */}
+            <div className="mb-8 flex justify-center">
+                <img
+                    src="/image/logo/main_logo.png"
+                    alt="퍼스트로드 로고"
+                    className="h-14 object-contain"
+                />
+            </div>
 
-                {/* ID */}
+            {/* ── 제목 ── */}
+            <h1 className="text-2xl font-black text-gray-900 mb-7 text-center">회원가입</h1>
+
+            {/* ── 폼 ── */}
+            <Box component="form" onSubmit={onSubmit} sx={{ width: '100%', maxWidth: 440 }}>
+
+                {/* 화주 / 차주 탭 — 언더라인 스타일 */}
+                <div className="border-b border-gray-200 mb-5">
+                    <div className="flex">
+                        {[{ val: 'user', label: '화주' }, { val: 'car', label: '차주' }].map(({ val, label }) => (
+                            <button
+                                key={val}
+                                type="button"
+                                onClick={() => handleAlignment(null, val)}
+                                className={`
+                                    flex-1 py-2.5 text-sm font-semibold
+                                    border-b-2 -mb-px transition-all
+                                    ${alignment === val
+                                        ? 'border-gray-900 text-gray-900'
+                                        : 'border-transparent text-gray-400 hover:text-gray-700'
+                                    }
+                                `}
+                            >
+                                {label}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* ── 아이디 + 중복확인 ── */}
                 <Box display="flex" alignItems="flex-start" gap={1} sx={{ mb: 1.5 }}>
                     <TextField
                         id="outlined-id"
-                        label="ID"
+                        label="아이디"
                         value={id}
                         onChange={(e) => {
-                            // ✅ 영문/숫자만 허용하는 Strict 패턴 적용
                             if (ID_STRICT_REGEX.test(e.target.value)) {
                                 handleChange(e);
                                 setIdChecked(false);
@@ -432,8 +447,8 @@ const SignUpComponent = () => {
                         error={(idTouched || idChecked) && id !== '' && (idStatus === 'error' || !isIdValid || idAvailable === false)}
                         helperText={
                             (idTouched || idChecked) && id !== ''
-                                ? (!ID_STRICT_REGEX.test(id) 
-                                    ? '특수문자는 사용 불가능합니다.' 
+                                ? (!ID_STRICT_REGEX.test(id)
+                                    ? '특수문자는 사용 불가능합니다.'
                                     : !idChecked
                                     ? '8~15자, 영문 대소문자와 숫자만 허용됩니다.'
                                     : idStatus === 'checking'
@@ -449,26 +464,34 @@ const SignUpComponent = () => {
                         }
                         sx={{ flex: 1, minWidth: 0 }}
                     />
-                    <Box sx={{ width: '30%', display: 'flex' }}>
-                        <Button
-                            variant="outlined"
-                            sx={{
-                                height: '56px',
-                                whiteSpace: 'nowrap',  // ← 핵심
-                                flexShrink: 0,
-                                px: 2,
-                            }}
-                            onClick={handleCheckId}
-                            disabled={!id || !isIdValid || idStatus === 'checking'}
-                        >
-                            {idStatus === 'checking' ? '확인 중...' : '중복확인'}
-                        </Button>
-                    </Box>
+                    <Button
+                        variant="outlined"
+                        onClick={handleCheckId}
+                        disabled={!id || !isIdValid || idStatus === 'checking'}
+                        sx={{
+                            height: '56px',
+                            whiteSpace: 'nowrap',
+                            flexShrink: 0,
+                            px: 2,
+                            borderRadius: '10px',
+                            borderColor: '#d1d5db',
+                            color: '#6b7280',
+                            textTransform: 'none',
+                            fontWeight: 600,
+                            '&:hover': { borderColor: '#9ca3af', backgroundColor: '#f9fafb' },
+                        }}
+                    >
+                        {idStatus === 'checking' ? '확인 중...' : '중복확인'}
+                    </Button>
                 </Box>
 
-                {/* 비밀번호 */}
-                <FormControl sx={{ width: '100%', mb: 1.5 }} variant="outlined" error={(pw1Touched && isPwValid === false) || !isPwSafe}>
-                    <InputLabel htmlFor="password1">Password</InputLabel>
+                {/* ── 비밀번호 ── */}
+                <FormControl
+                    sx={{ width: '100%', mb: 1.5 }}
+                    variant="outlined"
+                    error={(pw1Touched && isPwValid === false) || !isPwSafe}
+                >
+                    <InputLabel htmlFor="password1">비밀번호</InputLabel>
                     <OutlinedInput
                         id="password1"
                         autoComplete="new-password"
@@ -484,20 +507,24 @@ const SignUpComponent = () => {
                                 </IconButton>
                             </InputAdornment>
                         }
-                        label="Password"
+                        label="비밀번호"
                     />
                     {pw1Touched && (
                         <FormHelperText>
-                            {!isPwSafe 
-                                ? '금지된 특수문자(\' " ; < > / \\)가 포함되어 있습니다.' 
+                            {!isPwSafe
+                                ? '금지된 특수문자(\' " ; < > / \\)가 포함되어 있습니다.'
                                 : isPwValid === null ? '' : isPwValid ? '사용 가능한 비밀번호입니다.' : '영문, 숫자, 특수문자 포함 8~20자여야 합니다.'}
                         </FormHelperText>
                     )}
                 </FormControl>
 
-                {/* 비밀번호 재입력 */}
-                <FormControl sx={{ width: '100%', mb: 1.5 }} variant="outlined" error={pw2Touched && isPwMatch === false}>
-                    <InputLabel htmlFor="password2">Password 재입력</InputLabel>
+                {/* ── 비밀번호 재입력 ── */}
+                <FormControl
+                    sx={{ width: '100%', mb: 1.5 }}
+                    variant="outlined"
+                    error={pw2Touched && isPwMatch === false}
+                >
+                    <InputLabel htmlFor="password2">비밀번호 재입력</InputLabel>
                     <OutlinedInput
                         id="password2"
                         autoComplete="new-password"
@@ -513,48 +540,67 @@ const SignUpComponent = () => {
                                 </IconButton>
                             </InputAdornment>
                         }
-                        label="Password 재입력"
+                        label="비밀번호 재입력"
                     />
                     {pw2Touched && password2 !== '' && (
-                        <Typography color={isPwMatch ? 'success.main' : 'error'} variant="caption">
+                        <FormHelperText sx={{ color: isPwMatch ? '#16a34a' : '#d32f2f' }}>
                             {isPwMatch ? '비밀번호가 일치합니다.' : '비밀번호가 일치하지 않습니다.'}
-                        </Typography>
+                        </FormHelperText>
                     )}
                 </FormControl>
 
-                {/* 이메일 */}
+                {/* ── 이메일 ── */}
                 <Box sx={{ mb: 1.5 }}>
-                    {/* 위 줄: 이메일 입력 */}
                     <Box display="flex" gap={1} alignItems="center" sx={{ mb: 1 }}>
                         <TextField
-                            label="Email"
+                            label="이메일"
                             value={emailLocal}
-                            onChange={(e) => { if (!emailLocked) { setEmailLocal(e.target.value); setEmailVerified(false); } }}
+                            onChange={(e) => {
+                                if (!emailLocked) { setEmailLocal(e.target.value); setEmailVerified(false); }
+                            }}
                             InputProps={{ readOnly: emailLocked }}
                             sx={{ flex: 1, minWidth: 0 }}
                         />
-                        <Typography sx={{ flexShrink: 0 }}>@</Typography>
+                        <span className="text-gray-400 flex-shrink-0 font-medium select-none">@</span>
                         <Autocomplete
                             freeSolo
                             options={['gmail.com', 'naver.com', 'daum.net']}
                             value={emailDomain}
-                            onInputChange={(_, v) => { if (!emailLocked) { setEmailDomain(v); setEmailVerified(false); } }}
+                            onInputChange={(_, v) => {
+                                if (!emailLocked) { setEmailDomain(v); setEmailVerified(false); }
+                            }}
                             renderInput={(params) => (
-                                <TextField {...params} label="도메인" InputProps={{ ...params.InputProps, readOnly: emailLocked }} />
+                                <TextField
+                                    {...params}
+                                    label="도메인"
+                                    InputProps={{ ...params.InputProps, readOnly: emailLocked }}
+                                />
                             )}
                             sx={{ flex: 1, minWidth: 0 }}
                         />
                     </Box>
-                    {/* 아래 줄: 인증 버튼 full-width */}
+
+                    {/* 인증하기 / 인증완료 버튼 */}
                     <Button
-                        variant={emailVerified ? 'contained' : 'outlined'}
-                        color={emailVerified ? 'success' : 'primary'}
                         fullWidth
-                        sx={{ height: 48 }}
+                        variant="contained"
                         onClick={onClickVerifyEmail}
                         disabled={emailLocked || !canOpenVerify}
+                        sx={{
+                            height: 48,
+                            ...redBtnSx,
+                            fontSize: '14px',
+                            py: 0,
+                            backgroundColor: emailVerified ? '#16a34a' : '#DC2626',
+                            '&:hover:not(:disabled)': {
+                                backgroundColor: emailVerified ? '#15803d' : '#B91C1C',
+                                boxShadow: emailVerified
+                                    ? '0 4px 14px rgba(22,163,74,0.3)'
+                                    : '0 4px 14px rgba(220,38,38,0.35)',
+                            },
+                        }}
                     >
-                        {emailLocked ? '인증완료' : (emailVerified ? '인증완료' : '인증하기')}
+                        {emailLocked ? '✓ 인증완료' : emailVerified ? '✓ 인증완료' : '인증하기'}
                     </Button>
                 </Box>
 
@@ -565,21 +611,25 @@ const SignUpComponent = () => {
                     onVerified={handleEmailVerified}
                 />
 
-                {/* 이름, 전화번호, 주소 */}
+                {/* ── 이름 ── */}
                 <TextField
                     label="이름"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    variant="outlined"
-                    sx={{ width: '100%', mb: 1.5 }}
+                    fullWidth
+                    sx={{ mb: 1.5 }}
                 />
+
+                {/* ── 전화번호 ── */}
                 <TextField
                     label="전화번호"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    variant="outlined"
-                    sx={{ width: '100%', mb: 1.5 }}
+                    fullWidth
+                    sx={{ mb: 1.5 }}
                 />
+
+                {/* ── 주소 ── */}
                 <TextField
                     disabled
                     label="주소"
@@ -589,35 +639,54 @@ const SignUpComponent = () => {
                         inputProps: { readOnly: true },
                         endAdornment: (
                             <InputAdornment position="end">
-                                <IconButton onClick={handleAddressSearch}><SearchIcon /></IconButton>
+                                <IconButton onClick={handleAddressSearch}>
+                                    <SearchIcon />
+                                </IconButton>
                             </InputAdornment>
                         ),
                     }}
-                    sx={{ width: '100%', mb: 1.5 }}
+                    sx={{ mb: 1.5 }}
                 />
+
+                {/* ── 상세 주소 ── */}
                 <TextField
                     label="상세 주소"
                     value={detailAddress}
                     onChange={(e) => setDetailAddress(e.target.value)}
-                    variant="outlined"
-                    sx={{ width: '100%', mb: 1.5 }}
+                    fullWidth
+                    sx={{ mb: 2.5 }}
                 />
 
-                {/* 서버 에러 */}
+                {/* ── 서버 에러 ── */}
                 {submitError && (
-                    <Typography color="error" sx={{ mb: 1, whiteSpace: 'pre-line' }}>
-                        {submitError}
-                    </Typography>
+                    <p className="text-red-500 text-sm mb-3 whitespace-pre-line">{submitError}</p>
                 )}
 
-                <Box sx={{ width: '100%', display: 'flex' }}>
-                    <Button variant="outlined" size="large" sx={{ width: '100%', height: '55px' }}
-                        type="submit" disabled={!canSubmit || submitting}>
-                        {submitting ? '가입 중...' : '회원가입'}
-                    </Button>
-                </Box>
-            </Paper>
-        </Container>
+                {/* ── 회원가입 버튼 ── */}
+                <Button
+                    fullWidth
+                    variant="contained"
+                    type="submit"
+                    disabled={!canSubmit || submitting}
+                    sx={{
+                        backgroundColor: '#DC2626',
+                        py: 1.5,
+                        ...redBtnSx,
+                    }}
+                >
+                    {submitting ? '가입 중...' : '회원가입'}
+                </Button>
+
+                {/* ── 로그인 링크 ── */}
+                <p className="text-center text-sm text-gray-400 mt-6">
+                    이미 회원이신가요?{' '}
+                    <Link to="/login" className="text-red-600 font-semibold hover:underline">
+                        로그인
+                    </Link>
+                </p>
+
+            </Box>
+        </div>
     );
 };
 

@@ -1,8 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Box,
-  Typography,
-  Container,
   Table,
   TableBody,
   TableCell,
@@ -11,6 +8,8 @@ import {
   TableRow,
   Paper
 } from '@mui/material';
+import { ExpandMore } from '@mui/icons-material';
+import Breadcrumb from '../components/Breadcrumb';
 
 const guideData = {
   '시작하기': [
@@ -136,152 +135,96 @@ const GuidePage = () => {
   };
 
   return (
-    <Box sx={{ bgcolor: '#f9fafb', minHeight: '100vh', py: { xs: 4, md: 8 } }}>
-      <Container maxWidth="lg">
-        <Typography
-          variant="h3"
-          fontWeight="900"
-          mb={{ xs: 4, md: 6 }}
-          sx={{
-            color: '#111827',
-            fontSize: { xs: '36px', sm: '42px', md: '48px' },
-            lineHeight: 1.2,
-            wordBreak: 'keep-all'
-          }}
-        >
-          퍼스트로드 용달 이용가이드
-        </Typography>
+    <div className="min-h-screen bg-white font-sans">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
 
-        {/* 탭 네비게이션 */}
-        <Box
-          sx={{
-            display: 'flex',
-            gap: { xs: 1, sm: 2 },
-            borderBottom: '2px solid #e5e7eb',
-            mb: { xs: 4, md: 8 },
-            overflowX: 'auto',
-            whiteSpace: 'nowrap',
-            // 추가: 좌우 여백 확보
-            px: { xs: 1, sm: 2 },
+        {/* ── 브레드크럼 ── */}
+        <Breadcrumb label="이용가이드" />
 
-            // 추가: 마지막 탭이 오른쪽에 붙어서 잘리는 것 방지
-            scrollPaddingRight: '16px',
-            '&::-webkit-scrollbar': {
-              display: 'none'
-            },
-            scrollbarWidth: 'none'
-          }}
-        >
-          {Object.keys(guideData).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => {
-                setActiveTab(tab);
-                setExpandedItem(null);
-              }}
-              style={{
-                flex: '0 0 auto',
-                padding: '14px 14px',
-                fontSize: '15px',
-                fontWeight: '700',
-                border: 'none',
-                backgroundColor: 'transparent',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                color: activeTab === tab ? '#dc2626' : '#6b7280',
-                borderBottom: activeTab === tab ? '4px solid #dc2626' : '4px solid transparent',
-                marginBottom: '-2px',
-                whiteSpace: 'nowrap'
-              }}
-            >
-              {tab}
-            </button>
-          ))}
-        </Box>
+        {/* ── 제목 — 중앙 정렬 ── */}
+        <div className="text-center mb-8 sm:mb-12">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 mb-2 sm:mb-3">
+            이용가이드
+          </h1>
+          <p className="text-gray-400 text-xs sm:text-base break-keep">
+            퍼스트로드 용달 서비스를 더 편리하게 이용하는 방법을 안내합니다
+          </p>
+        </div>
 
-        {/* 컨텐츠 영역 */}
-        <Box
-          sx={{
-            borderRadius: '12px',
-            boxShadow: '0 1px 3px 0 rgba(0,0,0,0.1)',
-            border: '1px solid #e5e7eb',
-            p: { xs: 2.5, md: 4 },
-            minHeight: '400px',
-            bgcolor: 'white'
-          }}
-        >
-          <Typography
-            variant="h5"
-            fontWeight="bold"
-            mb={4}
-            sx={{ color: '#1f2937' }}
-          >
-            {activeTab}
-          </Typography>
-
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {guideData[activeTab].map((item, index) => (
-              <Box
-                key={index}
-                sx={{
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '8px',
-                  overflow: 'hidden'
-                }}
+        {/* ── 탭 — 언더라인 스타일 (공지사항·고객지원과 동일) ── */}
+        <div className="border-b border-gray-200 mb-8">
+          <div className="flex overflow-x-auto
+                          [&::-webkit-scrollbar]:hidden
+                          [-ms-overflow-style:none]
+                          [scrollbar-width:none]">
+            {Object.keys(guideData).map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => { setActiveTab(tab); setExpandedItem(null); }}
+                className={`
+                  px-4 sm:px-6 py-2.5 sm:py-3
+                  text-xs sm:text-sm font-medium
+                  border-b-2 -mb-px transition-all whitespace-nowrap flex-shrink-0
+                  ${activeTab === tab
+                    ? 'border-gray-900 text-gray-900'
+                    : 'border-transparent text-gray-400 hover:text-gray-700 hover:border-gray-300'
+                  }
+                `}
               >
-                <button
-                  onClick={() => handleToggle(index)}
-                  style={{
-                    width: '100%',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    padding: '18px',
-                    backgroundColor: '#fff',
-                    border: 'none',
-                    cursor: 'pointer',
-                    textAlign: 'left'
-                  }}
-                >
-                  <Typography
-                    sx={{
-                      fontWeight: '700',
-                      fontSize: { xs: '16px', md: '18px' },
-                      color: '#374151',
-                      wordBreak: 'keep-all'
-                    }}
-                  >
-                    {item.title}
-                  </Typography>
-
-                  <Typography
-                    sx={{
-                      transform: expandedItem === index ? 'rotate(180deg)' : 'rotate(0deg)',
-                      transition: 'transform 0.3s',
-                      ml: 2
-                    }}
-                  >
-                    ▼
-                  </Typography>
-                </button>
-
-                {expandedItem === index && (
-                  <Box sx={{ p: 3, bgcolor: '#f9fafb', borderTop: '1px solid #e5e7eb' }}>
-                    {item.isTable ? (
-                      renderTable(item.tableType)
-                    ) : (
-                      <Typography sx={{ whiteSpace: 'pre-line', color: '#4b5563', lineHeight: 1.7 }}>
-                        {item.content}
-                      </Typography>
-                    )}
-                  </Box>
-                )}
-              </Box>
+                {tab}
+              </button>
             ))}
-          </Box>
-        </Box>
-      </Container>
-    </Box>
+          </div>
+        </div>
+
+        {/* ── 아코디언 목록 — 고객지원 스타일과 동일 ── */}
+        <div className="border border-gray-100 rounded-xl overflow-hidden">
+          {guideData[activeTab].map((item, index) => (
+            <div key={index} className="border-b border-gray-100 last:border-b-0">
+
+              {/* 헤더 버튼 */}
+              <button
+                type="button"
+                onClick={() => handleToggle(index)}
+                className={`
+                  w-full flex items-center justify-between
+                  px-4 sm:px-6 py-4 sm:py-5
+                  text-left cursor-pointer transition-colors duration-150
+                  ${expandedItem === index ? 'bg-gray-50/70' : 'bg-white hover:bg-gray-50'}
+                `}
+              >
+                <span className="text-sm sm:text-base font-semibold text-gray-800 leading-snug break-keep pr-3">
+                  {item.title}
+                </span>
+                <ExpandMore
+                  sx={{
+                    flexShrink: 0,
+                    color: '#9ca3af',
+                    transform: expandedItem === index ? 'rotate(180deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.3s',
+                  }}
+                />
+              </button>
+
+              {/* 펼쳐진 내용 */}
+              {expandedItem === index && (
+                <div className="px-4 sm:px-6 py-4 border-t border-gray-100 bg-gray-50/50">
+                  {item.isTable ? (
+                    renderTable(item.tableType)
+                  ) : (
+                    <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line break-keep">
+                      {item.content}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+      </div>
+    </div>
   );
 };
 

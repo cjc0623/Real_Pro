@@ -63,6 +63,13 @@ const HomePage = () => {
   const [notices, setNotices] = useState([]);
   const [selectedVehicleIndex, setSelectedVehicleIndex] = useState(0); 
   const [openFees, setOpenFees] = useState(false);
+  const [selectedSpecialIndex, setSelectedSpecialIndex] = useState(0);
+
+  const handlePrevSpecial = () =>
+    setSelectedSpecialIndex(prev => (prev === 0 ? specialVehicleList.length - 1 : prev - 1));
+
+  const handleNextSpecial = () =>
+    setSelectedSpecialIndex(prev => (prev === specialVehicleList.length - 1 ? 0 : prev + 1));
 
   // ✅ 실제로 화면에 보여줄 통합 리스트
   const [displayVehicles, setDisplayVehicles] = useState([]);
@@ -172,15 +179,21 @@ const HomePage = () => {
                   <button
                     key={index}
                     onClick={() => setSelectedVehicleIndex(index)}
-                    className={`py-3 px-5 rounded-[2rem] flex justify-between items-center transition-all bg-white ${
-                      selectedVehicleIndex === index ? 'ring-2 ring-red-600 scale-105 shadow-lg' : 'border border-gray-100 shadow-sm'
+                    className={`py-3 px-5 rounded-[2rem] flex justify-between items-center transition-all duration-300 ${
+                      selectedVehicleIndex === index
+                        ? 'bg-red-600 shadow-lg scale-105'
+                        : 'bg-white border border-gray-100 shadow-sm hover:border-red-200 hover:shadow-md'
                     }`}
                   >
                     <span className="flex items-center gap-6">
-                      <span className="font-bold text-xl">{index < 9 ? `0${index + 1}` : index + 1}</span>
-                      <span className="text-xl font-bold">{vehicle.name}</span>
+                      <span className={`font-bold text-xl ${selectedVehicleIndex === index ? 'text-white' : 'text-gray-400'}`}>
+                        {index < 9 ? `0${index + 1}` : index + 1}
+                      </span>
+                      <span className={`text-xl font-bold ${selectedVehicleIndex === index ? 'text-white' : 'text-gray-900'}`}>
+                        {vehicle.name}
+                      </span>
                     </span>
-                    <span className="text-gray-400 text-2xl">〉</span>
+                    <span className={`text-2xl ${selectedVehicleIndex === index ? 'text-white' : 'text-gray-300'}`}>〉</span>
                   </button>
                 ))}
               </div>
@@ -188,43 +201,123 @@ const HomePage = () => {
 
             <div className="w-full lg:w-2/3 flex flex-col justify-start gap-12 mt-2 lg:mt-0"> 
               {displayVehicles[selectedVehicleIndex] && (
-                <>
-                  <div className="flex items-center gap-4 mb-3">
-                    <span className="font-bold text-3xl text-red-600">0{selectedVehicleIndex + 1}</span>
-                    <h3 className="text-4xl md:text-5xl font-black">{displayVehicles[selectedVehicleIndex].name}</h3>
+                <div className="flex flex-col h-full">
+                  {/* 번호 (장식용) */}
+                  <p className="text-8xl md:text-9xl font-black text-red-100 leading-none select-none -mb-4">
+                    {selectedVehicleIndex < 9 ? `0${selectedVehicleIndex + 1}` : selectedVehicleIndex + 1}
+                  </p>
+                  {/* 타이틀 */}
+                  <h3 className="text-4xl md:text-5xl font-black text-gray-900 mb-6">
+                    {displayVehicles[selectedVehicleIndex].name}
+                  </h3>
+                  {/* 설명 */}
+                  <p className="text-gray-800 text-lg md:text-xl font-bold mb-2">
+                    {displayVehicles[selectedVehicleIndex].desc1}
+                  </p>
+                  <p className="text-gray-500 text-base mb-8">
+                    {displayVehicles[selectedVehicleIndex].desc2}
+                  </p>
+                  {/* 차량 이미지 */}
+                  <div className="flex-1 flex items-end justify-end">
+                    <img
+                      src={displayVehicles[selectedVehicleIndex].img}
+                      alt={displayVehicles[selectedVehicleIndex].name}
+                      onError={(e) => { e.target.src = DEFAULT_TRUCK_IMG; }}
+                      className="w-full max-w-[560px] h-auto object-contain drop-shadow-2xl"
+                    />
                   </div>
-                  <div className="flex-grow flex flex-col gap-3 mb-2">
-                      <div className="text-gray-800 text-lg md:text-xl font-bold">{displayVehicles[selectedVehicleIndex].desc1}</div>
-                      <div className="text-gray-600 text-base">{displayVehicles[selectedVehicleIndex].desc2}</div>
-                  </div>
-                  <div className="w-full flex justify-end -mt-4 lg:mt-0">
-                      <img 
-                        src={displayVehicles[selectedVehicleIndex].img} 
-                        alt={displayVehicles[selectedVehicleIndex].name}
-                        onError={(e) => { e.target.src = DEFAULT_TRUCK_IMG; }}
-                        className="w-full max-w-[600px] h-auto object-contain drop-shadow-2xl" 
-                      />
-                  </div>
-                </>
+                </div>
               )}
             </div>
           </div>
         </div>
       </section>
 
-      <section className="py-24 bg-white border-t border-gray-100">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col items-center">
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-8 w-full">
-            {specialVehicleList.map((item, index) => (
-              <div key={index} className="flex flex-col items-center text-center">
-                <div className="w-48 h-48 flex items-center justify-center mb-6 overflow-hidden">
-                   <img src={item.img} alt={item.name} className="w-full h-auto object-contain hover:scale-105 transition-all" />
-                </div>
-                <h4 className="text-xl font-bold mb-3">{item.name}</h4>
-                <p className="text-sm text-gray-500">{item.desc}</p>
-              </div>
+      <section className="py-24 bg-white border-t border-gray-100 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6">
+
+          {/* 헤더 */}
+          <div className="text-center mb-16">
+            <p className="text-red-600 font-bold text-sm tracking-[0.2em] uppercase mb-3">Special Vehicles</p>
+            <h2 className="text-4xl md:text-5xl font-black text-gray-900">
+              원하는 차량, 퍼스트로드엔 다 있습니다
+            </h2>
+          </div>
+
+          {/* 캐러셀 */}
+          <div className="flex items-end justify-center gap-4 md:gap-10">
+
+            {/* 이전 버튼 */}
+            <button
+              onClick={handlePrevSpecial}
+              className="flex-shrink-0 w-12 h-12 md:w-14 md:h-14 rounded-full border-2 border-gray-200 flex items-center justify-center text-2xl text-gray-400 hover:border-red-600 hover:text-red-600 bg-white shadow-sm transition-all duration-300 mb-16"
+              aria-label="이전 차량"
+            >
+              ‹
+            </button>
+
+            {/* 차량 목록 — 데스크탑: 전체, 모바일: 활성만 */}
+            <div className="flex items-end justify-center gap-4 md:gap-8 flex-1">
+              {specialVehicleList.map((vehicle, idx) => {
+                const isActive = idx === selectedSpecialIndex;
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => setSelectedSpecialIndex(idx)}
+                    className={`flex flex-col items-center transition-all duration-500 cursor-pointer focus:outline-none ${
+                      isActive
+                        ? 'opacity-100 scale-110'
+                        : 'opacity-30 scale-90 hover:opacity-60 hidden md:flex'
+                    }`}
+                  >
+                    <img
+                      src={vehicle.img}
+                      alt={vehicle.name}
+                      className={`object-contain transition-all duration-500 ${
+                        isActive ? 'w-40 md:w-56 h-auto' : 'w-24 md:w-36 h-auto'
+                      }`}
+                    />
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* 다음 버튼 */}
+            <button
+              onClick={handleNextSpecial}
+              className="flex-shrink-0 w-12 h-12 md:w-14 md:h-14 rounded-full border-2 border-gray-200 flex items-center justify-center text-2xl text-gray-400 hover:border-red-600 hover:text-red-600 bg-white shadow-sm transition-all duration-300 mb-16"
+              aria-label="다음 차량"
+            >
+              ›
+            </button>
+          </div>
+
+          {/* 활성 차량 이름 + 설명 */}
+          <div className="text-center mt-6">
+            <h3 className="text-3xl font-black text-gray-900 mb-2">
+              {specialVehicleList[selectedSpecialIndex].name}
+            </h3>
+            <p className="text-gray-500 text-lg">
+              {specialVehicleList[selectedSpecialIndex].desc}
+            </p>
+          </div>
+
+          {/* 점 인디케이터 */}
+          <div className="flex justify-center gap-2 mt-8">
+            {specialVehicleList.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setSelectedSpecialIndex(idx)}
+                className={`rounded-full transition-all duration-300 ${
+                  idx === selectedSpecialIndex
+                    ? 'bg-red-600 w-8 h-2.5'
+                    : 'bg-gray-200 w-2.5 h-2.5 hover:bg-gray-400'
+                }`}
+                aria-label={`${idx + 1}번째 차량`}
+              />
             ))}
           </div>
+
         </div>
       </section>
 

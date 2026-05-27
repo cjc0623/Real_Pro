@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
-    TextField, Button, Stack, Typography, Select, MenuItem,
+    TextField, Button, Stack, Select, MenuItem,
     FormControl, InputLabel, OutlinedInput, Checkbox, ListItemText,
-    Box, IconButton, InputAdornment, Grid, useMediaQuery, useTheme,
+    Box, IconButton, InputAdornment, useMediaQuery, useTheme,
     Dialog, DialogActions, DialogContent,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
@@ -16,13 +16,9 @@ import { calculateDistanceBetweenAddresses } from "../common/calculateDistanceBe
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { isCurrentUserAdmin } from "../../../utils/jwtUtils";
-
 import { getCurrentUserInfo } from "../../../utils/jwtUtils";
 
-
 const tomorrowStart = dayjs().add(1, "day").hour(9).minute(0).second(0).millisecond(0);
-
-
 
 const initState = {
     startAddress: "",
@@ -35,6 +31,18 @@ const initState = {
     baseCost: 0,
     distanceCost: 0,
     specialOption: 0,
+};
+
+/* ── 공통 sx ── */
+const fieldSx = {
+    "& .MuiOutlinedInput-root": { borderRadius: "10px" },
+};
+const cardSx = {
+    border: "1px solid #e5e7eb",
+    borderRadius: "16px",
+    p: 3,
+    bgcolor: "#ffffff",
+    boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
 };
 
 const EstimateComponentCombined = () => {
@@ -60,8 +68,7 @@ const EstimateComponentCombined = () => {
     useEffect(() => {
         if (authChecked.current) return;
 
-        const token = sessionStorage.getItem('accessToken');
-
+        const token = sessionStorage.getItem("accessToken");
         if (!token) {
             authChecked.current = true;
             alert("로그인이 필요합니다.");
@@ -69,7 +76,6 @@ const EstimateComponentCombined = () => {
             return;
         }
 
-        // ✅ roles 로드 안 됐으면 무조건 대기 (email 조건 제거)
         if (roles.length === 0) return;
 
         authChecked.current = true;
@@ -133,81 +139,112 @@ const EstimateComponentCombined = () => {
     const isInvalidHour = (data) => data.hour() < 9 || data.hour() > 16;
     const isBeforeMinDateTime = (date) => date.isBefore(dayjs().add(24, "hour").startOf("day"));
 
+    /* ── 출발지·도착지 둘 다 입력되면 자동으로 거리 계산 ── */
+    useEffect(() => {
+        if (!estimate.startAddress || !estimate.endAddress) return;
+        calculateDistanceBetweenAddresses(estimate.startAddress, estimate.endAddress)
+            .then((km) => setEstimate((prev) => ({ ...prev, distanceKm: km })))
+            .catch(() => {}); // 자동 계산 실패는 조용히 무시
+    }, [estimate.startAddress, estimate.endAddress]);
+
     return (
-        <Box sx={{ px: 2, py: 4 }}>
+        <Box sx={{ py: 3 }}>
+            <Box sx={{
+                display: "flex",
+                flexDirection: isMobile ? "column" : "row",
+                gap: 3,
+                alignItems: isMobile ? "stretch" : "stretch",
+            }}>
 
+                {/* ── 좌측: 입력 폼 ── */}
+                <Box sx={{ width: isMobile ? "100%" : 460, flexShrink: 0, ...cardSx }}>
 
-
-            {/* 본문: 좌측 입력 / 우측 금액+지도 */}
-            <Box sx={{ display: "flex", flexDirection: isMobile ? "column" : "row", gap: 3, alignItems: "flex-start" }}>
-
-                {/* 좌측 입력 — 고정 너비 */}
-                <Box sx={{ width: isMobile ? "100%" : 480, flexShrink: 0, border: "1px solid #ccc", borderRadius: 2, p: 3, bgcolor: "#ffffff" }}>
-                    <Typography variant="h5" fontWeight="bold" align="center" mb={2}>
+                    <h2 className="text-lg font-black text-gray-900 text-center mb-5">
                         견적서 작성
-                    </Typography>
+                    </h2>
+
                     <Stack spacing={2}>
+
+                        {/* 출발지 */}
                         <TextField
-                            placeholder="출발지 주소"
                             label="출발지 주소"
                             value={estimate.startAddress}
                             fullWidth
+                            sx={fieldSx}
                             InputProps={{
                                 readOnly: true,
                                 endAdornment: (
                                     <InputAdornment position="end">
-                                        <IconButton onClick={() => handleAddressSearch((addr) => setEstimate((prev) => ({ ...prev, startAddress: addr })))}>
-                                            <SearchIcon />
+                                        <IconButton onClick={() => handleAddressSearch((addr) =>
+                                            setEstimate((prev) => ({ ...prev, startAddress: addr }))
+                                        )}>
+                                            <SearchIcon sx={{ fontSize: 20, color: "#9ca3af" }} />
                                         </IconButton>
                                     </InputAdornment>
                                 ),
                             }}
                         />
+
+                        {/* 도착지 */}
                         <TextField
-                            placeholder="도착지 주소"
                             label="도착지 주소"
                             value={estimate.endAddress}
                             fullWidth
+                            sx={fieldSx}
                             InputProps={{
                                 readOnly: true,
                                 endAdornment: (
                                     <InputAdornment position="end">
-                                        <IconButton onClick={() => handleAddressSearch((addr) => setEstimate((prev) => ({ ...prev, endAddress: addr })))}>
-                                            <SearchIcon />
+                                        <IconButton onClick={() => handleAddressSearch((addr) =>
+                                            setEstimate((prev) => ({ ...prev, endAddress: addr }))
+                                        )}>
+                                            <SearchIcon sx={{ fontSize: 20, color: "#9ca3af" }} />
                                         </IconButton>
                                     </InputAdornment>
                                 ),
                             }}
                         />
-                        <Stack direction="row" spacing={1} alignItems="flex-start">
-                            <TextField
-                                label="예상 거리(km)"
-                                value={estimate.distanceKm}
-                                InputProps={{ readOnly: true }}
-                                fullWidth
-                            />
-                            <Button
-                                variant="contained"
-                                sx={{
-                                    maxWidth: 180,
-                                    height: '56px', // TextField 높이와 맞춤
-                                    whiteSpace: 'nowrap' // 글자 줄바꿈 방지
-                                }}
-                                onClick={calculateDistance}
-                            >
-                                거리 계산
-                            </Button>
-                        </Stack>
 
+                        {/* 예상 거리 (읽기 전용) */}
+                        <TextField
+                            label="예상 거리(km)"
+                            value={estimate.distanceKm}
+                            InputProps={{ readOnly: true }}
+                            fullWidth
+                            sx={fieldSx}
+                        />
 
+                        {/* 거리 계산 버튼 — 필드 아래 분리 배치 */}
+                        <Button
+                            fullWidth
+                            variant="outlined"
+                            onClick={calculateDistance}
+                            sx={{
+                                height: 46,
+                                borderRadius: "10px",
+                                borderColor: "#d1d5db",
+                                color: "#374151",
+                                textTransform: "none",
+                                fontWeight: 600,
+                                fontSize: "14px",
+                                "&:hover": { borderColor: "#9ca3af", backgroundColor: "#f9fafb" },
+                            }}
+                        >
+                            거리 계산
+                        </Button>
+
+                        {/* 화물 종류 */}
                         <TextField
                             label="화물 종류"
                             name="cargoType"
                             value={estimate.cargoType}
                             onChange={handleChangeEstimate}
                             fullWidth
+                            sx={fieldSx}
                         />
-                        <FormControl fullWidth>
+
+                        {/* 화물 무게 */}
+                        <FormControl fullWidth sx={{ "& .MuiOutlinedInput-root": { borderRadius: "10px" } }}>
                             <InputLabel id="cargo-fee-label">화물 무게</InputLabel>
                             <Select
                                 labelId="cargo-fee-label"
@@ -220,6 +257,8 @@ const EstimateComponentCombined = () => {
                                 ))}
                             </Select>
                         </FormControl>
+
+                        {/* 예약 시간 */}
                         <LocalizationProvider dateAdapter={AdapterDayjs}>
                             <DateTimePicker
                                 label="예약 시간"
@@ -230,10 +269,13 @@ const EstimateComponentCombined = () => {
                                 onChange={(newTime) => setEstimate((prev) => ({ ...prev, startTime: newTime }))}
                                 format="YYYY년 MM월 DD일 A hh:mm"
                                 closeOnSelect={false}
-                                renderInput={(params) => <TextField {...params} fullWidth />}
+                                renderInput={(params) => <TextField {...params} fullWidth sx={fieldSx} />}
+                                sx={{ "& .MuiOutlinedInput-root": { borderRadius: "10px" } }}
                             />
                         </LocalizationProvider>
-                        <FormControl fullWidth>
+
+                        {/* 특이사항 */}
+                        <FormControl fullWidth sx={{ "& .MuiOutlinedInput-root": { borderRadius: "10px" } }}>
                             <InputLabel>특이사항 선택</InputLabel>
                             <Select
                                 multiple
@@ -253,108 +295,253 @@ const EstimateComponentCombined = () => {
                                 ))}
                             </Select>
                         </FormControl>
+
+                        {/* 선택된 특이사항 목록 */}
                         {specialNotes.length > 0 && (
-                            <Box bgcolor="#f1f1f1" borderRadius={2} p={2}>
+                            <div className="bg-gray-50 rounded-xl border border-gray-100 p-3">
                                 {specialNotes.map((note) => (
-                                    <Typography key={note.extraChargeTitle} fontSize={14}>
+                                    <p key={note.extraChargeTitle} className="text-xs text-gray-600 py-0.5">
                                         {note.extraChargeTitle}: +{note.extraCharge.toLocaleString()}원
-                                    </Typography>
+                                    </p>
                                 ))}
-                            </Box>
+                            </div>
                         )}
-                        <Stack direction="row" spacing={2} mt={5}>
-                            <Button variant="contained" sx={{ maxWidth: 200 }} onClick={() => setOpenEstimateSend(true)}
+
+                        {/* ── 하단 버튼 ── */}
+                        <div className="flex gap-2 pt-2">
+                            {/* 견적서 제출 — 빨간 */}
+                            <Button
+                                variant="contained"
+                                onClick={() => setOpenEstimateSend(true)}
                                 disabled={isAdmin === true}
+                                sx={{
+                                    flex: 1,
+                                    height: 48,
+                                    borderRadius: "10px",
+                                    backgroundColor: "#DC2626",
+                                    textTransform: "none",
+                                    fontWeight: 700,
+                                    fontSize: "14px",
+                                    boxShadow: "none",
+                                    "&:hover:not(:disabled)": {
+                                        backgroundColor: "#B91C1C",
+                                        boxShadow: "0 4px 14px rgba(220,38,38,0.3)",
+                                    },
+                                    "&:disabled": { backgroundColor: "#e5e7eb", color: "#9ca3af" },
+                                }}
                             >
                                 견적서 제출
                             </Button>
-                            <Button variant="contained" sx={{ maxWidth: 200 }} onClick={() => setOpenCancelDialog(true)}>
+
+                            {/* 취소 — 아웃라인 */}
+                            <Button
+                                variant="outlined"
+                                onClick={() => setOpenCancelDialog(true)}
+                                sx={{
+                                    flex: 1,
+                                    height: 48,
+                                    borderRadius: "10px",
+                                    borderColor: "#d1d5db",
+                                    color: "#6b7280",
+                                    textTransform: "none",
+                                    fontWeight: 600,
+                                    fontSize: "14px",
+                                    "&:hover": { borderColor: "#9ca3af", backgroundColor: "#f9fafb" },
+                                }}
+                            >
                                 취소
                             </Button>
-                        </Stack>
+                        </div>
                     </Stack>
-
                 </Box>
 
-                {/* 우측: 금액 + 지도 — 나머지 너비 전부 */}
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Stack spacing={2}>
-                        {/* 금액 산정 */}
-                        <Box sx={{ border: "1px solid #ccc", borderRadius: 2, p: 2, bgcolor: "#ffffff" }}>
-                            <Typography variant="subtitle1" fontWeight="bold" mb={2}>금액 산정</Typography>
-                            <Stack direction="row" spacing={4} alignItems="center" flexWrap="wrap">
-                                <Typography>기본 요금: {baseCost.toLocaleString()}원</Typography>
-                                <Typography>거리 요금: {distanceCost.toLocaleString()}원</Typography>
-                                <Typography>추가 요금: {specialNoteCost.toLocaleString()}원</Typography>
-                            </Stack>
-                            <Typography fontWeight="bold" fontSize={22} mt={2}>
-                                총 금액: {estimate.totalCost.toLocaleString()}원
-                            </Typography>
-                        </Box>
+                {/* ── 우측: 지도 + 금액 ── */}
+                <Box sx={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
+                    <Stack spacing={3} sx={{ flex: 1 }}>
 
-                        {/* 지도 */}
-                        <Box sx={{ border: "1px solid #ccc", borderRadius: 2, p: 2, bgcolor: "#ffffff" }}>
-                            <Typography variant="subtitle1" fontWeight="bold" mb={1} >경로 지도
+                        {/* 경로 지도 카드 — 상단, 남은 높이 전부 채움 */}
+                        <Box sx={{ ...cardSx, flex: 1, display: "flex", flexDirection: "column" }}>
+                            {/* 헤더: 제목 좌측, 초기화 우측 */}
+                            <div className="flex items-center justify-between mb-3">
+                                <p className="text-sm font-bold text-gray-900">경로 지도</p>
                                 <Button
                                     size="small"
                                     variant="outlined"
-                                    color="error"
-                                    sx={{ whiteSpace: "nowrap", minWidth: 100, ml: 1.5 }}
                                     onClick={() => {
-                                        setEstimate(prev => ({ ...prev, startAddress: "", endAddress: "", distanceKm: "" }));
+                                        setEstimate((prev) => ({
+                                            ...prev,
+                                            startAddress: "",
+                                            endAddress: "",
+                                            distanceKm: "",
+                                        }));
                                         mapRef.current?.reset();
+                                    }}
+                                    sx={{
+                                        borderRadius: "8px",
+                                        borderColor: "#d1d5db",
+                                        color: "#6b7280",
+                                        textTransform: "none",
+                                        fontSize: "12px",
+                                        fontWeight: 600,
+                                        px: 1.5,
+                                        py: 0.5,
+                                        "&:hover": { borderColor: "#9ca3af", backgroundColor: "#f9fafb" },
                                     }}
                                 >
                                     주소 초기화
-                                </Button></Typography>
-                            {/* ← 초기화 버튼 추가 */}
+                                </Button>
+                            </div>
 
-                            <KakaoMapViewer
-                                ref={mapRef}
-                                startAddress={estimate.startAddress}
-                                endAddress={estimate.endAddress}
-                                onAddressSelect={(type, addr) => {
-                                    setEstimate(prev => ({
-                                        ...prev,
-                                        [`${type}Address`]: addr
-                                    }));
-                                }}
-                            />
-
+                            <Box sx={{ flex: 1, minHeight: 300 }}>
+                                <KakaoMapViewer
+                                    ref={mapRef}
+                                    startAddress={estimate.startAddress}
+                                    endAddress={estimate.endAddress}
+                                    onAddressSelect={(type, addr) => {
+                                        setEstimate((prev) => ({
+                                            ...prev,
+                                            [`${type}Address`]: addr,
+                                        }));
+                                    }}
+                                />
+                            </Box>
                         </Box>
+
+                        {/* 금액 산정 카드 — 하단 고정 */}
+                        <Box sx={cardSx}>
+                            <p className="text-[11px] text-gray-400 uppercase tracking-widest font-semibold mb-4">
+                                금액 산정
+                            </p>
+
+                            {/* 요금 3분할 미니 카드 */}
+                            <div className="grid grid-cols-3 gap-3 mb-4">
+                                <div className="bg-gray-50 rounded-xl border border-gray-100 p-3">
+                                    <p className="text-[11px] text-gray-400 mb-1.5">기본 요금</p>
+                                    <p className="text-sm font-bold text-gray-900">
+                                        {baseCost.toLocaleString()}
+                                        <span className="text-xs font-normal text-gray-500 ml-0.5">원</span>
+                                    </p>
+                                </div>
+                                <div className="bg-gray-50 rounded-xl border border-gray-100 p-3">
+                                    <p className="text-[11px] text-gray-400 mb-1.5">거리 요금</p>
+                                    <p className="text-sm font-bold text-gray-900">
+                                        {distanceCost.toLocaleString()}
+                                        <span className="text-xs font-normal text-gray-500 ml-0.5">원</span>
+                                    </p>
+                                </div>
+                                <div className="bg-gray-50 rounded-xl border border-gray-100 p-3">
+                                    <p className="text-[11px] text-gray-400 mb-1.5">추가 요금</p>
+                                    <p className="text-sm font-bold text-gray-900">
+                                        {specialNoteCost.toLocaleString()}
+                                        <span className="text-xs font-normal text-gray-500 ml-0.5">원</span>
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* 총 금액 강조 */}
+                            <div className="border-t border-gray-100 pt-4">
+                                <p className="text-[11px] text-gray-400 mb-1.5">총 금액</p>
+                                <p className="text-4xl font-black text-gray-900 leading-none">
+                                    {estimate.totalCost.toLocaleString()}
+                                    <span className="text-lg font-semibold text-gray-500 ml-1.5">원</span>
+                                </p>
+                                <p className="text-[11px] text-gray-400 mt-2">
+                                    예상 금액이며 실제 금액과 차이가 있을 수 있습니다
+                                </p>
+                            </div>
+                        </Box>
+
                     </Stack>
                 </Box>
-
             </Box>
 
-
-            {/* 취소 다이얼로그 */}
-            <Dialog open={openCancelDialog} onClose={() => setOpenCancelDialog(false)}
-                PaperProps={{ sx: { width: 400, borderRadius: 2, p: 2 } }}>
+            {/* ── 취소 다이얼로그 ── */}
+            <Dialog
+                open={openCancelDialog}
+                onClose={() => setOpenCancelDialog(false)}
+                PaperProps={{ sx: { width: 400, borderRadius: "16px", p: 1 } }}
+            >
                 <DialogContent>
-                    <Typography fontSize={20} fontWeight="bold">작성을 취소하시겠습니까?</Typography>
+                    <p className="text-lg font-bold text-gray-900 mb-1">작성을 취소하시겠습니까?</p>
+                    <p className="text-sm text-gray-400">입력한 내용이 모두 사라집니다.</p>
                 </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => { setOpenCancelDialog(false); moveToHome(); }} color="error">확인</Button>
-                    <Button onClick={() => setOpenCancelDialog(false)} color="inherit">아니요</Button>
+                <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>
+                    <Button
+                        onClick={() => setOpenCancelDialog(false)}
+                        variant="outlined"
+                        sx={{
+                            borderRadius: "8px",
+                            borderColor: "#d1d5db",
+                            color: "#6b7280",
+                            textTransform: "none",
+                            fontWeight: 600,
+                            "&:hover": { borderColor: "#9ca3af", backgroundColor: "#f9fafb" },
+                        }}
+                    >
+                        아니요
+                    </Button>
+                    <Button
+                        onClick={() => { setOpenCancelDialog(false); moveToHome(); }}
+                        variant="contained"
+                        sx={{
+                            borderRadius: "8px",
+                            backgroundColor: "#DC2626",
+                            textTransform: "none",
+                            fontWeight: 700,
+                            boxShadow: "none",
+                            "&:hover": { backgroundColor: "#B91C1C" },
+                        }}
+                    >
+                        확인
+                    </Button>
                 </DialogActions>
             </Dialog>
 
-            {/* 제출 다이얼로그 */}
-            <Dialog open={openEstimateSend} onClose={() => setOpenEstimateSend(false)}
-                PaperProps={{ sx: { width: 400, borderRadius: 2, p: 2 } }}>
+            {/* ── 제출 다이얼로그 ── */}
+            <Dialog
+                open={openEstimateSend}
+                onClose={() => setOpenEstimateSend(false)}
+                PaperProps={{ sx: { width: 400, borderRadius: "16px", p: 1 } }}
+            >
                 <DialogContent>
-                    <Typography fontSize={20} fontWeight="bold">견적을 제출하시겠습니까?</Typography>
-                    <Typography fontSize={15}>견적 내용과 틀리면 배송이 거절될 수 있습니다.</Typography>
+                    <p className="text-lg font-bold text-gray-900 mb-1">견적을 제출하시겠습니까?</p>
+                    <p className="text-sm text-gray-400">
+                        견적 내용과 틀리면 배송이 거절될 수 있습니다.
+                    </p>
                 </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleClickAdd} color="error">확인</Button>
-                    <Button onClick={() => setOpenEstimateSend(false)} color="inherit">아니요</Button>
+                <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>
+                    <Button
+                        onClick={() => setOpenEstimateSend(false)}
+                        variant="outlined"
+                        sx={{
+                            borderRadius: "8px",
+                            borderColor: "#d1d5db",
+                            color: "#6b7280",
+                            textTransform: "none",
+                            fontWeight: 600,
+                            "&:hover": { borderColor: "#9ca3af", backgroundColor: "#f9fafb" },
+                        }}
+                    >
+                        아니요
+                    </Button>
+                    <Button
+                        onClick={handleClickAdd}
+                        variant="contained"
+                        sx={{
+                            borderRadius: "8px",
+                            backgroundColor: "#DC2626",
+                            textTransform: "none",
+                            fontWeight: 700,
+                            boxShadow: "none",
+                            "&:hover": { backgroundColor: "#B91C1C" },
+                        }}
+                    >
+                        확인
+                    </Button>
                 </DialogActions>
             </Dialog>
         </Box>
     );
 };
-
 
 export default EstimateComponentCombined;

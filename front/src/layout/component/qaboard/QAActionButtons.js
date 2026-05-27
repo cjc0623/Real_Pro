@@ -2,7 +2,6 @@ import React from 'react';
 import {
   Box,
   Button,
-  IconButton,
   Stack,
   Tooltip
 } from '@mui/material';
@@ -15,12 +14,45 @@ import {
 } from '@mui/icons-material';
 import { getActionPermissions } from './qaPermissionUtils';
 
-const QAActionButtons = ({ 
-  item, 
-  isAdmin, 
-  isAuthor, 
-  onEdit, 
-  onDelete, 
+/* ── 공통 버튼 sx ── */
+const outlinedGraySx = {
+  borderRadius: '8px',
+  borderColor: '#d1d5db',
+  color: '#6b7280',
+  textTransform: 'none',
+  fontWeight: 600,
+  fontSize: '13px',
+  boxShadow: 'none',
+  '&:hover': { borderColor: '#9ca3af', backgroundColor: '#f9fafb' },
+};
+
+const outlinedRedSx = {
+  borderRadius: '8px',
+  borderColor: '#fca5a5',
+  color: '#DC2626',
+  textTransform: 'none',
+  fontWeight: 600,
+  fontSize: '13px',
+  boxShadow: 'none',
+  '&:hover': { borderColor: '#DC2626', backgroundColor: '#fff1f1' },
+};
+
+const containedRedSx = {
+  borderRadius: '8px',
+  backgroundColor: '#DC2626',
+  textTransform: 'none',
+  fontWeight: 700,
+  fontSize: '13px',
+  boxShadow: 'none',
+  '&:hover': { backgroundColor: '#B91C1C', boxShadow: 'none' },
+};
+
+const QAActionButtons = ({
+  item,
+  isAdmin,
+  isAuthor,
+  onEdit,
+  onDelete,
   onReply,
   onAdminEdit,
   onAdminDelete,
@@ -28,13 +60,10 @@ const QAActionButtons = ({
   isExpanded,
   currentUserId
 }) => {
-  // 확장되지 않은 상태에서는 버튼 숨김
   if (!isExpanded) return null;
 
-  // 권한 확인
   const permissions = getActionPermissions(item, isAdmin, currentUserId);
-  
-  // 디버그 로그 추가
+
   console.log('QAActionButtons Debug:', {
     itemId: item.id,
     isAdmin,
@@ -43,108 +72,99 @@ const QAActionButtons = ({
   });
 
   return (
-    <Box sx={{ p: 2, borderTop: '1px solid #e0e0e0', backgroundColor: '#fafafa' }}>
+    <Box sx={{ px: 3, py: 2.5, borderTop: '1px solid #f3f4f6' }}>
       <Stack direction="row" spacing={1} justifyContent="flex-end">
-        {/* 작성자 권한 버튼들 */}
+
+        {/* 작성자 수정 */}
         {permissions.canEdit && (
           <Tooltip title="게시글 수정">
             <Button
               size="small"
               variant="outlined"
-              startIcon={<EditIcon />}
+              startIcon={<EditIcon sx={{ fontSize: 15 }} />}
               onClick={() => onEdit(item.id)}
-              sx={{ minWidth: 80 }}
+              sx={outlinedGraySx}
             >
               수정
             </Button>
           </Tooltip>
         )}
 
+        {/* 작성자 삭제 */}
         {permissions.canDelete && (
           <Tooltip title="게시글 삭제">
             <Button
               size="small"
               variant="outlined"
-              color="error"
-              startIcon={<DeleteIcon />}
+              startIcon={<DeleteIcon sx={{ fontSize: 15 }} />}
               onClick={() => onDelete(item.id)}
-              sx={{ minWidth: 80 }}
+              sx={outlinedRedSx}
             >
               삭제
             </Button>
           </Tooltip>
         )}
 
-        {/* 관리자 전용 게시글 수정/삭제 버튼들 */}
+        {/* 관리자 수정 */}
         {permissions.canEditAsAdmin && onAdminEdit && (
           <Tooltip title="관리자 권한으로 게시글 수정">
             <Button
               size="small"
               variant="outlined"
-              color="warning"
-              startIcon={<AdminIcon />}
+              startIcon={<AdminIcon sx={{ fontSize: 15 }} />}
               onClick={() => onAdminEdit(item.id)}
-              sx={{ minWidth: 100 }}
+              sx={outlinedGraySx}
             >
               관리자 수정
             </Button>
           </Tooltip>
         )}
 
+        {/* 관리자 삭제 */}
         {permissions.canDeleteAsAdmin && onAdminDelete && (
           <Tooltip title="관리자 권한으로 게시글 삭제">
             <Button
               size="small"
               variant="outlined"
-              color="error"
-              startIcon={<AdminIcon />}
+              startIcon={<AdminIcon sx={{ fontSize: 15 }} />}
               onClick={() => onAdminDelete(item.id)}
-              sx={{ minWidth: 100 }}
+              sx={outlinedRedSx}
             >
               관리자 삭제
             </Button>
           </Tooltip>
         )}
 
-        {/* 관리자 답변 관련 버튼들 */}
+        {/* 답변 */}
         {permissions.canReply && (
           <Tooltip title="관리자 답변 작성">
             <Button
               size="small"
               variant="contained"
-              color="primary"
-              startIcon={<ReplyIcon />}
+              startIcon={<ReplyIcon sx={{ fontSize: 15 }} />}
               onClick={() => onReply(item.id)}
-              sx={{ minWidth: 80 }}
+              sx={containedRedSx}
             >
               답변
             </Button>
           </Tooltip>
         )}
 
+        {/* 답변 수정 */}
         {permissions.canEditResponse && onEditResponse && (
           <Tooltip title="관리자 답변 수정">
             <Button
               size="small"
               variant="outlined"
-              color="secondary"
-              startIcon={<EditNoteIcon />}
+              startIcon={<EditNoteIcon sx={{ fontSize: 15 }} />}
               onClick={() => onEditResponse(item.id)}
-              sx={{ minWidth: 100 }}
+              sx={outlinedGraySx}
             >
               답변 수정
             </Button>
           </Tooltip>
         )}
 
-        {/* 관리자 상태 표시 아이콘 */}
-        {isAdmin && (
-          <Tooltip title="관리자 권한으로 확인 중">
-            <IconButton size="small" color="primary">
-              <AdminIcon />
-            </IconButton>
-          </Tooltip>
-        )}
       </Stack>
     </Box>
   );

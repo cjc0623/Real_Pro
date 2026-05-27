@@ -2,10 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
-  Container,
-  Typography,
-  Card,
-  CardContent,
   Button,
   TextField,
   Alert,
@@ -178,152 +174,172 @@ const WritePost = () => {
     setSnackbar({ ...snackbar, open: false });
   };
 
+  /* ── 공통 TextField sx ── */
+  const fieldSx = {
+    '& .MuiOutlinedInput-root': {
+      borderRadius: '10px',
+      backgroundColor: '#fff',
+    },
+  };
+
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
-      {/* Header */}
-      <Box 
-        sx={{ 
-          bgcolor: 'primary.main',
-          py: 4,
-          px: 3
-        }}
-      >
-        <Container maxWidth="md">
-          <Button
-            variant="text"
-            onClick={() => navigate('/noboard')}
-            startIcon={<ArrowLeftIcon />}
-            sx={{ 
-              mb: 2,
-              color: 'primary.contrastText',
-              '&:hover': {
-                bgcolor: 'rgba(255, 255, 255, 0.1)'
-              }
-            }}
-          >
-            목록으로
-          </Button>
-          
-          <Typography 
-            variant="h4" 
-            component="h1" 
-            sx={{ 
-              color: 'primary.contrastText',
-              fontWeight: 'bold'
-            }}
-          >
-            {isEditing ? '공지 수정' : '새 공지 작성'}
-          </Typography>
-        </Container>
-      </Box>
+    <div className="min-h-screen bg-white font-sans">
 
-      <Container maxWidth="md" sx={{ py: 4 }}>
-        <Card sx={{ boxShadow: 2 }}>
-          <CardContent sx={{ p: 4 }}>
-            <Box component="form" onSubmit={handleSubmit}>
-              <Stack spacing={3}>
-                {/* Title */}
-                <TextField
-                  label="제목"
-                  fullWidth
-                  value={formData.title}
-                  onChange={(e) => handleInputChange('title', e.target.value)}
-                  error={!!errors.title}
-                  helperText={errors.title}
-                  placeholder="공지 제목을 입력하세요"
-                  required
-                  disabled={loading}
-                />
+      {/* ── 상단 헤더: 흰 배경, 일반 텍스트 ── */}
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-8 sm:pt-12 pb-6 sm:pb-8">
 
+        {/* 목록으로 링크 */}
+        <button
+          type="button"
+          onClick={() => navigate('/noboard')}
+          className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-700 transition-colors mb-6"
+        >
+          <ArrowLeftIcon sx={{ fontSize: 16 }} />
+          목록으로
+        </button>
 
-                {/* Category */}
-                <FormControl fullWidth required disabled={loading}>
-                  <InputLabel id="category-label">카테고리</InputLabel>
-                  <Select
-                    labelId="category-label"
-                    value={formData.category}
-                    label="카테고리"
-                    onChange={(e) => handleInputChange('category', e.target.value)}
-                  >
-                    {categories.map((category) => (
-                      <MenuItem key={category.value} value={category.value}>
-                        {category.displayName}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+        {/* 페이지 제목 */}
+        <h1 className="text-2xl sm:text-3xl font-black text-gray-900">
+          {isEditing ? '공지 수정' : '새 공지 작성'}
+        </h1>
+        <p className="text-gray-400 text-sm mt-1.5">
+          {isEditing ? '공지사항 내용을 수정합니다.' : '새로운 공지사항을 작성합니다.'}
+        </p>
+      </div>
 
-                {/* Author */}
-                <TextField
-                  label="작성자"
-                  fullWidth
-                  value={formData.author}
-                  // onChange={(e) => handleInputChange('author', e.target.value)}
-                  InputProps={{ readOnly: true }}
-                  error={!!errors.author}
-                  helperText={errors.author}
-                  placeholder="작성자명을 입력하세요"
-                  required
-                  disabled={loading}
-                />
+      {/* ── 폼 영역: 카드·테두리 없음 ── */}
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 pb-16">
+        <div className="border-t border-gray-100 pt-8">
+          <Box component="form" onSubmit={handleSubmit}>
+            <Stack spacing={2.5}>
 
+              {/* 제목 */}
+              <TextField
+                label="제목"
+                variant="outlined"
+                fullWidth
+                value={formData.title}
+                onChange={(e) => handleInputChange('title', e.target.value)}
+                error={!!errors.title}
+                helperText={errors.title}
+                placeholder="공지 제목을 입력하세요"
+                required
+                disabled={loading}
+                sx={fieldSx}
+              />
 
-                {/* Content */}
-                <TextField
-                  label="내용"
-                  multiline
-                  rows={12}
-                  fullWidth
-                  value={formData.content}
-                  onChange={(e) => handleInputChange('content', e.target.value)}
-                  error={!!errors.content}
-                  helperText={errors.content}
-                  placeholder="공지 내용을 입력하세요"
-                  required
+              {/* 카테고리 */}
+              <FormControl fullWidth required disabled={loading} sx={fieldSx}>
+                <InputLabel id="category-label">카테고리</InputLabel>
+                <Select
+                  labelId="category-label"
+                  value={formData.category}
+                  label="카테고리"
+                  onChange={(e) => handleInputChange('category', e.target.value)}
+                  sx={{ borderRadius: '10px' }}
+                >
+                  {categories.map((category) => (
+                    <MenuItem key={category.value} value={category.value}>
+                      {category.displayName}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              {/* 작성자 (읽기 전용) */}
+              <TextField
+                label="작성자"
+                variant="outlined"
+                fullWidth
+                value={formData.author}
+                InputProps={{ readOnly: true }}
+                error={!!errors.author}
+                helperText={errors.author}
+                required
+                disabled={loading}
+                sx={{
+                  ...fieldSx,
+                  '& .MuiOutlinedInput-root': {
+                    ...fieldSx['& .MuiOutlinedInput-root'],
+                    backgroundColor: '#f9fafb',
+                  },
+                }}
+              />
+
+              {/* 내용 */}
+              <TextField
+                label="내용"
+                variant="outlined"
+                multiline
+                rows={12}
+                fullWidth
+                value={formData.content}
+                onChange={(e) => handleInputChange('content', e.target.value)}
+                error={!!errors.content}
+                helperText={errors.content}
+                placeholder="공지 내용을 입력하세요"
+                required
+                disabled={loading}
+                sx={{
+                  ...fieldSx,
+                  '& .MuiInputBase-root': { alignItems: 'flex-start' },
+                }}
+              />
+
+              {/* 하단 버튼 */}
+              <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+
+                {/* 취소 — 아웃라인 */}
+                <Button
+                  variant="outlined"
+                  onClick={handleCancel}
+                  startIcon={<ArrowLeftIcon />}
                   disabled={loading}
                   sx={{
-                    '& .MuiInputBase-root': {
-                      alignItems: 'flex-start'
-                    }
-                  }}
-                />
-
-                {/* Action Buttons */}
-                <Box 
-                  sx={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    pt: 2
+                    borderRadius: '10px',
+                    borderColor: '#d1d5db',
+                    color: '#6b7280',
+                    px: 3,
+                    py: 1.25,
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    '&:hover': { borderColor: '#9ca3af', backgroundColor: '#f9fafb' },
                   }}
                 >
-                  <Button
-                    variant="outlined"
-                    onClick={handleCancel}
-                    startIcon={<ArrowLeftIcon />}
-                    disabled={loading}
-                    size="large"
-                  >
-                    취소
-                  </Button>
-                  
-                  <Button
-                    type="submit"
-                    variant="contained"
-                    startIcon={<SaveIcon />}
-                    disabled={loading}
-                    size="large"
-                  >
-                    {loading ? '저장 중...' : (isEditing ? '수정하기' : '작성하기')}
-                  </Button>
-                </Box>
-              </Stack>
-            </Box>
-          </CardContent>
-        </Card>
-      </Container>
+                  취소
+                </Button>
 
-      {/* Snackbar for notifications */}
+                {/* 작성하기 — 메인 컬러(빨간) */}
+                <Button
+                  type="submit"
+                  variant="contained"
+                  startIcon={<SaveIcon />}
+                  disabled={loading}
+                  sx={{
+                    borderRadius: '10px',
+                    backgroundColor: '#DC2626',
+                    px: 3,
+                    py: 1.25,
+                    textTransform: 'none',
+                    fontWeight: 700,
+                    boxShadow: 'none',
+                    '&:hover': {
+                      backgroundColor: '#B91C1C',
+                      boxShadow: '0 4px 14px rgba(220,38,38,0.35)',
+                    },
+                    '&:disabled': { backgroundColor: '#e5e7eb', color: '#9ca3af' },
+                  }}
+                >
+                  {loading ? '저장 중...' : (isEditing ? '수정하기' : '작성하기')}
+                </Button>
+              </div>
+
+            </Stack>
+          </Box>
+        </div>
+      </div>
+
+      {/* ── Snackbar (기존 유지) ── */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}
@@ -334,7 +350,7 @@ const WritePost = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
-    </Box>
+    </div>
   );
 };
 

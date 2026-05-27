@@ -3,9 +3,6 @@ import {
   Box,
   TextField,
   Button,
-  Card,
-  CardContent,
-  Typography,
   Alert,
   Stack
 } from '@mui/material';
@@ -20,7 +17,7 @@ const AdminResponseForm = ({ questionId, onSubmit, onCancel, isVisible }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!responseContent.trim()) {
       setError('답변 내용을 입력해주세요.');
       return;
@@ -53,55 +50,79 @@ const AdminResponseForm = ({ questionId, onSubmit, onCancel, isVisible }) => {
   };
 
   return (
-    <Card sx={{ mt: 2, backgroundColor: '#f8f9fa', border: '1px solid #e9ecef' }}>
-      <CardContent>
-        <Box display="flex" alignItems="center" gap={1} mb={2}>
-          <ReplyIcon color="primary" />
-          <Typography variant="h6" color="primary">
-            관리자 답변 작성
-          </Typography>
-        </Box>
+    <Box sx={{ mt: 2, px: 3, pb: 3, borderTop: '1px solid #f3f4f6' }}>
 
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-          </Alert>
-        )}
+      {/* 타이틀 */}
+      <Box display="flex" alignItems="center" gap={1} mt={3} mb={2.5}>
+        <ReplyIcon sx={{ color: '#DC2626', fontSize: 20 }} />
+        <span style={{ fontWeight: 700, fontSize: '15px', color: '#111827' }}>
+          관리자 답변 작성
+        </span>
+      </Box>
 
-        <form onSubmit={handleSubmit}>
-          <TextField
-            fullWidth
-            multiline
-            rows={4}
-            value={responseContent}
-            onChange={(e) => setResponseContent(e.target.value)}
-            placeholder="고객에게 도움이 되는 답변을 작성해주세요..."
+      {error && (
+        <Alert severity="error" sx={{ mb: 2, borderRadius: '10px' }}>
+          {error}
+        </Alert>
+      )}
+
+      <form onSubmit={handleSubmit}>
+        <TextField
+          fullWidth
+          multiline
+          rows={4}
+          value={responseContent}
+          onChange={(e) => setResponseContent(e.target.value)}
+          placeholder="고객에게 도움이 되는 답변을 작성해주세요..."
+          variant="outlined"
+          disabled={isSubmitting}
+          sx={{
+            mb: 2,
+            '& .MuiOutlinedInput-root': {
+              borderRadius: '10px',
+              backgroundColor: '#fff',
+              fontSize: '14px',
+            },
+          }}
+        />
+
+        <Stack direction="row" spacing={1.5} justifyContent="flex-end">
+          <Button
+            type="button"
             variant="outlined"
-            sx={{ mb: 2 }}
+            onClick={handleCancel}
             disabled={isSubmitting}
-          />
-
-          <Stack direction="row" spacing={2} justifyContent="flex-end">
-            <Button
-              type="button"
-              variant="outlined"
-              onClick={handleCancel}
-              disabled={isSubmitting}
-            >
-              취소
-            </Button>
-            <Button
-              type="submit"
-              variant="contained"
-              disabled={isSubmitting || !responseContent.trim()}
-              startIcon={<ReplyIcon />}
-            >
-              {isSubmitting ? '답변 등록 중...' : '답변 등록'}
-            </Button>
-          </Stack>
-        </form>
-      </CardContent>
-    </Card>
+            sx={{
+              borderRadius: '10px',
+              borderColor: '#d1d5db',
+              color: '#6b7280',
+              textTransform: 'none',
+              fontWeight: 600,
+              '&:hover': { borderColor: '#9ca3af', backgroundColor: '#f9fafb' },
+            }}
+          >
+            취소
+          </Button>
+          <Button
+            type="submit"
+            variant="contained"
+            disabled={isSubmitting || !responseContent.trim()}
+            startIcon={<ReplyIcon />}
+            sx={{
+              borderRadius: '10px',
+              backgroundColor: '#DC2626',
+              textTransform: 'none',
+              fontWeight: 700,
+              boxShadow: 'none',
+              '&:hover': { backgroundColor: '#B91C1C', boxShadow: 'none' },
+              '&:disabled': { backgroundColor: '#e5e7eb', color: '#9ca3af' },
+            }}
+          >
+            {isSubmitting ? '답변 등록 중...' : '답변 등록'}
+          </Button>
+        </Stack>
+      </form>
+    </Box>
   );
 };
 

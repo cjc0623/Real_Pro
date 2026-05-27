@@ -13,6 +13,7 @@ import {
   TableRow,
   Typography
 } from "@mui/material";
+import { InboxOutlined } from "@mui/icons-material";
 import useCustomMove from "../../../hooks/useCustomMove";
 import { useEffect, useState } from "react";
 import { getEstimateList, postAccepted, postRejected } from "../../../api/estimateApi/estimateApi";
@@ -151,47 +152,96 @@ const EstimateListComponent = () => {
     }
   };
 
+  /* ── 공통 셀 sx ── */
+  const headCellSx = {
+    fontSize: '12px',
+    fontWeight: 600,
+    color: '#9ca3af',
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em',
+    py: 1.5,
+    borderBottom: '1px solid #e5e7eb',
+    bgcolor: '#f9fafb',
+  };
+
+  const bodyCellSx = {
+    fontSize: '13px',
+    color: '#374151',
+    py: 2,
+    borderBottom: '1px solid #f3f4f6',
+  };
+
   const renderData = (list) => {
     if (!list || list.length === 0) {
       return (
         <TableRow>
           {/* 수정: 차주만 수락/거절 컬럼 포함 */}
-          <TableCell colSpan={canAcceptOrReject ? 9 : 7} align="center">
-            견적의뢰가 없습니다
+          <TableCell
+            colSpan={canAcceptOrReject ? 9 : 7}
+            align="center"
+            sx={{ border: 0, py: 10 }}
+          >
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1.5 }}>
+              <InboxOutlined sx={{ fontSize: 40, color: '#d1d5db' }} />
+              <Typography sx={{ fontSize: '14px', color: '#9ca3af' }}>
+                접수된 견적 의뢰가 없습니다
+              </Typography>
+            </Box>
           </TableCell>
         </TableRow>
       );
     }
 
     return list.map((estimate) => (
-      <TableRow key={estimate.eno}>
-        <TableCell align="center">No.{estimate.eno}</TableCell>
-        <TableCell align="center">{estimate.route}</TableCell>
-        <TableCell align="center">{estimate.distanceKm}</TableCell>
-        <TableCell align="center">{estimate.cargoWeight}</TableCell>
-        <TableCell align="center">
+      <TableRow
+        key={estimate.eno}
+        sx={{ '&:last-child td': { borderBottom: 0 }, '&:hover': { bgcolor: '#f9fafb' } }}
+      >
+        <TableCell align="center" sx={bodyCellSx}>No.{estimate.eno}</TableCell>
+        <TableCell align="center" sx={bodyCellSx}>{estimate.route}</TableCell>
+        <TableCell align="center" sx={bodyCellSx}>{estimate.distanceKm}</TableCell>
+        <TableCell align="center" sx={bodyCellSx}>{estimate.cargoWeight}</TableCell>
+        <TableCell align="center" sx={bodyCellSx}>
           {dayjs(estimate.startTime).format("YYYY년 MM월 DD일 A hh:mm")}
         </TableCell>
-        <TableCell align="center">{estimate.cargoType}</TableCell>
-        <TableCell align="center">{estimate.totalCost}</TableCell>
+        <TableCell align="center" sx={bodyCellSx}>{estimate.cargoType}</TableCell>
+        <TableCell align="center" sx={bodyCellSx}>{estimate.totalCost}</TableCell>
 
         {/* 수정: 차주만 수락/거절 버튼 표시, 화주/관리자는 숨김 */}
         {canAcceptOrReject && (
           <>
-            <TableCell align="center">
+            <TableCell align="center" sx={bodyCellSx}>
               <Button
                 variant="contained"
-                color="success"
+                size="small"
                 onClick={() => clickAccepted(estimate.eno)}
+                sx={{
+                  borderRadius: '8px',
+                  backgroundColor: '#16a34a',
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  fontSize: '13px',
+                  boxShadow: 'none',
+                  '&:hover': { backgroundColor: '#15803d', boxShadow: 'none' },
+                }}
               >
                 수락
               </Button>
             </TableCell>
-            <TableCell align="center">
+            <TableCell align="center" sx={bodyCellSx}>
               <Button
                 variant="outlined"
-                color="error"
+                size="small"
                 onClick={() => clickRejected(estimate.eno)}
+                sx={{
+                  borderRadius: '8px',
+                  borderColor: '#fca5a5',
+                  color: '#DC2626',
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  fontSize: '13px',
+                  '&:hover': { borderColor: '#DC2626', backgroundColor: '#fff1f1' },
+                }}
               >
                 거절
               </Button>
@@ -204,23 +254,27 @@ const EstimateListComponent = () => {
 
   return (
     <>
-      <TableContainer component={Paper}>
+      <TableContainer
+        component={Paper}
+        elevation={0}
+        sx={{ border: '1px solid #f3f4f6', borderRadius: '12px', overflow: 'hidden' }}
+      >
         <Table>
-          <TableHead sx={{ backgroundColor: "#EEE0F8" }}>
+          <TableHead>
             <TableRow>
-              <TableCell align="center">견적번호</TableCell>
-              <TableCell align="center">출발 - 도착</TableCell>
-              <TableCell align="center">거리(KM)</TableCell>
-              <TableCell align="center">무게(KG)</TableCell>
-              <TableCell align="center">출발 날짜</TableCell>
-              <TableCell align="center">화물 종류</TableCell>
-              <TableCell align="center">금액</TableCell>
+              <TableCell align="center" sx={headCellSx}>견적번호</TableCell>
+              <TableCell align="center" sx={headCellSx}>출발 - 도착</TableCell>
+              <TableCell align="center" sx={headCellSx}>거리(KM)</TableCell>
+              <TableCell align="center" sx={headCellSx}>무게(KG)</TableCell>
+              <TableCell align="center" sx={headCellSx}>출발 날짜</TableCell>
+              <TableCell align="center" sx={headCellSx}>화물 종류</TableCell>
+              <TableCell align="center" sx={headCellSx}>금액</TableCell>
 
               {/* 수정: 차주만 수락/거절 헤더 표시 */}
               {canAcceptOrReject && (
                 <>
-                  <TableCell align="center">수락</TableCell>
-                  <TableCell align="center">거절</TableCell>
+                  <TableCell align="center" sx={headCellSx}>수락</TableCell>
+                  <TableCell align="center" sx={headCellSx}>거절</TableCell>
                 </>
               )}
             </TableRow>

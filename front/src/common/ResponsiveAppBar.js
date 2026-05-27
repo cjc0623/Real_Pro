@@ -158,7 +158,7 @@ export default function ResponsiveAppBar() {
   };
 
   return (
-    <header className="relative z-50 bg-white shadow-lg border-b border-gray-100 text-gray-800 font-sans w-full">
+    <header className="relative z-50 bg-white text-gray-800 font-sans w-full">
       <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="flex flex-row justify-between items-center h-16 lg:h-20 relative">
 
@@ -166,35 +166,44 @@ export default function ResponsiveAppBar() {
 
           <Link to="/" className="flex-shrink-0">
             <img
-              className="w-36 lg:w-56 h-auto object-contain"
+              className="w-32 lg:w-44 h-auto object-contain"
               src={logo}
               alt="퍼스트로드 로고"
             />
           </Link>
 
-          <nav className="hidden lg:flex items-center gap-x-8 absolute left-1/2 -translate-x-1/2">
-            <Link to="/guide" className="text-base font-bold text-gray-700 hover:text-red-600 transition-colors whitespace-nowrap">이용가이드</Link>
-            <Link to="/quick-search" className="text-base font-bold text-gray-700 hover:text-red-600 transition-colors whitespace-nowrap">간편조회</Link>
-            <Link to="/estimatepage" className="text-base font-bold text-gray-700 hover:text-red-600 transition-colors whitespace-nowrap">온라인 퀵 접수</Link>
-            <Link to="/estimatepage/list" className="text-base font-bold text-gray-700 hover:text-red-600 transition-colors whitespace-nowrap">운송 접수 목록</Link>
-            <Link to="/noboard" className="text-base font-bold text-gray-700 hover:text-red-600 transition-colors whitespace-nowrap">공지사항</Link>
-            <Link to="/qaboard" className="text-base font-bold text-gray-700 hover:text-red-600 transition-colors whitespace-nowrap">문의사항</Link>
-
+          <nav className="hidden lg:flex items-center gap-x-7 absolute left-1/2 -translate-x-1/2">
+            <Link to="/guide" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors whitespace-nowrap">이용가이드</Link>
+            <Link to="/quick-search" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors whitespace-nowrap">간편조회</Link>
+            <Link to="/estimatepage" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors whitespace-nowrap">온라인 퀵 접수</Link>
+            <Link to="/estimatepage/list" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors whitespace-nowrap">운송 접수 목록</Link>
+            <Link to="/noboard" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors whitespace-nowrap">공지사항</Link>
+            <Link to="/qaboard" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors whitespace-nowrap">문의사항</Link>
           </nav>
 
-          <div className="flex items-center gap-2 text-sm lg:text-base">
+          <div className="flex items-center gap-3 text-sm">
             {isLogin ? (
               <>
-                <Link to={myPagePath} className="font-bold text-gray-700 hover:text-red-600">{displayUserName}</Link>
-                <span className="text-gray-300">|</span>
-                <button onClick={handleLogout} className="font-bold hover:text-red-600">로그아웃</button>
+                <Link
+                  to={myPagePath}
+                  className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                >
+                  {displayUserName}
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="bg-red-600 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  로그아웃
+                </button>
               </>
             ) : (
-              <>
-                <Link to="/login" className="font-bold hover:text-red-600">로그인</Link>
-                <span className="text-gray-300">|</span>
-                <Link to="/signup" className="font-bold hover:text-red-600">회원가입</Link>
-              </>
+              <Link
+                to="/login"
+                className="bg-red-600 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+              >
+                시작하기
+              </Link>
             )}
 
             <button
@@ -211,7 +220,7 @@ export default function ResponsiveAppBar() {
       </div>
 
       {menuOpen && (
-        <nav className="lg:hidden flex flex-col border-t border-gray-100 bg-white">
+        <nav className="lg:hidden flex flex-col border-t border-gray-100 bg-white shadow-lg">
           {[
             { label: '이용가이드', path: '/guide' },
             { label: '간편조회', path: '/quick-search' },
@@ -224,7 +233,7 @@ export default function ResponsiveAppBar() {
               key={path}
               to={path}
               onClick={() => setMenuOpen(false)}
-              className="px-6 py-4 text-base font-bold text-gray-700 hover:text-red-600 hover:bg-gray-50 border-b border-gray-100 transition-colors"
+              className="px-6 py-4 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 border-b border-gray-100 transition-colors"
             >
               {label}
             </Link>
