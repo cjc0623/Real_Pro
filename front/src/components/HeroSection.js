@@ -52,24 +52,6 @@ const HeroSection = () => {
           />
         </div>
       </div>
-
-      {/* ── 하단 통계 바 ── */}
-      <div className="border-t border-gray-100 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-6 py-6 grid grid-cols-3 divide-x divide-gray-200 text-center">
-          <div className="px-4">
-            <p className="text-2xl md:text-3xl font-black text-gray-900">1,000+</p>
-            <p className="text-sm text-gray-500 mt-1">등록 차량</p>
-          </div>
-          <div className="px-4">
-            <p className="text-2xl md:text-3xl font-black text-gray-900">24시간</p>
-            <p className="text-sm text-gray-500 mt-1">온라인 접수</p>
-          </div>
-          <div className="px-4">
-            <p className="text-2xl md:text-3xl font-black text-gray-900">전국</p>
-            <p className="text-sm text-gray-500 mt-1">배송 가능</p>
-          </div>
-        </div>
-      </div>
     </section>
   );
 };

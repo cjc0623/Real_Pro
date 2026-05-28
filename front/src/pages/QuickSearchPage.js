@@ -127,10 +127,10 @@ const QuickSearchPage = () => {
         </div>
 
         {/* ── 2컬럼 레이아웃 ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-stretch">
 
           {/* ── 좌측: 입력 폼 ── */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8 h-full">
             <h2 className="text-base font-bold text-gray-800 mb-5">간편 견적 조회</h2>
 
             {/* 출발지 */}
@@ -140,10 +140,15 @@ const QuickSearchPage = () => {
               value={estimate.startAddress}
               InputProps={{
                 readOnly: true,
+                onClick: () =>
+                  handleAddressSearch((addr) =>
+                    setEstimate((prev) => ({ ...prev, startAddress: addr }))
+                  ),
+                sx: { cursor: "pointer" },
                 startAdornment: (
                   <InputAdornment position="start">
-                    <span className="w-5 h-5 rounded-full bg-gray-900 inline-flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">
-                      출
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-600 text-white text-[10px] font-semibold flex-shrink-0 whitespace-nowrap">
+                      출발
                     </span>
                   </InputAdornment>
                 ),
@@ -151,11 +156,12 @@ const QuickSearchPage = () => {
                   <InputAdornment position="end">
                     <IconButton
                       size="small"
-                      onClick={() =>
+                      onClick={(e) => {
+                        e.stopPropagation();
                         handleAddressSearch((addr) =>
                           setEstimate((prev) => ({ ...prev, startAddress: addr }))
-                        )
-                      }
+                        );
+                      }}
                     >
                       <SearchIcon sx={{ fontSize: 20, color: "#9ca3af" }} />
                     </IconButton>
@@ -179,10 +185,15 @@ const QuickSearchPage = () => {
               value={estimate.endAddress}
               InputProps={{
                 readOnly: true,
+                onClick: () =>
+                  handleAddressSearch((addr) =>
+                    setEstimate((prev) => ({ ...prev, endAddress: addr }))
+                  ),
+                sx: { cursor: "pointer" },
                 startAdornment: (
                   <InputAdornment position="start">
-                    <span className="w-5 h-5 rounded-full bg-red-600 inline-flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">
-                      도
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-red-600 text-white text-[10px] font-semibold flex-shrink-0 whitespace-nowrap">
+                      도착
                     </span>
                   </InputAdornment>
                 ),
@@ -190,11 +201,12 @@ const QuickSearchPage = () => {
                   <InputAdornment position="end">
                     <IconButton
                       size="small"
-                      onClick={() =>
+                      onClick={(e) => {
+                        e.stopPropagation();
                         handleAddressSearch((addr) =>
                           setEstimate((prev) => ({ ...prev, endAddress: addr }))
-                        )
-                      }
+                        );
+                      }}
                     >
                       <SearchIcon sx={{ fontSize: 20, color: "#9ca3af" }} />
                     </IconButton>
@@ -267,7 +279,7 @@ const QuickSearchPage = () => {
           {!openPrice ? (
 
             /* 조회 전 — 플레이스홀더 */
-            <div className="bg-white rounded-2xl border border-dashed border-gray-200 flex flex-col items-center justify-center text-center min-h-[360px] p-8 gap-4">
+            <div className="bg-white rounded-2xl border border-dashed border-gray-200 flex flex-col items-center justify-center text-center h-full min-h-[360px] p-8 gap-4">
               <div className="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center">
                 <ReceiptLongOutlined sx={{ fontSize: 28, color: "#d1d5db" }} />
               </div>
@@ -294,7 +306,7 @@ const QuickSearchPage = () => {
           ) : (
 
             /* 조회 후 — 결과 카드 */
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 h-full">
 
               {/* 다크 결과 카드 */}
               <div className="bg-gray-900 rounded-2xl p-6 sm:p-8 text-white">

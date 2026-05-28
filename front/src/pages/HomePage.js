@@ -240,7 +240,7 @@ const HomePage = () => {
           <div className="text-center mb-16">
             <p className="text-red-600 font-bold text-sm tracking-[0.2em] uppercase mb-3">Special Vehicles</p>
             <h2 className="text-4xl md:text-5xl font-black text-gray-900">
-              원하는 차량, 퍼스트로드엔 다 있습니다
+              원하는 차량, 퍼스트로드는 다 있습니다
             </h2>
           </div>
 
