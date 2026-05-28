@@ -187,7 +187,11 @@ const MyInform = () => {
         data: {
           labels: [], datasets: [{
             label: '요청 수', data: [], borderWidth: 2,
-            backgroundColor: 'rgba(124, 58, 237, 0.1)', borderColor: 'rgba(124, 58, 237, 1)'
+            // 🔵 보라색 테마를 선명한 메인 블루(#2563eb)와 라운딩(borderRadius)으로 변경
+            backgroundColor: 'rgba(37, 99, 235, 0.1)', 
+            borderColor: '#2563eb',
+            borderRadius: 8,
+            barThickness: 24
           }]
         },
         options: {
@@ -196,13 +200,19 @@ const MyInform = () => {
           scales: {
             y: {
               beginAtZero: true,
+              grid: { color: '#f1f5f9' },
               ticks: {
-                stepSize: 1,                                   // ★ 정수 단위
+                stepSize: 1,                                  // ★ 정수 단위
+                color: '#64748b',
                 callback: (v) => isOwner ? `${Number(v).toLocaleString()}원` : `${v}건`
               }
+            },
+            x: {
+              grid: { display: false },
+              ticks: { color: '#64748b' }
             }
           },
-          plugins: { legend: { labels: { boxWidth: 10 } } }
+          plugins: { legend: { labels: { boxWidth: 10, font: { weight: 'bold' } } } }
         }
       });
     }
@@ -219,7 +229,7 @@ const MyInform = () => {
 
     const chart = chartInstanceRef.current;
     chart.data.labels = labels;
-    chart.data.datasets[0].label = chartLabel;                 // ★ 레이블 동적
+    chart.data.datasets[0].label = chartLabel;                  // ★ 레이블 동적
     chart.data.datasets[0].data = values;
     chart.update();
 
@@ -228,64 +238,78 @@ const MyInform = () => {
   }, [monthlySeries, isOwner, isMember]); // ★ 의존성에 타입도 포함
 
   if (!userType) {
-    return <Box sx={{ p: 4 }}><Typography>사용자 정보를 불러오는 중…</Typography></Box>;
+    return <Box sx={{ p: 4 }}><Typography color="#2563eb" fontWeight="bold">사용자 정보를 불러오는 중…</Typography></Box>;
   }
 
   // 카드 정의 (유형별)
   const cards = isMember
     ? [
-      ['총 주문건수', `${totalOrders}건`],
-      ['배송 중', `${inTransitCount}건`],
-      ['배송 완료', `${completedCount}건`],
-    ]
+        ['총 주문건수', `${totalOrders}건`, '#2563eb'],
+        ['배송 중', `${inTransitCount}건`, '#3b82f6'],
+        ['배송 완료', `${completedCount}건`, '#10b981'],
+      ]
     : [
-      ['총 배달 건수', `${totalDeliveries}건`],
-      ['배송 중', `${inTransitCount}건`],
-      ['배송 완료', `${completedCount}건`],
-    ];
+        ['총 배달 건수', `${totalDeliveries}건`, '#2563eb'],
+        ['배송 중', `${inTransitCount}건`, '#3b82f6'],
+        ['배송 완료', `${completedCount}건`, '#10b981'],
+      ];
+
+  // 🟢 대시보드 공통 고급 카드 패널 프레임 스타일
+  const cardPanelStyle = {
+    p: 3, 
+    borderRadius: "24px", 
+    backgroundColor: "#ffffff",
+    boxShadow: "0 8px 30px rgba(0, 0, 0, 0.02)",
+    border: "1px solid #f1f5f9",
+    display: 'flex', 
+    flexDirection: 'column', 
+    minWidth: 0
+  };
 
   return (
-    <Box sx={{ display: 'flex' }}>
+    <Box sx={{ display: 'flex', width: '100%' }}>
       <Box sx={{ flexGrow: 1, px: 0 }}>
-        <Box sx={{ p: 3, bgcolor: '#f3f4f6' }}>
-          <Typography variant="h5" fontWeight="bold" gutterBottom>
+        {/* 전체 외부 스킨 화이트 융합 */}
+        <Box sx={{ p: { xs: 2.5, md: 5 }, bgcolor: '#f8fafc', minHeight: '100vh' }}>
+          <Typography variant="h5" fontWeight="900" color="#0f172a" letterSpacing="-0.5px" mb={4}>
             {isMember ? '배송 정보 관리 (회원)' : '배송 정보 관리 (차주)'}
           </Typography>
 
-          {/* 상태 카드 */}
+          {/* 상태 상단 3분할 대시보드 카드 */}
           <Box
             sx={{
               display: 'grid',
               gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(3, minmax(220px, 1fr))' },
-              gap: 1.5, mb: 2, width: '100%',
+              gap: 2.5, mb: 4, width: '100%',
             }}
           >
-            {cards.map(([label, value], idx) => (
-              <Paper key={idx} elevation={1} sx={{ p: 2, borderRadius: 2, minHeight: 88, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
-                <Typography variant="caption" color="text.secondary">{label}</Typography>
-                <Typography variant="h6" fontWeight="bold" sx={{ mt: 0.25 }}>{value}</Typography>
+            {cards.map(([label, value, dotColor], idx) => (
+              <Paper key={idx} elevation={0} sx={{ ...cardPanelStyle, minHeight: 96, alignItems: 'center', justifyContent: 'center', textAlign: 'center', transition: 'transform 0.2s', '&:hover': { transform: 'translateY(-2px)' } }}>
+                <Typography variant="caption" fontWeight="700" color="#64748b" mb={0.5}>{label}</Typography>
+                <Typography variant="h5" fontWeight="900" sx={{ color: dotColor, letterSpacing: '-0.5px' }}>{value}</Typography>
               </Paper>
             ))}
           </Box>
 
-          {/* 그래프 & 문의 내역 */}
+          {/* 하단 그래프 및 내 문의 내역 그리드 스택 */}
           <Box
             sx={{
               display: 'grid',
               gridTemplateColumns: { xs: '1fr', md: 'minmax(0,1fr) minmax(0,1fr)' },
-              gap: 2, alignItems: 'stretch', width: '100%', mb: 2,
+              gap: 3, alignItems: 'stretch', width: '100%', mb: 2,
             }}
           >
-            {/* 그래프 */}
-            <Paper sx={{ p: 2, height: 320, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-              <Typography variant="body2" color="text.secondary" mb={1}>
+            {/* 1. 그래프 카드 패널 */}
+            <Paper elevation={0} sx={{ ...cardPanelStyle, height: 340 }}>
+              <Typography variant="subtitle1" fontWeight="bold" color="#1e293b" mb={1.5}>
                 {isOwner ? '월별 수익' : '월별 요청 수'} {/* ★ 제목 동적 */}
               </Typography>
 
-              <Box display="flex" alignItems="center" mb={1}>
-                <Box sx={{ width: 10, height: 10, bgcolor: 'purple', borderRadius: '50%', mr: 1 }} />
-                <Typography variant="caption" color="purple">
-                  {isOwner ? '수익' : '요청 수'}
+              <Box display="flex" alignItems="center" mb={2}>
+                {/* 🔵 보라색 인디케이터를 시그니처 파란색으로 변경 */}
+                <Box sx={{ width: 10, height: 10, bgcolor: '#2563eb', borderRadius: '50%', mr: 1 }} />
+                <Typography variant="caption" fontWeight="700" color="#2563eb">
+                  {isOwner ? '수익 현황' : '요청 수 통계'}
                 </Typography>
               </Box>
 
@@ -297,26 +321,26 @@ const MyInform = () => {
               </Box>
             </Paper>
 
-            {/* 문의 내역 */}
-            <Paper sx={{ p: 2, height: 320, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-              <Typography variant="body2" color="text.secondary" align="center" mb={1}>
+            {/* 2. 문의 내역 카드 패널 */}
+            <Paper elevation={0} sx={{ ...cardPanelStyle, height: 340 }}>
+              <Typography variant="subtitle1" fontWeight="bold" color="#1e293b" mb={2} textAlign="left">
                 내 문의 내역
               </Typography>
 
-              <TableContainer sx={{ flex: 1, overflow: 'auto' }}>
-                <Table size="small">
+              <TableContainer sx={{ flex: 1, overflow: 'auto', borderRadius: "14px", border: "1px solid #e2e8f0" }}>
+                <Table size="small" stickyHeader>
                   <TableHead>
                     <TableRow>
-                      <TableCell align="center">문의내용</TableCell>
-                      <TableCell align="center">작성일</TableCell>
-                      <TableCell align="center">답변여부</TableCell>
+                      <TableCell align="center" sx={{ fontWeight: 'bold', color: '#475569', bgcolor: '#f8fafc', py: 1.5 }}>문의내용</TableCell>
+                      <TableCell align="center" sx={{ fontWeight: 'bold', color: '#475569', bgcolor: '#f8fafc', py: 1.5 }}>작성일</TableCell>
+                      <TableCell align="center" sx={{ fontWeight: 'bold', color: '#475569', bgcolor: '#f8fafc', py: 1.5 }}>답변여부</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {inquiries.length === 0 ? (
                       <TableRow>
-                        <TableCell align="center" colSpan={3} sx={{ color: 'text.secondary' }}>
-                          최근 문의가 없습니다.
+                        <TableCell align="center" colSpan={3} sx={{ color: '#94a3b8', py: 4, fontWeight: 500 }}>
+                          최근 접수된 문의 내역이 존재하지 않습니다.
                         </TableCell>
                       </TableRow>
                     ) : (
@@ -329,15 +353,25 @@ const MyInform = () => {
                             key={row.postId ?? idx}
                             hover={clickable}
                             onClick={clickable ? () => navigate('/qaboard') : undefined}
-                            sx={{ cursor: clickable ? 'pointer' : 'default' }}
+                            sx={{ cursor: clickable ? 'pointer' : 'default', '&:hover': { bgcolor: '#f8fafc' } }}
                             title={clickable ? '게시판으로 이동' : '아직 답변이 없습니다.'}
                           >
-                            <TableCell align="center" sx={{ textDecoration: clickable ? 'underline' : 'none' }}>
+                            <TableCell align="center" sx={{ textDecoration: clickable ? 'underline' : 'none', color: '#334155', fontWeight: 500, py: 1.5 }}>
                               {row.title}
                             </TableCell>
-                            <TableCell align="center">{date}</TableCell>
-                            <TableCell align="center" sx={{ color: row.answered ? 'green' : 'red' }}>
-                              {status}
+                            <TableCell align="center" sx={{ color: '#64748b', py: 1.5 }}>{date}</TableCell>
+                            <TableCell align="center" sx={{ py: 1.5 }}>
+                              {/* 🟢 답변 여부를 라운딩 뱃지형 스킨으로 가공 */}
+                              <Box 
+                                component="span" 
+                                sx={{ 
+                                  px: 1.5, py: 0.5, borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold',
+                                  bgcolor: row.answered ? '#eff6ff' : '#fef2f2',
+                                  color: row.answered ? '#2563eb' : '#dc2626'
+                                }}
+                              >
+                                {status}
+                              </Box>
                             </TableCell>
                           </TableRow>
                         );

@@ -74,6 +74,7 @@ const formatDateTime = (v) => {
     hour12: false,
   });
 };
+
 const InfoRow = ({ label, value }) => (
   <Box sx={{ display: "flex", gap: 1, mb: 0.5 }}>
     <Typography
@@ -355,67 +356,76 @@ const MyReviewInform = () => {
     applyPagedData(allReviews, pageParams);
   }, [pageParams]);
 
+  // 공통 텍스트 폼 디자인 스킨 정의 (동글동글 매치용)
+  const textInputStyle = {
+    "& .MuiOutlinedInput-root": {
+      borderRadius: "14px",
+      backgroundColor: "#ffffff",
+      "& fieldset": { borderColor: "#e2e8f0" },
+      "&:hover fieldset": { borderColor: "#cbd5e1" },
+      "&.Mui-focused fieldset": { borderColor: "#2563eb", borderWidth: "2px" },
+    }
+  };
+
   const renderReviewCards = () => {
     if (loading) {
-      return <Paper sx={{ p: 4, textAlign: "center" }}>불러오는 중...</Paper>;
+      return <Paper sx={{ p: 4, textAlign: "center", borderRadius: "16px", color: "#2563eb", fontWeight: "bold" }}>불러오는 중...</Paper>;
     }
 
     if (!serverData.dtoList || serverData.dtoList.length === 0) {
-      return <Paper sx={{ p: 4, textAlign: "center" }}>작성한 리뷰가 없습니다.</Paper>;
+      return <Paper sx={{ p: 4, textAlign: "center", borderRadius: "16px", color: "text.secondary" }}>작성한 리뷰가 없습니다.</Paper>;
     }
 
     return (
-      <Stack spacing={2}>
+      <Stack spacing={2.5}>
         {serverData.dtoList.map((item) => {
-          const firstImage = item.images?.[0];
-          const thumbnailPath = firstImage?.thumbnailPath || firstImage?.imagePath;
-
           return (
             <Paper
               key={item.reviewNo}
               elevation={0}
               sx={{
-                p: { xs: 2, sm: 2.5 },
-                border: "1px solid #e5e7eb",
-                borderRadius: 2,
-                bgcolor: "#fff",
+                p: { xs: 2.5, sm: 3 },
+                border: "1px solid #f1f5f9",
+                borderRadius: "16px", // 🟢 동글동글 적용
+                bgcolor: "#ffffff",
+                boxShadow: "0 4px 20px rgba(0, 0, 0, 0.02)",
                 position: "relative",
-
                 "& .review-actions": {
                   opacity: { xs: 1, md: 0 },
                   transform: {
                     xs: "translateY(0)",
                     md: "translateY(-2px)",
                   },
-                  transition: "all 0.18s ease",
+                  transition: "all 0.2s ease-in-out",
                 },
-
                 "&:hover .review-actions": {
                   opacity: 1,
                   transform: "translateY(0)",
                 },
               }}
             >
+              {/* 📱 핏 조율: 모바일 해상도(xs)에서 정보 텍스트와 우측 액션 단추 그룹이 깨지지 않게 유연 배치 가이드 장착 */}
               <Box
                 sx={{
                   display: "flex",
+                  flexDirection: { xs: "column", sm: "row" },
                   justifyContent: "space-between",
-                  alignItems: "flex-start",
+                  alignItems: { xs: "stretch", sm: "flex-start" },
+                  gap: 1.5,
                   mb: 1.5,
                 }}
               >
-
-                <Box sx={{ display: "flex", gap: 1.2, flex: 1, minWidth: 0, pr: 1 }}>
+                <Box sx={{ display: "flex", gap: 1.5, alignItems: "center", flex: 1, minWidth: 0, pr: 1 }}>
                   <Avatar
                     src={normalizeProfileUrl(item.driverProfileImage) || DEFAULT_AVATAR}
-                    sx={{ width: 42, height: 42 }}
+                    sx={{ width: 44, height: 44, border: "1px solid #e2e8f0" }}
                   >
                     {item.driverName?.[0] || "차"}
                   </Avatar>
 
-                  <Box sx={{ minWidth: 0 }}>
-                    <Stack direction="row" spacing={1} alignItems="center">
-                      <Typography fontSize={13} color="text.secondary">
+                  <Box sx={{ minWidth: 0, flexGrow: 1 }}>
+                    <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+                      <Typography fontSize={13} color="text.secondary" fontWeight={500}>
                         운전기사
                       </Typography>
 
@@ -427,20 +437,23 @@ const MyReviewInform = () => {
                           p: 0,
                           minWidth: "auto",
                           fontWeight: 700,
+                          fontSize: "0.95rem",
+                          color: "#2563eb", // 🔵 메인 블루 포인트 매칭
                           textTransform: "none",
+                          "&:hover": { backgroundColor: "transparent", textDecoration: "underline" }
                         }}
                       >
                         {item.driverName || "-"}
                       </Button>
                     </Stack>
 
-                    <Typography fontSize={13} color="text.secondary">
+                    <Typography fontSize={12} color="text.secondary" sx={{ mt: 0.1 }}>
                       {formatDateTime(item.createdAt)}
                     </Typography>
 
                     <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 0.5 }}>
-                      <Rating value={Number(item.rating) || 0} precision={0.5} readOnly size="small" />
-                      <Typography fontSize={13} fontWeight={700}>
+                      <Rating value={Number(item.rating) || 0} precision={0.5} readOnly size="small" sx={{ color: "#ffb700" }} />
+                      <Typography fontSize={13} fontWeight={700} color="text.primary">
                         {Number(item.rating || 0).toFixed(1)}
                       </Typography>
                     </Box>
@@ -451,7 +464,7 @@ const MyReviewInform = () => {
                   direction="row"
                   spacing={0.5}
                   className="review-actions"
-                  sx={{ flexShrink: 0 }}
+                  sx={{ flexShrink: 0, justifyContent: { xs: "flex-end", sm: "flex-start" }, mt: { xs: 1, sm: 0 } }}
                 >
                   <IconButton
                     size="small"
@@ -460,7 +473,8 @@ const MyReviewInform = () => {
                       width: 32,
                       height: 32,
                       color: "#6b7280",
-                      "&:hover": { bgcolor: "#eef2ff", color: "#4f46e5" },
+                      borderRadius: "10px",
+                      "&:hover": { bgcolor: "#eff6ff", color: "#2563eb" }, // 🔵 블루 전환
                     }}
                   >
                     <EditOutlinedIcon fontSize="small" />
@@ -473,7 +487,8 @@ const MyReviewInform = () => {
                       width: 32,
                       height: 32,
                       color: "#9ca3af",
-                      "&:hover": { bgcolor: "#fef2f2", color: "#dc2626" },
+                      borderRadius: "10px",
+                      "&:hover": { bgcolor: "#fff5f5", color: "#dc2626" },
                     }}
                   >
                     <CloseRoundedIcon fontSize="small" />
@@ -481,7 +496,8 @@ const MyReviewInform = () => {
                 </Stack>
               </Box>
 
-              <Box sx={{ bgcolor: "#f3f4f6", borderRadius: 1, p: 1.5, mb: 1.5 }}>
+              {/* 디테일 박스 테두리 곡률 부드럽게 보정 (borderRadius: "12px") */}
+              <Box sx={{ bgcolor: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "12px", p: 1.5, mb: 1.5 }}>
                 <InfoRow label="화물명" value={item.cargoType} />
                 <InfoRow label="무게" value={item.cargoWeight} />
                 <InfoRow label="운송구간" value={`${item.startAddress || "-"} → ${item.endAddress || "-"}`} />
@@ -503,8 +519,8 @@ const MyReviewInform = () => {
                           width: 100,
                           height: 100,
                           objectFit: "cover",
-                          borderRadius: 8,
-                          border: "1px solid #ddd",
+                          borderRadius: "12px", // 🟢 동글동글 이미지 가공
+                          border: "1px solid #e2e8f0",
                           cursor: "pointer",
                         }}
                       />
@@ -513,7 +529,7 @@ const MyReviewInform = () => {
                 </Box>
               )}
 
-              <Typography fontSize={14} sx={{ whiteSpace: "pre-wrap", mb: 1.5 }}>
+              <Typography fontSize={14} sx={{ whiteSpace: "pre-wrap", mb: 1.5, px: 0.5, lineHeight: 1.5 }}>
                 {item.comment || "-"}
               </Typography>
 
@@ -521,15 +537,15 @@ const MyReviewInform = () => {
                 <Box
                   sx={{
                     mt: 1.5,
-                    p: 1.5,
-                    borderRadius: 1,
-                    bgcolor: "#f8fafc",
-                    border: "1px solid #e5e7eb",
+                    p: 2,
+                    borderRadius: "12px", // 🟢 동글동글
+                    bgcolor: "#eff6ff", // 연한 블루 스킨 테마 분기
+                    border: "1px solid #dbeafe",
                     mb: 1.5,
                   }}
                 >
                   <Stack direction="row" spacing={0.5} alignItems="center">
-                    <Typography fontSize={13} fontWeight={700}>
+                    <Typography fontSize={13} fontWeight={700} color="#1e40af">
                       {item.driverName || "차주 답글"}
                     </Typography>
 
@@ -538,12 +554,11 @@ const MyReviewInform = () => {
                     </Typography>
                   </Stack>
 
-                  <Typography fontSize={14} sx={{ whiteSpace: "pre-wrap", mt: 0.5 }}>
+                  <Typography fontSize={14} sx={{ whiteSpace: "pre-wrap", mt: 0.5, color: "#1e293b", lineHeight: 1.5 }}>
                     {item.reply.content}
                   </Typography>
                 </Box>
               )}
-
             </Paper>
           );
         })}
@@ -625,19 +640,20 @@ const MyReviewInform = () => {
       setDriverReviewPage(driverReviewTotalPage);
     }
   }, [driverReviewPage, driverReviewTotalPage]);
+
   return (
-    <Box sx={{ bgcolor: '#f7f9fc', minHeight: '100vh', py: 6, pb: { xs: '80px', md: 6 }, overflow: 'hidden', }}>
+    <Box sx={{ bgcolor: '#f8fafc', minHeight: '100vh', py: 6, pb: { xs: '100px', md: 6 }, overflow: 'hidden', }}>
       <Container maxWidth="xl" disableGutters sx={{
-        px: { xs: 1, sm: 2 },
+        px: { xs: 2, md: 4 },
         maxWidth: '100vw',
         boxSizing: 'border-box',
       }}>
-        <Typography variant="h5" fontWeight="bold" gutterBottom textAlign="center">
+        <Typography variant="h4" fontWeight="900" color="#0f172a" mb={4} textAlign="left" sx={{ fontSize: { xs: '1.75rem', md: '2.25rem' } }}>
           내 리뷰 관리
         </Typography>
 
-        <Box mt={6}>
-          <Typography variant="h6" fontWeight="bold" gutterBottom>
+        <Box sx={{ mt: 2 }}>
+          <Typography variant="h6" fontWeight="800" color="#1e293b" mb={2.5}>
             내가 작성한 리뷰 목록
           </Typography>
 
@@ -646,7 +662,7 @@ const MyReviewInform = () => {
 
             <Box
               sx={{
-                mt: 2,
+                mt: 4,
                 py: 1.5,
                 display: "flex",
                 justifyContent: "center",
@@ -659,19 +675,22 @@ const MyReviewInform = () => {
         </Box>
       </Container>
 
-      <Dialog open={openEditModal} onClose={handleCloseEditModal} maxWidth="sm" fullWidth>
-        <DialogTitle>리뷰 수정</DialogTitle>
+      {/* 📱 모바일 세로 액정 가려짐 완벽 차단 다이얼로그 (maxHeight + overflowY 적용) */}
+      <Dialog open={openEditModal} onClose={handleCloseEditModal} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: "20px", p: 1, maxHeight: { xs: "82vh", sm: "85vh" }, display: "flex", flexDirection: "column" } }}>
+        <DialogTitle sx={{ fontWeight: "bold", flexShrink: 0 }}>리뷰 수정</DialogTitle>
 
-        <DialogContent>
-          <Typography variant="body2" sx={{ mb: 1 }}>
-            <strong>리뷰번호:</strong> {selectedReview?.reviewNo ?? "-"}
-          </Typography>
+        <DialogContent sx={{ overflowY: "auto", flex: "1 1 auto" }}>
+          <Box sx={{ display: 'flex', gap: 2, mb: 2, bgcolor: '#f8fafc', p: 1.5, borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+            <Typography variant="body2" color="text.secondary">
+              <strong>리뷰번호:</strong> {selectedReview?.reviewNo ?? "-"}
+            </Typography>
 
-          <Typography variant="body2" sx={{ mb: 2 }}>
-            <strong>배송번호:</strong> {selectedReview?.deliveryNo ?? "-"}
-          </Typography>
+            <Typography variant="body2" color="text.secondary">
+              <strong>배송번호:</strong> {selectedReview?.deliveryNo ?? "-"}
+            </Typography>
+          </Box>
 
-          <Typography gutterBottom sx={{ mt: 1 }}>
+          <Typography gutterBottom fontWeight="bold" sx={{ mt: 1 }}>
             별점
           </Typography>
 
@@ -679,6 +698,7 @@ const MyReviewInform = () => {
             value={editReviewScore}
             precision={0.5}
             onChange={(event, newValue) => setEditReviewScore(newValue || 0)}
+            sx={{ color: "#ffb700" }}
           />
 
           <TextField
@@ -688,9 +708,9 @@ const MyReviewInform = () => {
             label="리뷰 내용"
             value={editReviewContent}
             onChange={(e) => setEditReviewContent(e.target.value)}
-            sx={{ mt: 2 }}
+            sx={{ mt: 2.5, ...textInputStyle }}
           />
-          <Box sx={{ display: "flex", gap: 1.2, flexWrap: "wrap" }}>
+          <Box sx={{ display: "flex", gap: 1.2, flexWrap: "wrap", mt: 2.5 }}>
             {editReviewImages.map((img) => {
               const imageId = img.reviewImageNo;
               const checked = deleteImageIds.includes(imageId);
@@ -702,10 +722,11 @@ const MyReviewInform = () => {
                     position: "relative",
                     width: 100,
                     height: 100,
-                    borderRadius: 1,
+                    borderRadius: "12px",
                     overflow: "hidden",
-                    border: checked ? "2px solid #ef4444" : "1px solid #ddd",
+                    border: checked ? "2px solid #ef4444" : "1px solid #e2e8f0",
                     opacity: checked ? 0.45 : 1,
+                    transition: "all 0.2s"
                   }}
                 >
                   <img
@@ -732,25 +753,25 @@ const MyReviewInform = () => {
                       position: "absolute",
                       top: 4,
                       right: 4,
-                      width: 24,
-                      height: 24,
-                      bgcolor: checked ? "#16a34a" : "rgba(0,0,0,0.55)",
+                      width: 22,
+                      height: 22,
+                      bgcolor: checked ? "#10b981" : "rgba(15,23,42,0.65)",
                       color: "#fff",
                       "&:hover": {
-                        bgcolor: checked ? "#15803d" : "rgba(0,0,0,0.75)",
+                        bgcolor: checked ? "#059669" : "rgba(15,23,42,0.85)",
                       },
                     }}
                   >
-                    {checked ? "↺" : <CloseRoundedIcon sx={{ fontSize: 16 }} />}
+                    {checked ? "↺" : <CloseRoundedIcon sx={{ fontSize: 14 }} />}
                   </IconButton>
                 </Box>
               );
             })}
           </Box>
 
-          <Box sx={{ mt: 3 }}>
-            <Typography variant="subtitle2" sx={{ mb: 1 }}>
-              새 이미지 추가
+          <Box sx={{ mt: 3, p: 2, border: "1px dashed #cbd5e1", borderRadius: "14px", bgcolor: "#fafafa" }}>
+            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: "bold" }}>
+              📸 새 이미지 추가
             </Typography>
 
             <input
@@ -772,23 +793,25 @@ const MyReviewInform = () => {
           </Box>
         </DialogContent>
 
-        <DialogActions>
-          <Button onClick={handleCloseEditModal}>취소</Button>
-          <Button onClick={handleConfirmModify} variant="contained">
+        <DialogActions sx={{ p: 2.5, flexShrink: 0 }}>
+          <Button onClick={handleCloseEditModal} sx={{ color: "text.secondary", fontWeight: "bold" }}>취소</Button>
+          <Button onClick={handleConfirmModify} variant="contained" disableElevation sx={{ borderRadius: "12px", px: 3, fontWeight: "bold", bgcolor: "#2563eb", "&:hover": { bgcolor: "#1d4ed8" } }}>
             저장
           </Button>
         </DialogActions>
       </Dialog>
 
+      {/* 📱 운전기사 상세정보 화면 이탈 방지 모달 (maxHeight + overflowY 적용) */}
       <Dialog
         open={openDriverDetailModal}
         onClose={handleCloseDriverDetailModal}
         maxWidth="md"
         fullWidth
+        PaperProps={{ sx: { borderRadius: "24px", p: 1, maxHeight: { xs: "82vh", sm: "85vh" }, display: "flex", flexDirection: "column" } }}
       >
-        <DialogTitle>운전기사 상세 정보</DialogTitle>
+        <DialogTitle sx={{ fontWeight: "bold", flexShrink: 0 }}>운전기사 상세 정보</DialogTitle>
 
-        <DialogContent>
+        <DialogContent sx={{ overflowY: "auto", flex: "1 1 auto" }}>
           <DriverProfileCard
             title="운전기사 프로필"
             profileInfo={selectedDriverProfileInfo}
@@ -798,22 +821,22 @@ const MyReviewInform = () => {
             showVerifyButton={false}
           />
 
-          <Box sx={{ mt: 3 }}>
+          <Box sx={{ mt: 4 }}>
             <Box
               sx={{
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                mb: 2,
+                mb: 2.5,
                 gap: 2,
                 flexWrap: "wrap",
               }}
             >
-              <Typography variant="h6" fontWeight="bold">
+              <Typography variant="h6" fontWeight="800" color="#1e293b">
                 차주에게 작성된 리뷰 목록
               </Typography>
 
-              <FormControl size="small" sx={{ minWidth: 180 }}>
+              <FormControl size="small" sx={{ minWidth: 160, ...textInputStyle }}>
                 <InputLabel>정렬</InputLabel>
                 <Select
                   value={driverReviewSortType}
@@ -834,103 +857,48 @@ const MyReviewInform = () => {
             {pagedDriverReviews.length ? (
               <Stack spacing={2}>
                 {pagedDriverReviews.map((review) => {
-                  const firstImage = review.images?.[0];
-                  const thumbnailPath = firstImage?.thumbnailPath || firstImage?.imagePath;
-
                   return (
                     <Paper
                       key={review.reviewNo}
                       elevation={0}
                       sx={{
                         p: { xs: 2, sm: 2.5 },
-                        border: "1px solid #e5e7eb",
-                        borderRadius: 2,
+                        border: "1px solid #e2e8f0",
+                        borderRadius: "16px",
                         bgcolor: "#fff",
                       }}
                     >
                       <Box sx={{ display: "flex", justifyContent: "space-between", gap: 1.5, mb: 1.5 }}>
                         <Box sx={{ minWidth: 0 }}>
-                          <Typography fontSize={14} fontWeight={700}>
-                            {review.writerName || review.writerId || "작성자"}
-                          </Typography>
-
-                          <Typography fontSize={13} color="text.secondary">
-                            {formatDateTime(review.createdAt)}
-                          </Typography>
-
+                          <Typography fontSize={14} fontWeight={700} color="#334155">{review.writerName || review.writerId || "작성자"}</Typography>
+                          <Typography fontSize={12} color="text.secondary">{formatDateTime(review.createdAt)}</Typography>
                           <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 0.5 }}>
-                            <Rating
-                              value={Number(review.rating) || 0}
-                              precision={0.5}
-                              readOnly
-                              size="small"
-                            />
-                            <Typography fontSize={13} fontWeight={700}>
-                              {Number(review.rating || 0).toFixed(1)}
-                            </Typography>
+                            <Rating value={Number(review.rating) || 0} precision={0.5} readOnly size="small" sx={{ color: "#ffb700" }} />
+                            <Typography fontSize={13} fontWeight={700} color="text.primary">{Number(review.rating || 0).toFixed(1)}</Typography>
                           </Box>
                         </Box>
                       </Box>
-
-                      <Box sx={{ bgcolor: "#f3f4f6", borderRadius: 1, p: 1.5, mb: 1.5 }}>
+                      <Box sx={{ bgcolor: "#f8fafc", borderRadius: "12px", border: "1px solid #f1f5f9", p: 1.5, mb: 1.5 }}>
                         <InfoRow label="화물명" value={review.cargoType} />
                         <InfoRow label="무게" value={review.cargoWeight} />
                         <InfoRow label="운송구간" value={`${review.startAddress || "-"} → ${review.endAddress || "-"}`} />
                         <InfoRow label="배송완료" value={formatDateTime(review.deliveryCompletedAt)} />
                       </Box>
-
                       {review.images?.length > 0 && (
                         <Box sx={{ display: "flex", gap: 1, mb: 1.5, flexWrap: "wrap" }}>
-                          {review.images.slice(0, 3).map((img) => {
-                            const path = img.thumbnailPath || img.imagePath;
-
-                            return (
-                              <img
-                                key={img.reviewImageNo}
-                                src={`${API_SERVER_HOST}/${path}`}
-                                alt="review-thumbnail"
-                                onClick={() => setSelectedImage(img.imagePath)}
-                                style={{
-                                  width: 96,
-                                  height: 96,
-                                  objectFit: "cover",
-                                  borderRadius: 8,
-                                  border: "1px solid #ddd",
-                                  cursor: "pointer",
-                                }}
-                              />
-                            );
-                          })}
+                          {review.images.slice(0, 3).map((img) => (
+                            <img key={img.reviewImageNo} src={`${API_SERVER_HOST}/${img.thumbnailPath || img.imagePath}`} alt="review-thumbnail" onClick={() => setSelectedImage(img.imagePath)} style={{ width: 96, height: 96, objectFit: "cover", borderRadius: "12px", border: "1px solid #e2e8f0", cursor: "pointer" }} />
+                          ))}
                         </Box>
                       )}
-
-                      <Typography fontSize={14} sx={{ whiteSpace: "pre-wrap", mb: 1.5 }}>
-                        {review.comment || "-"}
-                      </Typography>
-
+                      <Typography fontSize={14} color="#475569" sx={{ whiteSpace: "pre-wrap", mb: 1.5, lineHeight: 1.5 }}>{review.comment || "-"}</Typography>
                       {review.reply && (
-                        <Box
-                          sx={{
-                            mt: 1.5,
-                            p: 1.5,
-                            borderRadius: 1,
-                            bgcolor: "#f8fafc",
-                            border: "1px solid #e5e7eb",
-                          }}
-                        >
+                        <Box sx={{ mt: 1.5, p: 1.5, borderRadius: "12px", bgcolor: "#eff6ff", border: "1px solid #dbeafe" }}>
                           <Stack direction="row" spacing={0.5} alignItems="center">
-                            <Typography fontSize={13} fontWeight={700}>
-                              {selectedDriverDetail?.profile?.driverName || "차주 답글"}
-                            </Typography>
-
-                            <Typography fontSize={12} color="text.secondary">
-                              · {formatDateTime(review.reply.createdAt)}
-                            </Typography>
+                            <Typography fontSize={13} fontWeight={700} color="#1e40af">{selectedDriverDetail?.profile?.driverName || "차주 답글"}</Typography>
+                            <Typography fontSize={12} color="text.secondary">· {formatDateTime(review.reply.createdAt)}</Typography>
                           </Stack>
-
-                          <Typography fontSize={14} sx={{ whiteSpace: "pre-wrap", mt: 0.5 }}>
-                            {review.reply.content}
-                          </Typography>
+                          <Typography fontSize={14} sx={{ whiteSpace: "pre-wrap", mt: 0.5, color: "#1e293b", lineHeight: 1.5 }}>{review.reply.content}</Typography>
                         </Box>
                       )}
                     </Paper>
@@ -938,48 +906,20 @@ const MyReviewInform = () => {
                 })}
               </Stack>
             ) : (
-              <Typography variant="body2" color="text.secondary">
-                등록된 리뷰가 없습니다.
-              </Typography>
+              <Typography variant="body2" color="text.secondary" textAlign="center" py={3}>등록된 리뷰가 없습니다.</Typography>
             )}
             {pagedDriverReviews.length > 0 && (
-              <Box
-                sx={{
-                  mt: 2,
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  gap: 1,
-                }}
-              >
-                <Button
-                  size="small"
-                  variant="outlined"
-                  disabled={driverReviewPage <= 1}
-                  onClick={() => setDriverReviewPage((prev) => prev - 1)}
-                >
-                  이전
-                </Button>
-
-                <Typography variant="body2">
-                  {driverReviewPage} / {driverReviewTotalPage}
-                </Typography>
-
-                <Button
-                  size="small"
-                  variant="outlined"
-                  disabled={driverReviewPage >= driverReviewTotalPage}
-                  onClick={() => setDriverReviewPage((prev) => prev + 1)}
-                >
-                  다음
-                </Button>
+              <Box sx={{ mt: 3, display: "flex", justifyContent: "center", alignItems: "center", gap: 1 }}>
+                <Button size="small" variant="outlined" disabled={driverReviewPage <= 1} onClick={() => setDriverReviewPage((prev) => prev - 1)} sx={{ borderRadius: "8px", fontWeight: "bold" }}>이전</Button>
+                <Typography variant="body2" sx={{ mx: 1, fontWeight: "bold", color: "#475569" }}>{driverReviewPage} / {driverReviewTotalPage}</Typography>
+                <Button size="small" variant="outlined" disabled={driverReviewPage >= driverReviewTotalPage} onClick={() => setDriverReviewPage((prev) => prev + 1)} sx={{ borderRadius: "8px", fontWeight: "bold" }}>다음</Button>
               </Box>
             )}
           </Box>
         </DialogContent>
 
-        <DialogActions>
-          <Button onClick={handleCloseDriverDetailModal}>닫기</Button>
+        <DialogActions sx={{ p: 2.5, flexShrink: 0 }}>
+          <Button onClick={handleCloseDriverDetailModal} sx={{ color: "#2563eb", fontWeight: "bold" }}>닫기</Button>
         </DialogActions>
       </Dialog>
       <Dialog
@@ -987,23 +927,25 @@ const MyReviewInform = () => {
         onClose={() => setSelectedImage(null)}
         maxWidth="md"
         fullWidth
+        PaperProps={{ sx: { borderRadius: "16px" } }}
       >
-        <DialogTitle>이미지 보기</DialogTitle>
-        <DialogContent sx={{ textAlign: "center" }}>
+        <DialogTitle sx={{ fontWeight: "bold" }}>이미지 보기</DialogTitle>
+        <DialogContent sx={{ textAlign: "center", py: 2 }}>
           {selectedImage && (
             <img
               src={`${API_SERVER_HOST}/${selectedImage}`}
               alt="preview"
               style={{
                 maxWidth: "100%",
-                maxHeight: "70vh",
+                maxHeight: "65vh",
                 objectFit: "contain",
+                borderRadius: "12px",
               }}
             />
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setSelectedImage(null)}>닫기</Button>
+          <Button onClick={() => setSelectedImage(null)} sx={{ color: "text.secondary", fontWeight: "bold" }}>닫기</Button>
         </DialogActions>
       </Dialog>
       <Dialog
@@ -1011,24 +953,23 @@ const MyReviewInform = () => {
         onClose={handleCloseDeleteDialog}
         maxWidth="xs"
         fullWidth
+        PaperProps={{ sx: { borderRadius: "16px", p: 0.5 } }}
       >
-        <DialogTitle>리뷰 삭제</DialogTitle>
+        <DialogTitle sx={{ fontWeight: "bold" }}>리뷰 삭제</DialogTitle>
 
-        <DialogContent>
-          <Typography fontSize={14}>
-            이 리뷰를 삭제할까요? 삭제하면 복구할 수 없습니다.
-          </Typography>
-        </DialogContent>
+        <DialogContent><Typography fontSize={14} color="text.secondary">이 리뷰를 삭제할까요? 삭제하면 복구할 수 없습니다.</Typography></DialogContent>
 
-        <DialogActions>
-          <Button onClick={handleCloseDeleteDialog}>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={handleCloseDeleteDialog} sx={{ color: "text.secondary", fontWeight: "bold" }}>
             취소
           </Button>
 
           <Button
             color="error"
             variant="contained"
+            disableElevation
             onClick={handleConfirmDelete}
+            sx={{ borderRadius: "10px", fontWeight: "bold" }}
           >
             삭제
           </Button>
@@ -1045,6 +986,7 @@ const MyReviewInform = () => {
           severity={snackbar.severity}
           variant="filled"
           onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+          sx={{ borderRadius: "12px", fontWeight: "bold" }}
         >
           {snackbar.message}
         </Alert>
