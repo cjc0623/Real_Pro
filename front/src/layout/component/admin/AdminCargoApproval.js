@@ -60,94 +60,92 @@ const AdminCargoApproval = () => {
 
   return (
     <Box sx={{
-      p: { xs: 2, md: 4 },
-      bgcolor: '#f8f9fb',
+      p: { xs: 2, sm: 3.5, md: 5 }, 
+      pl: { xs: 2, sm: 4, md: 6, lg: 10 }, 
+      pr: { xs: 2, sm: 4, md: 6, lg: 10 }, 
+      bgcolor: '#f8fafc', 
       minHeight: '100vh',
-      width: '100%'
+      width: '100%',
+      boxSizing: 'border-box'
     }}>
-      <Typography variant="h4" fontWeight="800" mb={4} color="#333"
-        sx={{ fontSize: { xs: '1.5rem', md: '2.125rem' } }}
+      {/* 타이틀과 디바이더는 데스크톱에서 예쁘게 항상 왼쪽 정렬 상태 유지 */}
+      <Typography variant="h4" fontWeight="900" mb={2} color="#0f172a" letterSpacing="-0.5px"
+        sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' }, textAlign: 'left' }} 
       >
         차량 등록 승인 관리
       </Typography>
 
-      <Divider sx={{ mb: 4 }} />
+      <Divider sx={{ mb: 4, borderColor: '#e2e8f0' }} />
 
       {pendingList.length === 0 ? (
-        <Paper sx={{ p: { xs: 3, md: 5 }, textAlign: 'center', borderRadius: 3, bgcolor: '#fff' }}>
-          <Typography variant="h6" color="textSecondary">
+        <Paper elevation={0} sx={{ p: { xs: 4, md: 6 }, textAlign: 'center', borderRadius: "24px", border: "1px solid #f1f5f9", boxShadow: "0 8px 30px rgba(0,0,0,0.02)", backgroundColor: '#ffffff' }}>
+          <Typography variant="h6" color="#94a3b8" fontWeight="600" sx={{ fontSize: { xs: '1rem', sm: '1.15rem' } }}>
             현재 승인 대기 중인 차량이 없습니다.
           </Typography>
         </Paper>
       ) : (
-        <Grid container spacing={{ xs: 2, md: 3 }}>
+        /* 🚨 [반응형 분기 정렬 핵심] 모바일(xs) 환경에서 1열일 때는 center(중앙), 태블릿(sm) 이상부터는 flex-start(왼쪽 정렬) */
+        <Grid container spacing={{ xs: 2.5, sm: 3, md: 4 }} justifyContent={{ xs: 'center', sm: 'flex-start' }}>
           {pendingList.map((cargo) => (
-            <Grid item xs={12} sm={6} md={6} lg={4} key={cargo.cargoNo}>
+            <Grid item xs={12} sm={6} lg={4} key={cargo.cargoNo} display="flex" sx={{ maxWidth: { xs: '450px', sm: '100%' } }}> 
               <Card sx={{
-                boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-                borderRadius: 4,
+                width: '100%',
+                display: 'flex',
+                flexDirection: 'column', 
+                boxShadow: '0 8px 30px rgba(0, 0, 0, 0.02)',
+                border: "1px solid #f1f5f9",
+                borderRadius: "20px", 
+                backgroundColor: "#ffffff",
                 overflow: 'hidden',
-                transition: 'transform 0.2s',
-                '&:hover': { transform: 'translateY(-5px)' }
+                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 12px 35px rgba(0, 0, 0, 0.05)' }
               }}>
                 <CardMedia
                   component="img"
-                  height="220"
                   image={toPreviewUrl(cargo.cargoImage)}
                   alt={cargo.cargoName}
-                  sx={{ objectFit: 'contain', bgcolor: '#f1f3f5', p: 1 }}
+                  sx={{ 
+                    height: 200, 
+                    width: '100%',
+                    objectFit: 'cover', 
+                    bgcolor: '#f8fafc', 
+                    borderBottom: "1px solid #f1f5f9" 
+                  }}
                 />
-                <CardContent sx={{ p: { xs: 2, md: 3 } }}>
-                  <Box
-                    display="flex"
-                    justifyContent="space-between"
-                    alignItems="center"
-                    mb={2}
-                    gap={1}
-                  >
-                    <Typography variant="h6" fontWeight="700"
-                      sx={{ fontSize: { xs: '1rem', md: '1.25rem' }, wordBreak: 'break-word' }}
-                    >
-                      {cargo.cargoName}
-                    </Typography>
-                    <Chip
-                      label="승인 대기"
-                      color="warning"
-                      variant="filled"
-                      size="small"
-                      sx={{ fontWeight: 'bold', flexShrink: 0 }}
-                    />
+                
+                <CardContent sx={{ 
+                  p: { xs: 2.5, sm: 3 }, 
+                  flexGrow: 1, 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  justifyContent: 'space-between' 
+                }}>
+                  <Box>
+                    <Box display="flex" justifyContent="space-between" alignItems="center" mb={2.5} gap={1}>
+                      <Typography variant="h6" fontWeight="800" color="#334155" sx={{ fontSize: { xs: '1rem', md: '1.15rem' }, wordBreak: 'break-word', letterSpacing: "-0.3px" }}>
+                        {cargo.cargoName}
+                      </Typography>
+                      <Chip label="승인 대기" size="small" sx={{ fontWeight: 'bold', fontSize: "0.75rem", borderRadius: '8px', bgcolor: '#fff7ed', color: '#ea580c', flexShrink: 0 }} />
+                    </Box>
+
+                    <Stack spacing={1.2} mb={3.5}>
+                      <Typography variant="body2" color="#64748b">
+                        <strong style={{ color: "#334155" }}>차량 번호:</strong> {cargo.cargoNumber || '미기재'}
+                      </Typography>
+                      <Typography variant="body2" color="#64748b">
+                        <strong style={{ color: "#334155" }}>적재 무게:</strong> {cargo.cargoCapacity}
+                      </Typography>
+                      <Typography variant="body2" color="#64748b">
+                        <strong style={{ color: "#334155" }}>차주 ID:</strong> <span style={{ color: "#2563eb", fontWeight: 600 }}>{cargo.ownerId}</span>
+                      </Typography>
+                    </Stack>
                   </Box>
 
-                  <Stack spacing={1} mb={3}>
-                    <Typography variant="body2" color="textSecondary">
-                      <strong>차량 번호:</strong> {cargo.cargoNumber || '미기재'}
-                    </Typography>
-                    <Typography variant="body2" color="textSecondary">
-                      <strong>적재 무게:</strong> {cargo.cargoCapacity}
-                    </Typography>
-                    <Typography variant="body2" color="textSecondary">
-                      <strong>차주 ID:</strong> {cargo.ownerId}
-                    </Typography>
-                  </Stack>
-
-                  <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={1.5}>
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      fullWidth
-                      sx={{ borderRadius: 2, fontWeight: 'bold' }}
-                      onClick={() => handleApprove(cargo.cargoNo)}
-                    >
+                  <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={1.5} mt="auto">
+                    <Button variant="contained" disableElevation fullWidth sx={{ borderRadius: "12px", py: 1.2, fontWeight: 'bold', bgcolor: "#2563eb", "&:hover": { bgcolor: "#1d4ed8" } }} onClick={() => handleApprove(cargo.cargoNo)}>
                       승인
                     </Button>
-                    <Button
-                      variant="outlined"
-                      color="error"
-                      fullWidth
-                      sx={{ borderRadius: 2, fontWeight: 'bold' }}
-                      onClick={() => handleReject(cargo.cargoNo)}
-                    >
+                    <Button variant="outlined" fullWidth sx={{ borderRadius: "12px", py: 1.2, fontWeight: 'bold', borderColor: "#fee2e2", color: "#ef4444", bgcolor: "#fff5f5", "&:hover": { bgcolor: "#ffe4e4", borderColor: "#fca5a5" } }} onClick={() => handleReject(cargo.cargoNo)}>
                       거절
                     </Button>
                   </Box>

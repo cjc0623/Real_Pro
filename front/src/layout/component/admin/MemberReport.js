@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   Box,
   Typography,
@@ -13,7 +13,6 @@ import {
   Pagination,
   CircularProgress,
   Button,
-  Stack,
   TableContainer,
   Paper,
   Dialog,
@@ -32,6 +31,7 @@ import {
 } from "../../../api/adminApi/adminReportsApi";
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
+
 const MemberReport = () => {
   const [activeTab, setActiveTab] = useState(3);
   const [page, setPage] = useState(1);
@@ -52,6 +52,7 @@ const MemberReport = () => {
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
   useEffect(() => {
     if (location.pathname.includes("/admin/memberOwner")) setActiveTab(1);
     else if (location.pathname.includes("/admin/memberCowner")) setActiveTab(2);
@@ -112,7 +113,6 @@ const MemberReport = () => {
     load();
   }, [page, size, keyword, unreadOnly]);
 
-  // 수정: 신고 상세를 열자마자 자동으로 읽음 처리
   const handleView = async (report) => {
     setSelectedReport(report);
     setDialogOpen(true);
@@ -123,7 +123,6 @@ const MemberReport = () => {
         loadUnreadCount();
         load();
 
-        // 수정: 다이얼로그 내부 표시도 바로 "처리됨"으로 바뀌도록 상태 반영
         setSelectedReport((prev) =>
           prev ? { ...prev, adminRead: true } : prev
         );
@@ -194,152 +193,225 @@ const MemberReport = () => {
     }
   };
 
-  // 수정: 자동 읽음 방식으로 바꾸므로 이 함수는 더 이상 사용하지 않음
-  const handleMarkRead = async (id) => {
-    if (!id) {
-      console.error("신고 ID가 유효하지 않습니다. 신고를 읽음으로 표시할 수 없습니다.");
-      alert("신고 ID가 유효하지 않습니다. 신고를 읽음으로 표시할 수 없습니다.");
-      return;
-    }
-    try {
-      await markReportRead(id, true);
-      loadUnreadCount();
-      load();
-      setDialogOpen(false);
-      window.dispatchEvent(new CustomEvent("reportRead"));
-    } catch (e) {
-      console.error("신고를 읽음으로 표시하는 데 실패했습니다.", e);
-      alert("신고를 읽음으로 표시하는 데 실패했습니다.");
-    }
+  const tableCardStyle = {
+    p: 0,
+    borderRadius: "20px",
+    backgroundColor: "#ffffff",
+    border: "1px solid #f1f5f9",
+    boxShadow: "0 8px 30px rgba(0, 0, 0, 0.02)",
+    overflow: "hidden"
   };
 
   return (
-    <Box flexGrow={1} p={{ xs: 2, md: 4 }}>
-      <Box
-        display="flex"
-        flexDirection={{ xs: 'column', md: 'row' }}
-        justifyContent="space-between"
-        alignItems={{ xs: 'stretch', md: 'center' }}
-        gap={2}
-        mb={2}
-      >
-        <Box minWidth={0}>
+    <Box flexGrow={1} p={{ xs: 2.5, md: 5 }} sx={{ bgcolor: "#f8fafc", minHeight: "100vh" }}>
+          {/* 📱 MemberOwner 뼈대 규격과 100% 일치화시킨 가변 인클로저 프레임 */}
           <Box
             display="flex"
+            flexDirection={{ xs: 'column', md: 'row' }}
             justifyContent="space-between"
-            alignItems="center"
-            flexWrap="wrap"
-            mb={1}
+            alignItems={{ xs: 'stretch', md: 'center' }}
+            gap={2}
+            mb={4}
           >
-            <Typography variant="h5" fontWeight="bold">
-              신고내역
-            </Typography>
-
-            <Button
-              variant="contained"
-              color="secondary"
-              component={NavLink}
-              to="/admin/AdminCargoApproval"
-              sx={{ mt: { xs: 1, md: 0 },
-    display: { xs: "flex", md: "none" } }}
-            >
-              차량승인관리
-            </Button>
-          </Box>
-          <Tabs
-            value={activeTab}
-            onChange={handleTabChange}
-            textColor="primary"
-            indicatorColor="primary"
-            variant="scrollable"
-            scrollButtons="auto"
-            allowScrollButtonsMobile
-            sx={{ maxWidth: '100%' }}
-          >
-            <Tab label="전체 회원" component={NavLink} to="/admin/memberAll" />
-            <Tab label="물주" component={NavLink} to="/admin/memberOwner" />
-            <Tab label="차주" component={NavLink} to="/admin/memberCowner" />
-            <Tab
-              label={`신고내역 ${unreadCount > 0 ? `(${unreadCount})` : ""}`}
-              component={NavLink}
-              to="/admin/memberReport"
-            />
-            <Tab label="관리자" component={NavLink} to="/admin/memberAdmin" />
-          </Tabs>
-        </Box>
-
-        <Stack direction="row" spacing={2} alignItems="center">
-          <TextField
-            variant="outlined"
-            placeholder="신고대상 이름 검색"
-            size="small"
-            value={keyword}
-            onChange={(e) => {
-              setPage(1);
-              setKeyword(e.target.value);
-            }}
-            sx={{
-              width: { xs: '100%', md: 220 },
-              flexShrink: 0,
-            }}
-            InputProps={{
-              startAdornment: <SearchIcon fontSize="small" sx={{ mr: 1, color: "grey.500" }} />,
-            }}
-          />
-        </Stack>
+            <Box minWidth={0} sx={{ width: '100%' }}>
+              <Box
+                display="flex"
+                flexDirection={{ xs: 'column', sm: 'row' }}
+                justifyContent="space-between"
+                alignItems={{ xs: 'flex-start', sm: 'center' }}
+                mb={1.5}
+              >
+                <Typography variant="h4" fontWeight="900" color="#0f172a" letterSpacing="-0.5px" sx={{ textAlign: { xs: 'center', md: 'left' }, width: '100%' }}>
+                  신고 내역 관리
+                </Typography>
+    
+                <Button
+                              variant="contained"
+                              disableElevation
+                              color="secondary"
+                              component={NavLink}
+                              to="/admin/AdminCargoApproval"
+                              sx={{ 
+                                mt: { xs: 1.5, sm: 0 }, 
+                                display: { xs: "flex", md: "none" },
+                                borderRadius: "12px",
+                                fontWeight: "bold",
+                                alignSelf: 'center' 
+                              }}
+                            >
+                              차량승인관리
+                            </Button>
+              </Box>
+    
+     <Tabs
+      value={activeTab}
+      onChange={handleTabChange}
+      textColor="primary"
+      indicatorColor="primary"
+      // 🟢 [핵심] variant를 삭제하고 대신 아래와 같이 배치하면 
+      // 쏠림 없이 전체 영역을 균등하게 차지합니다.
+      variant="fullWidth" 
+      sx={{ 
+        maxWidth: '100%',
+        "& .MuiTabs-indicator": { bgcolor: "#2563eb", height: "3px", borderRadius: "3px" }, 
+        "& .MuiTab-root": { 
+          fontWeight: "bold", 
+          color: "#64748b", 
+          fontSize: { xs: "0.75rem", sm: "0.95rem" }, // 모바일에서는 폰트 크기를 살짝 줄여서 한 줄 유지
+          minWidth: 0, 
+          px: { xs: 0, sm: 2 },
+          whiteSpace: "nowrap" // 👈 [중요] 글자가 무조건 한 줄로 나오게 강제
+        },
+        "& .MuiTab-root.Mui-selected": { color: "#2563eb" }
+      }}
+    >
+      <Tab label="전체 회원" component={NavLink} to="/admin/memberAll" />
+      <Tab label="물주" component={NavLink} to="/admin/memberOwner" />
+      <Tab label="차주" component={NavLink} to="/admin/memberCowner" />
+      <Tab label="신고내역" component={NavLink} to="/admin/memberReport" />
+      <Tab label="관리자" component={NavLink} to="/admin/memberAdmin" />
+    </Tabs>
+            </Box>
+        
+        {/* 📱 핏 보정 완료: Stack을 걷어내고 MemberOwner 규격 수식을 다이렉트 매싱 */}
+        <TextField
+          variant="outlined"
+          placeholder="신고대상 이름 검색"
+          size="small"
+          value={keyword}
+          onChange={(e) => {
+            setPage(1);
+            setKeyword(e.target.value);
+          }}
+          sx={{ 
+            width: { xs: '100%', md: 240 }, 
+            flexShrink: 0,
+            "& .MuiOutlinedInput-root": {
+              borderRadius: "14px",
+              backgroundColor: "#ffffff",
+              "& fieldset": { borderColor: "#e2e8f0" },
+              "&:hover fieldset": { borderColor: "#cbd5e1" },
+              "&.Mui-focused fieldset": { borderColor: "#2563eb", borderWidth: "2px" },
+            }
+          }}
+          InputProps={{
+            startAdornment: <SearchIcon fontSize="small" sx={{ mr: 1, color: "#2563eb" }} />, 
+          }}
+        />
       </Box>
 
       {loading ? (
-        <Box display="flex" justifyContent="center" alignItems="center" height={300}>
-          <CircularProgress />
+        <Box display="flex" justifyContent="center" alignItems="center" height={300} sx={{ color: "#2563eb" }}>
+          <CircularProgress color="inherit" />
         </Box>
       ) : error ? (
-        <Typography color="error">{error}</Typography>
+        <Typography color="error" fontWeight="bold">{error}</Typography>
       ) : (
-        <TableContainer component={Paper} sx={{ overflowX: 'auto', width: '100%' }}>
-          <Table sx={{ minWidth: 650 }}>
-            <TableHead>
-              <TableRow>
-                <TableCell>신고대상ID</TableCell>
-                <TableCell>신고대상 이름</TableCell>
-                <TableCell>신고자</TableCell>
-                <TableCell>신고일</TableCell>
-                <TableCell>사유</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {rows.map((r, i) => (
-                <TableRow
+        <>
+          {/* 📱 1. 모바일 전용 가변 리스트 구역 */}
+          <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+            {rows.length > 0 ? (
+              rows.map((r, i) => (
+                <Paper
                   key={r.id ?? i}
+                  elevation={0}
                   onClick={() => handleView(r)}
-                  sx={{ cursor: "pointer", "&:hover": { backgroundColor: "#f5f5f5" } }}
+                  sx={{
+                    p: 2.5,
+                    mb: 2,
+                    borderRadius: "20px",
+                    border: "1px solid #f1f5f9",
+                    backgroundColor: "#ffffff",
+                    boxShadow: "0 8px 30px rgba(0, 0, 0, 0.01)",
+                    cursor: 'pointer',
+                    transition: 'background-color 0.2s',
+                    minWidth: 0,
+                    '&:hover': { bgcolor: '#f8fafc' }
+                  }}
                 >
-                  <TableCell>{r.targetId ?? "-"}</TableCell>
-                  <TableCell>{r.targetName ?? "-"}</TableCell>
-                  <TableCell>{r.reporterId ?? "-"}</TableCell>
-                  <TableCell>{fmtDate(r.createdAt)}</TableCell>
-                  <TableCell>{r.content ? `${r.content.substring(0, 40)}...` : "-"}</TableCell>
+                  <Box display="flex" justifyContent="space-between" alignItems="baseline" mb={1.5} gap={1}>
+                    <Typography variant="subtitle1" fontWeight="800" color="#2563eb" sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      대상 ID: {r.targetId ?? "-"}
+                    </Typography>
+                    <Typography variant="caption" color="#94a3b8" fontWeight="600" sx={{ flexShrink: 0 }}>
+                      {fmtDate(r.createdAt)}
+                    </Typography>
+                  </Box>
+                  <Box display="flex" flexDirection="column" gap={0.8} minWidth={0} mb={1.5}>
+                    <Typography variant="body2" color="#334155" fontWeight="500">
+                      <span style={{ color: '#94a3b8', marginRight: '6px', fontWeight: 'bold' }}>이름</span>
+                      {r.targetName ?? "-"}
+                    </Typography>
+                    <Typography variant="body2" color="#475569" fontWeight="500">
+                      <span style={{ color: '#94a3b8', marginRight: '6px', fontWeight: 'bold' }}>신고자</span>
+                      {r.reporterId ?? "-"}
+                    </Typography>
+                  </Box>
+                  <Box pt={1.5} sx={{ borderTop: "1px dashed #f1f5f9" }}>
+                    <Typography variant="caption" display="block" color="#94a3b8" mb={0.5}>신고 사유 요약</Typography>
+                    <Typography variant="body2" color="#475569" sx={{ overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', lineHeight: 1.4 }}>
+                      {r.content ?? "-"}
+                    </Typography>
+                  </Box>
+                </Paper>
+              ))
+            ) : (
+              <Paper elevation={0} sx={{ p: 5, textAlign: 'center', borderRadius: "20px", border: "1px solid #f1f5f9" }}>
+                <Typography color="#94a3b8" fontWeight="500">접수된 신고 내역 데이터가 존재하지 않습니다.</Typography>
+              </Paper>
+            )}
+          </Box>
+
+          {/* 💻 2. 데스크톱 전용 와이드 테이블 구역 */}
+          <TableContainer component={Paper} elevation={0} sx={{ ...tableCardStyle, display: { xs: 'none', md: 'block' } }}>
+            <Table sx={{ minWidth: 650, '& .MuiTableCell-root': { height: 54 } }}>
+              <TableHead>
+                <TableRow sx={{ bgcolor: '#f8fafc' }}>
+                  <TableCell sx={{ fontWeight: 'bold', color: '#475569', py: 1.8 }}>신고대상ID</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', color: '#475569', py: 1.8 }}>신고대상 이름</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', color: '#475569', py: 1.8 }}>신고자</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', color: '#475569', py: 1.8 }}>신고일</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', color: '#475569', py: 1.8 }}>사유</TableCell>
                 </TableRow>
-              ))}
-              {rows.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={5} align="center">
-                    데이터가 없습니다.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+              </TableHead>
+              <TableBody>
+                {rows.map((r, i) => (
+                  <TableRow
+                    key={r.id ?? i}
+                    onClick={() => handleView(r)}
+                    sx={{ cursor: "pointer", '&:hover': { bgcolor: '#f8fafc' } }}
+                  >
+                    <TableCell sx={{ color: '#2563eb', fontWeight: 700 }}>{r.targetId ?? "-"}</TableCell>
+                    <TableCell sx={{ color: '#334155', fontWeight: 600 }}>{r.targetName ?? "-"}</TableCell>
+                    <TableCell sx={{ color: '#475569' }}>{r.reporterId ?? "-"}</TableCell>
+                    <TableCell sx={{ color: '#64748b' }}>{fmtDate(r.createdAt)}</TableCell>
+                    <TableCell sx={{ color: '#475569' }}>{r.content ? `${r.content.substring(0, 40)}...` : "-"}</TableCell>
+                  </TableRow>
+                ))}
+                {rows.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={5} align="center" sx={{ py: 6, color: '#94a3b8', fontWeight: 500 }}>
+                      접수된 신고 내역 데이터가 존재하지 않습니다.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </>
       )}
 
-      <Box display="flex" justifyContent="center" mt={3}>
+      <Box display="flex" justifyContent="center" mt={4}>
         <Pagination
           count={Math.max(totalPages, 1)}
           page={page}
           onChange={(_, v) => setPage(v)}
           color="primary"
-          size="small"
+          size="medium"
+          sx={{
+            "& .MuiPaginationItem-root": { fontWeight: "bold", color: "#475569" },
+            "& .MuiPaginationItem-root.Mui-selected": { bgcolor: "#2563eb", color: "#ffffff", "&:hover": { bgcolor: "#1d4ed8" } }
+          }}
         />
       </Box>
 
@@ -350,16 +422,25 @@ const MemberReport = () => {
           fullWidth
           maxWidth="sm"
           fullScreen={isMobile}
+          PaperProps={{ sx: { borderRadius: "24px", p: 1 } }}
         >
-          <DialogTitle>신고 상세 정보</DialogTitle>
-          <DialogContent dividers>
-            <Typography gutterBottom><b>신고대상:</b> {selectedReport.targetId ?? "-"}</Typography>
-            <Typography gutterBottom><b>신고대상 이름:</b> {selectedReport.targetName ?? "-"}</Typography>
-            <Typography gutterBottom><b>신고자:</b> {selectedReport.reporterId ?? "-"}</Typography>
-            <Typography gutterBottom><b>신고일:</b> {fmtDate(selectedReport.createdAt)}</Typography>
-            <Typography gutterBottom><b>처리 상태:</b> {selectedReport.adminRead ? "처리됨" : "미확인"}</Typography>
-            <Typography variant="h6" sx={{ mt: 2 }}>신고 사유:</Typography>
-            <Paper variant="outlined" sx={{ p: 2, mt: 1, whiteSpace: "pre-wrap", minHeight: "100px" }}>
+          <DialogTitle sx={{ fontWeight: "bold", fontSize: "1.2rem" }}>📋 신고 상세 정보</DialogTitle>
+          <DialogContent dividers sx={{ borderColor: "#f1f5f9" }}>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1.2, bgcolor: "#f8fafc", p: 2, borderRadius: "14px", border: "1px solid #e2e8f0" }}>
+              <Typography variant="body2" color="#475569"><b>신고대상 :</b> <span style={{ color: "#2563eb", fontWeight: "bold" }}>{selectedReport.targetId ?? "-"}</span></Typography>
+              <Typography variant="body2" color="#475569"><b>신고대상 이름 :</b> {selectedReport.targetName ?? "-"}</Typography>
+              <Typography variant="body2" color="#475569"><b>신고자 :</b> {selectedReport.reporterId ?? "-"}</Typography>
+              <Typography variant="body2" color="#475569"><b>신고일 :</b> {fmtDate(selectedReport.createdAt)}</Typography>
+              <Typography variant="body2" color="#475569">
+                <b>처리 상태 :</b>&nbsp;
+                <Box component="span" sx={{ px: 1.2, py: 0.3, borderRadius: "6px", fontSize: "0.75rem", fontWeight: "bold", bgcolor: selectedReport.adminRead ? "#eff6ff" : "#fff7ed", color: selectedReport.adminRead ? "#2563eb" : "#ea580c" }}>
+                  {selectedReport.adminRead ? "처리됨" : "미확인"}
+                </Box>
+              </Typography>
+            </Box>
+            
+            <Typography variant="subtitle2" sx={{ mt: 3, fontWeight: "bold", color: "#1e293b" }}>신고 사유 내용</Typography>
+            <Paper variant="outlined" sx={{ p: 2, mt: 1, borderRadius: "12px", borderColor: "#cbd5e1", whiteSpace: "pre-wrap", minHeight: "100px", bgcolor: "#ffffff", fontSize: "0.95rem", color: "#334155", lineHeight: 1.5 }}>
               {selectedReport.content ?? "-"}
             </Paper>
           </DialogContent>
@@ -367,34 +448,33 @@ const MemberReport = () => {
           <DialogActions
             sx={{
               px: 3,
-              py: 2,
+              py: 2.5,
               display: "flex",
               flexWrap: "wrap",
-              gap: 1,
+              gap: 1.2,
               justifyContent: { xs: 'center', md: 'flex-end' },
             }}
           >
-            <Button onClick={handleClose}>닫기</Button>
-            <Button onClick={() => handleSuspend("WEEK")} color="warning" variant="outlined">
+            <Button onClick={handleClose} sx={{ color: "#64748b", fontWeight: "bold" }}>닫기</Button>
+            <Button onClick={() => handleSuspend("WEEK")} color="warning" variant="outlined" sx={{ borderRadius: "10px", fontWeight: "bold" }}>
               7일 정지
             </Button>
-            <Button onClick={() => handleSuspend("MONTH")} color="warning" variant="outlined">
+            <Button onClick={() => handleSuspend("MONTH")} color="warning" variant="outlined" sx={{ borderRadius: "10px", fontWeight: "bold" }}>
               30일 정지
             </Button>
-            <Button onClick={() => handleSuspend("YEAR")} color="warning" variant="outlined">
+            <Button onClick={() => handleSuspend("YEAR")} color="warning" variant="outlined" sx={{ borderRadius: "10px", fontWeight: "bold" }}>
               1년 정지
             </Button>
-            <Button onClick={() => handleSuspend("PERMANENT")} color="error" variant="contained">
+            <Button onClick={() => handleSuspend("PERMANENT")} color="error" variant="contained" disableElevation sx={{ borderRadius: "10px", fontWeight: "bold" }}>
               영구정지
             </Button>
-            <Button onClick={handleUnsuspend} color="success" variant="text">
+            <Button onClick={handleUnsuspend} color="success" variant="text" sx={{ fontWeight: "bold" }}>
               정지 해제
             </Button>
           </DialogActions>
         </Dialog>
-      )
-      }
-    </Box >
+      )}
+    </Box>
   );
 };
 

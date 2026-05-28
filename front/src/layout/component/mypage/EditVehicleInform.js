@@ -197,94 +197,136 @@ const EditVehicleInform = () => {
     }
   };
 
-  return (
-    <Box sx={{ p: { xs: 2, sm: 4, md: 7 }, bgcolor: '#f3f4f6', minHeight: '100vh' }}>
-      <Typography variant="h5" fontWeight="bold" mb={4}>내 차량 관리</Typography>
+  // 공통 텍스트 필드 디자인 스킨 정의 (동글동글 매치용)
+  const inputSkinedStyle = {
+    "& .MuiOutlinedInput-root": {
+      borderRadius: "14px",
+      backgroundColor: "#f8fafc",
+      "& fieldset": { borderColor: "#e2e8f0" },
+      "&:hover fieldset": { borderColor: "#cbd5e1" },
+      "&.Mui-focused fieldset": { borderColor: "#2563eb", borderWidth: "2px" },
+    }
+  };
 
-      <Grid container spacing={{ xs: 2, md: 4 }}>
+  return (
+    <Box sx={{ p: { xs: 2.5, sm: 4, md: 5 }, pl: { xs: 2, sm: 4, md: 6, lg: 10 }, pr: { xs: 2, sm: 4, md: 6, lg: 10 }, bgcolor: '#f8fafc', minHeight: '100vh' }}>
+      <Typography variant="h4" fontWeight="900" color="#0f172a" mb={5} textAlign="left">내 차량 관리</Typography>
+
+      {/* 🟢 AdminCargoApproval 양식과 똑같이 alignItems="stretch" 적용 및 모바일 1열 상태일 때를 대비해 justifyContent 반응형 분기 추가 */}
+      <Grid container spacing={{ xs: 3, md: 4 }} alignItems="stretch" justifyContent={{ xs: 'center', sm: 'flex-start' }}>
         {vehicles.map((vehicle, idx) => (
-          <Grid item key={idx} xs={12} sm={6} lg={4}>  {/* ← 반응형 그리드 */}
-            <Paper sx={{
-              width: '100%',   // ← 고정 400 제거
-              height: 'auto',  // ← 고정 400 제거
-              p: 2,
-              display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-              border: vehicle.status !== 'APPROVED' ? '2px dashed #ff000033' : 'none'
+          // 🟢 Grid item에 display="flex"를 주어 내부 카드가 100% 일치된 고정 높이를 가지게 유도
+          // 🟢 모바일(xs)에서 단독 배치될 때 비정상적으로 좌우로 늘어나는 현상을 막기 위해 maxWidth 제안선 바인딩 추가
+          <Grid item key={idx} xs={12} sm={6} lg={4} display="flex" sx={{ maxWidth: { xs: '450px', sm: '100%' } }}>
+            {/* 화이트 플로팅 카드화 피팅 (flexDirection: 'column' 구조 일치) */}
+            <Paper elevation={0} sx={{
+              width: '100%',   
+              p: 3,
+              borderRadius: "20px",
+              backgroundColor: "#ffffff",
+              border: vehicle.status !== 'APPROVED' ? '2px dashed #fee2e2' : '1px solid #f1f5f9',
+              boxShadow: "0 4px 25px rgba(0, 0, 0, 0.02)",
+              display: 'flex', 
+              flexDirection: 'column', 
+              boxSizing: 'border-box',
+              transition: 'transform 0.2s',
+              '&:hover': { transform: 'translateY(-3px)' }
             }}>
               <Box sx={{
-                height: { xs: 160, sm: 200 },  // ← 반응형 높이
-                bgcolor: '#e5e7eb', borderRadius: 1,
-                display: 'flex', alignItems: 'center', justifyContent: 'center'
+                height: { xs: 160, sm: 190 },  // ← 반응형 높이
+                bgcolor: '#f8fafc', 
+                borderRadius: "14px", // 내부 썸네일 존 라운딩
+                border: "1px solid #e2e8f0",
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                overflow: 'hidden',
+                flexShrink: 0 // 상단 썸네일 박스 세로 높이 고정
               }}>
                 <img
-                  src={vehicle.preview || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="500" height="310"><rect width="100%" height="100%" fill="%23d1d5db"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-size="24" font-family="sans-serif">No Image</text></svg>'}
+                  src={vehicle.preview || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="500" height="310"><rect width="100%" height="100%" fill="%23f8fafc"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%2394a3b8" font-size="22" font-family="sans-serif" font-weight="bold">No Vehicle Image</text></svg>'}
                   alt="preview"
                   style={{ width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
                 />
               </Box>
 
-              <Box sx={{ textAlign: 'center', mt: 2 }}>
-                <Box display="flex" justifyContent="center" alignItems="center" gap={1} mb={1} flexWrap="wrap">
-                  <Typography fontWeight="bold" variant="h6">{vehicle.name}</Typography>
-                  {vehicle.status === 'PENDING' && <Chip label="승인 대기중" color="warning" size="small" />}
-                  {vehicle.status === 'APPROVED' && <Chip label="승인 완료" color="success" size="small" />}
-                  {vehicle.status === 'REJECTED' && <Chip label="승인 거절" color="error" size="small" />}
+              {/* 🟢 flexGrow: 1과 내부 flex 배치를 설정해 글자 수가 달라도 본문 높이가 완전 유기적으로 동일하게 유지되도록 확장 */}
+              <Box sx={{ textAlign: 'center', mt: 2.5, flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <Box>
+                  <Box display="flex" justifyContent="center" alignItems="center" gap={1} mb={1} flexWrap="wrap">
+                    <Typography fontWeight="800" variant="h6" color="#334155">{vehicle.name}</Typography>
+                    {/* 상태 태그를 마이페이지 양식에 맞춰 알약(Pill) 형태로 밴딩 */}
+                    {vehicle.status === 'PENDING' && <Chip label="승인 대기중" size="small" sx={{ fontWeight: 'bold', borderRadius: '8px', bgcolor: '#fff7ed', color: '#ea580c' }} />}
+                    {vehicle.status === 'APPROVED' && <Chip label="승인 완료" size="small" sx={{ fontWeight: 'bold', borderRadius: '8px', bgcolor: '#eff6ff', color: '#2563eb' }} />}
+                    {vehicle.status === 'REJECTED' && <Chip label="승인 거절" size="small" sx={{ fontWeight: 'bold', borderRadius: '8px', bgcolor: '#fef2f2', color: '#dc2626' }} />}
+                  </Box>
+                  <Typography color="textSecondary" fontSize="0.9rem" fontWeight="500">{vehicle.weight}</Typography>
+                  <Typography variant="body2" color="#2563eb" fontWeight="700" mt={0.8}>차량번호: {vehicle.cargoNumber}</Typography>
                 </Box>
-                <Typography color="textSecondary">{vehicle.weight}</Typography>
-                <Typography variant="body2" color="primary" mt={0.5}>차량번호: {vehicle.cargoNumber}</Typography>
               </Box>
 
-              <Box mt={2} display="flex" gap={1}>
+              {/* 🟢 mt: 'auto' 배치로 본문 컨텐츠가 밀리거나 버튼 유무와 관계없이 무조건 하단 바닥선에 칼정렬 고정 */}
+              <Box sx={{ mt: 'auto', pt: 3 }} display="flex" gap={1.2}>
                 {vehicle.status !== 'APPROVED' && (
-                  <Button fullWidth variant="contained" onClick={() => handleOpen(idx)}>수정</Button>
+                  <Button fullWidth variant="contained" disableElevation onClick={() => handleOpen(idx)} sx={{ borderRadius: "12px", fontWeight: "bold", bgcolor: "#2563eb", "&:hover": { bgcolor: "#1d4ed8" } }}>수정</Button>
                 )}
-                <Button fullWidth variant="contained" color="error" onClick={() => handleDelete(idx)}>삭제</Button>
+                <Button fullWidth variant="outlined" color="error" onClick={() => handleDelete(idx)} sx={{ borderRadius: "12px", fontWeight: "bold", borderColor: "#fee2e2", bgcolor: "#fff5f5", "&:hover": { bgcolor: "#ffe4e4" } }}>삭제</Button>
               </Box>
             </Paper>
           </Grid>
         ))}
 
 
-        {/* 신규 차량 추가 버튼 */}
-        <Grid item xs={12} sm={6} lg={4}>
-          <Paper onClick={() => handleOpen()} sx={{
-            width: '100%',   // ← 고정 400 제거
-            height: { xs: 200, sm: 300, md: 400 },  // ← 반응형 높이
-            border: '2px dashed #ccc', borderRadius: 2,
-            display: 'flex', justifyContent: 'center', alignItems: 'center', cursor: 'pointer'
+        {/* 신규 차량 추가 버튼 영역 라운딩 스타일 최적화 */}
+        {/* 🟢 마찬가지로 display="flex"를 주어 좌측 카드들과 세로 박스 높이가 한 픽셀 오차도 없이 맞물리게 설정 */}
+        <Grid item xs={12} sm={6} lg={4} display="flex" sx={{ maxWidth: { xs: '450px', sm: '100%' } }}>
+          <Paper onClick={() => handleOpen()} elevation={0} sx={{
+            width: '100%',   
+            flexGrow: 1, // Grid의 stretch 효과로 다른 차량 카드 높이와 동일하게 무조건 확장시킴
+            minHeight: { xs: 200, sm: 310, md: 360 },  // ← 최소 높이 밸런스 매칭
+            border: '2px dashed #cbd5e1', 
+            borderRadius: "20px",
+            backgroundColor: "#ffffff",
+            display: 'flex', justifyContent: 'center', alignItems: 'center', cursor: 'pointer',
+            transition: 'all 0.2s',
+            boxSizing: 'border-box',
+            '&:hover': { borderColor: '#2563eb', bgcolor: '#f0f7ff', '& .add-txt': { color: '#2563eb' } }
           }}>
-            <Typography variant="h6">＋ 신규 차량 추가</Typography>
+            <Typography variant="h6" className="add-txt" sx={{ fontWeight: "800", color: "#64748b", transition: "color 0.2s" }}>＋ 신규 차량 추가</Typography>
           </Paper>
         </Grid>
       </Grid>
 
-      {/* 모달은 그대로 유지 */}
+      {/* 모달 팝업 내부 입력 필드 동글동글 마사지 */}
       <Modal open={open} onClose={handleClose}>
         <Box sx={{
-          p: { xs: 2, md: 4 },
-          bgcolor: '#fff', borderRadius: 2,
-          width: '90%', maxWidth: 1000,
-          mx: 'auto', mt: { xs: '2%', md: '5%' },  // ← 반응형 모달 위치
+          p: { xs: 3, md: 5 },
+          bgcolor: '#ffffff', 
+          borderRadius: "24px", // 모달 바깥 모서리 대폭 곡률 추가
+          boxShadow: "0 20px 50px rgba(15, 23, 42, 0.08)",
+          width: '90%', maxWidth: 950,
+          mx: 'auto', mt: { xs: '5%', md: '6%' },  
           position: 'relative',
-          maxHeight: '90vh',   // ← 모바일에서 스크롤 가능하도록
-          overflowY: 'auto'    // ← 추가
+          maxHeight: '85vh',   
+          overflowY: 'auto'    
         }}>
-          <IconButton onClick={handleClose} sx={{ position: 'absolute', top: 12, right: 12 }}>
+          <IconButton onClick={handleClose} sx={{ position: 'absolute', top: 16, right: 16, color: "#64748b", "&:hover": { bgcolor: "#f1f5f9" } }}>
             <CloseIcon />
           </IconButton>
-          <Typography variant="h6" mb={3}>차량 정보 입력</Typography>
+          <Typography variant="h6" fontWeight="900" color="#0f172a" mb={4}>차량 정보 입력</Typography>
+          
           <Box display="flex" gap={4} flexDirection={{ xs: 'column', md: 'row' }}>
-            <Box sx={{ flex: 1, bgcolor: '#e5e7eb', aspectRatio: '5/3', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 1 }}>
+            <Box sx={{ flex: 1, bgcolor: '#f8fafc', aspectRatio: '5/3', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: "16px", border: "1px solid #e2e8f0", overflow: "hidden" }}>
               <img
-                src={formData.preview || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="500" height="300"><rect width="100%" height="100%" fill="%23d1d5db"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-size="24" font-family="sans-serif">No Image</text></svg>'}
+                src={formData.preview || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="500" height="300"><rect width="100%" height="100%" fill="%23f8fafc"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%2394a3b8" font-size="20" font-family="sans-serif" font-weight="bold">No Vehicle Image</text></svg>'}
                 alt="preview"
                 style={{ width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
               />
             </Box>
-            <Box flex={1} display="flex" flexDirection="column" gap={2}>
-              <TextField label="차량 이름 (예: 다마스)" value={formData.name} onChange={handleChange('name')} fullWidth />
-              <TextField label="차량 번호 (예: 12가 3456)" value={formData.cargoNumber} onChange={handleChange('cargoNumber')} fullWidth />
-              <FormControl fullWidth>
+            
+            <Box flex={1} display="flex" flexDirection="column" gap={2.5}>
+              <TextField label="차량 이름 (예: 다마스)" value={formData.name} onChange={handleChange('name')} fullWidth sx={inputSkinedStyle} />
+              <TextField label="차량 번호 (예: 12가 3456)" value={formData.cargoNumber} onChange={handleChange('cargoNumber')} fullWidth sx={inputSkinedStyle} />
+              
+              <FormControl fullWidth sx={inputSkinedStyle}>
                 <InputLabel id="weight-label">적재 무게</InputLabel>
                 <Select labelId="weight-label" label="적재 무게" value={formData.weight} onChange={handleChange('weight')}>
                   {weightOptions.map((w) => (
@@ -292,14 +334,16 @@ const EditVehicleInform = () => {
                   ))}
                 </Select>
               </FormControl>
-              <Button variant="outlined" component="label">
+              
+              <Button variant="outlined" component="label" sx={{ borderRadius: "12px", py: 1.2, fontWeight: "bold", color: "#2563eb", borderColor: "#cbd5e1", "&:hover": { bgcolor: "#eff6ff" } }}>
                 차량 이미지 업로드
                 <input hidden accept="image/*" type="file" onChange={handleImageChange} />
               </Button>
             </Box>
           </Box>
-          <Box mt={4} display="flex" gap={2}>
-            <Button fullWidth variant="contained" onClick={handleSave} disabled={loading}>
+          
+          <Box mt={5} display="flex" gap={2}>
+            <Button fullWidth variant="contained" disableElevation onClick={handleSave} disabled={loading} sx={{ py: 1.5, borderRadius: "12px", fontWeight: "bold", bgcolor: "#2563eb", "&:hover": { bgcolor: "#1d4ed8" } }}>
               {loading ? '저장 중...' : '저장 (관리자 승인 대기)'}
             </Button>
           </Box>

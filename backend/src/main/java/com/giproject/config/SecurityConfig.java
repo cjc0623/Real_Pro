@@ -120,7 +120,8 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:3002"));
+        // 🟢 안드로이드 에뮬레이터용 주소(http://10.0.2.2:3000)를 허용 목록에 확실하게 추가했습니다.
+        config.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:3002", "http://10.0.2.2:3000"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
