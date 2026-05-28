@@ -1,3 +1,9 @@
+//loading test
+import { useState } from 'react';
+import CargoLoadingScene from './components/loading/CargoLoadingScene';
+//
+
+
 import { useEffect } from 'react';
 import './App.css';
 import { RouterProvider } from 'react-router-dom';
@@ -12,6 +18,8 @@ import { Box } from '@mui/material';  // ← 추가
 function App() {
   const dispatch = useDispatch();
 
+  const [loading, setLoading] = useState(true);//loading test
+
   useEffect(() => {
     const token = sessionStorage.getItem('accessToken');
     if (token) {
@@ -21,6 +29,7 @@ function App() {
 
   return (
     <>
+      {loading && <CargoLoadingScene onComplete={() => setLoading(false)} />}
       <RouterProvider router={root} />
 
       <Box
