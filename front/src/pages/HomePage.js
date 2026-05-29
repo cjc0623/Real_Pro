@@ -71,8 +71,25 @@ const HomePage = () => {
   const handleNextSpecial = () =>
     setSelectedSpecialIndex(prev => (prev === specialVehicleList.length - 1 ? 0 : prev + 1));
 
+  // 🟢 [자동 롤링] 3초마다 특수 차량 자동 변경
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setSelectedSpecialIndex(prev => (prev === specialVehicleList.length - 1 ? 0 : prev + 1));
+    }, 3000);
+    return () => clearInterval(timer);
+  }, []);
+
   // ✅ 실제로 화면에 보여줄 통합 리스트
   const [displayVehicles, setDisplayVehicles] = useState([]);
+
+  // 🟢 [자동 롤링] 5초마다 용달 화물 서비스 소개 차량 자동 변경
+  useEffect(() => {
+    if (displayVehicles.length <= 1) return;
+    const timer = setInterval(() => {
+      setSelectedVehicleIndex(prev => (prev === displayVehicles.length - 1 ? 0 : prev + 1));
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [displayVehicles.length]);
 
   const { roles, memberId } = useSelector(state => state.login || { roles: [], memberId: null });
   const isDriver = roles.includes("ROLE_DRIVER");
