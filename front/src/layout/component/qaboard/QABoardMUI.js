@@ -566,7 +566,7 @@ const QABoardMUI = () => {
                           <div className="px-4 sm:px-6 pb-4">
                             <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
                               <div className="flex items-center gap-2 mb-2">
-                                <span className="text-sm font-semibold" style={{ color: '#DC2626' }}>
+                                <span className="text-sm font-semibold" style={{ color: '#111827' }}>
                                   {item.adminResponse.author}
                                 </span>
                                 <span className="text-xs text-gray-400">

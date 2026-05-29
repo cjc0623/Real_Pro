@@ -132,7 +132,7 @@ const EstimateComponentCombined = () => {
         if (!estimate.cargoType) { alert("화물종류를 입력해주세요"); setOpenEstimateSend(false); return; }
         if (!estimate.cargoWeight) { alert("화물무게를 입력해주세요"); setOpenEstimateSend(false); return; }
         const estimateToSend = { ...estimate, startTime: estimate.startTime.format("YYYY-MM-DDTHH:mm:ss") };
-        postAdd(estimateToSend).then(() => { alert("견적서 제출이 완료되었습니다."); moveToHome(); });
+        postAdd(estimateToSend).then(() => { alert("견적서 제출이 완료되었습니다."); moveToHome(); window.scrollTo({ top: 0, left: 0 }); });
     };
 
     const handleChangeEstimate = (e) => setEstimate((prev) => ({ ...prev, [e.target.name]: e.target.value }));

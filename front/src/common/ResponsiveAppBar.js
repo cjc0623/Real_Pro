@@ -192,9 +192,28 @@ export default function ResponsiveAppBar() {
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="bg-red-600 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+                  aria-label="로그아웃"
+                  title="로그아웃"
+                  className="bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors
+                             flex items-center justify-center
+                             p-2.5 lg:px-4 lg:py-2"
                 >
-                  로그아웃
+                  {/* 데스크탑: 텍스트 */}
+                  <span className="hidden lg:inline text-sm whitespace-nowrap">로그아웃</span>
+                  {/* 모바일/태블릿: 로그아웃 아이콘 */}
+                  <svg
+                    className="lg:hidden w-5 h-5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                  </svg>
                 </button>
               </>
             ) : (

@@ -1,0 +1,18 @@
+# 모든 텍스트 파일의 줄바꿈을 저장소에서는 LF로 정규화한다.
+# (Windows 팀원의 core.autocrlf 설정과 무관하게 일관된 LF 유지)
+* text=auto eol=lf
+
+# 바이너리 파일은 줄바꿈 변환에서 제외 (손상 방지)
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.webp  binary
+*.svg   binary
+*.pdf   binary
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
+*.eot   binary
+*.otf   binary

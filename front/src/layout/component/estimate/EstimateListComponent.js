@@ -13,7 +13,7 @@ import {
   TableRow,
   Typography
 } from "@mui/material";
-import { InboxOutlined } from "@mui/icons-material";
+import { InboxOutlined, ExpandMore } from "@mui/icons-material";
 import useCustomMove from "../../../hooks/useCustomMove";
 import { useEffect, useState } from "react";
 import { getEstimateList, postAccepted, postRejected } from "../../../api/estimateApi/estimateApi";
@@ -44,6 +44,15 @@ const EstimateListComponent = () => {
   const [openEstimateListAccept, setOpenEstimateListAccept] = useState(false);
   const [selectedEno, setSelectedEno] = useState(null);
   const [accepting, setAccepting] = useState(false);
+  const [expandedSet, setExpandedSet] = useState(new Set()); // 모바일 아코디언 펼침 상태
+
+  const toggleExpand = (eno) => {
+    setExpandedSet((prev) => {
+      const next = new Set(prev);
+      next.has(eno) ? next.delete(eno) : next.add(eno);
+      return next;
+    });
+  };
 
   const safeRoles = Array.isArray(roles) ? roles : [];
 
@@ -160,6 +169,8 @@ const EstimateListComponent = () => {
     textTransform: 'uppercase',
     letterSpacing: '0.05em',
     py: 1.5,
+    px: 2,
+    whiteSpace: 'nowrap',
     borderBottom: '1px solid #e5e7eb',
     bgcolor: '#f9fafb',
   };
@@ -168,6 +179,8 @@ const EstimateListComponent = () => {
     fontSize: '13px',
     color: '#374151',
     py: 2,
+    px: 2,
+    whiteSpace: 'nowrap',
     borderBottom: '1px solid #f3f4f6',
   };
 
@@ -252,14 +265,110 @@ const EstimateListComponent = () => {
     ));
   };
 
+  /* ── 모바일 아코디언 카드 (md 미만) ── */
+  const renderMobileData = (list) => {
+    if (!list || list.length === 0) {
+      return (
+        <div className="flex flex-col items-center gap-2 py-16 border border-gray-100 rounded-xl bg-white">
+          <InboxOutlined sx={{ fontSize: 40, color: '#d1d5db' }} />
+          <p className="text-sm text-gray-400">접수된 견적 의뢰가 없습니다</p>
+        </div>
+      );
+    }
+
+    const detailRows = (estimate) => [
+      { label: '거리(KM)', value: estimate.distanceKm },
+      { label: '무게(KG)', value: estimate.cargoWeight },
+      { label: '출발 날짜', value: dayjs(estimate.startTime).format('YYYY년 MM월 DD일 A hh:mm') },
+      { label: '화물 종류', value: estimate.cargoType },
+    ];
+
+    return (
+      <div className="flex flex-col gap-3">
+        {list.map((estimate) => {
+          const isOpen = expandedSet.has(estimate.eno);
+          return (
+            <div
+              key={estimate.eno}
+              className="border border-gray-100 rounded-xl bg-white overflow-hidden"
+            >
+              {/* 요약 헤더 — 클릭 시 토글 */}
+              <button
+                type="button"
+                onClick={() => toggleExpand(estimate.eno)}
+                className="w-full flex items-center justify-between gap-3 px-4 py-3.5 text-left"
+              >
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-gray-400 mb-1">No.{estimate.eno}</p>
+                  <p className="text-sm font-semibold text-gray-800 truncate">{estimate.route}</p>
+                  <p className="text-sm font-bold text-gray-900 mt-0.5">{estimate.totalCost}</p>
+                </div>
+                <ExpandMore
+                  sx={{
+                    flexShrink: 0,
+                    color: '#9ca3af',
+                    transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.3s',
+                  }}
+                />
+              </button>
+
+              {/* 펼친 상세 */}
+              {isOpen && (
+                <div className="border-t border-gray-100 px-4 py-3">
+                  {detailRows(estimate).map((row) => (
+                    <div
+                      key={row.label}
+                      className="flex items-center justify-between py-1.5 text-sm border-b border-gray-50 last:border-0"
+                    >
+                      <span className="text-gray-400">{row.label}</span>
+                      <span className="text-gray-700 font-medium text-right break-keep">{row.value}</span>
+                    </div>
+                  ))}
+
+                  {/* 차주: 수락 / 거절 */}
+                  {canAcceptOrReject && (
+                    <div className="flex gap-2 mt-3">
+                      <button
+                        type="button"
+                        onClick={() => clickAccepted(estimate.eno)}
+                        className="flex-1 py-2.5 rounded-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700 transition-colors"
+                      >
+                        수락
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => clickRejected(estimate.eno)}
+                        className="flex-1 py-2.5 rounded-lg border border-red-300 text-red-600 text-sm font-semibold hover:bg-red-50 transition-colors"
+                      >
+                        거절
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
   return (
     <>
+      {/* ── 데스크탑: 표 (md 이상) ── */}
       <TableContainer
         component={Paper}
         elevation={0}
-        sx={{ border: '1px solid #f3f4f6', borderRadius: '12px', overflow: 'hidden' }}
+        sx={{
+          display: { xs: 'none', md: 'block' },
+          border: '1px solid #f3f4f6',
+          borderRadius: '12px',
+          overflowX: 'auto',
+          WebkitOverflowScrolling: 'touch',
+        }}
       >
-        <Table>
+        <Table sx={{ minWidth: canAcceptOrReject ? 860 : 680 }}>
           <TableHead>
             <TableRow>
               <TableCell align="center" sx={headCellSx}>견적번호</TableCell>
@@ -285,6 +394,11 @@ const EstimateListComponent = () => {
           </TableBody>
         </Table>
       </TableContainer>
+
+      {/* ── 모바일/태블릿: 아코디언 카드 (md 미만) ── */}
+      <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+        {renderMobileData(serverData.dtoList)}
+      </Box>
 
       <Box mt={2} display="flex" justifyContent="center" gap={1} sx={{ paddingBottom: 5 }}>
         <PageComponent serverData={serverData} movePage={moveToList} />

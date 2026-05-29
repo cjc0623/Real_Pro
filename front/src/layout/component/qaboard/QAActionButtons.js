@@ -14,36 +14,37 @@ import {
 } from '@mui/icons-material';
 import { getActionPermissions } from './qaPermissionUtils';
 
-/* ── 공통 버튼 sx ── */
-const outlinedGraySx = {
+/* ── 공통 버튼 sx (글자 줄바꿈 방지 · 좁은 화면에서도 한 줄 라벨 유지) ── */
+const baseBtnSx = {
   borderRadius: '8px',
-  borderColor: '#d1d5db',
-  color: '#6b7280',
   textTransform: 'none',
-  fontWeight: 600,
   fontSize: '13px',
   boxShadow: 'none',
+  whiteSpace: 'nowrap',
+  flexShrink: 0,
+  minWidth: 'auto',
+};
+
+const outlinedGraySx = {
+  ...baseBtnSx,
+  borderColor: '#d1d5db',
+  color: '#6b7280',
+  fontWeight: 600,
   '&:hover': { borderColor: '#9ca3af', backgroundColor: '#f9fafb' },
 };
 
 const outlinedRedSx = {
-  borderRadius: '8px',
+  ...baseBtnSx,
   borderColor: '#fca5a5',
   color: '#DC2626',
-  textTransform: 'none',
   fontWeight: 600,
-  fontSize: '13px',
-  boxShadow: 'none',
   '&:hover': { borderColor: '#DC2626', backgroundColor: '#fff1f1' },
 };
 
 const containedRedSx = {
-  borderRadius: '8px',
+  ...baseBtnSx,
   backgroundColor: '#DC2626',
-  textTransform: 'none',
   fontWeight: 700,
-  fontSize: '13px',
-  boxShadow: 'none',
   '&:hover': { backgroundColor: '#B91C1C', boxShadow: 'none' },
 };
 
@@ -72,8 +73,14 @@ const QAActionButtons = ({
   });
 
   return (
-    <Box sx={{ px: 3, py: 2.5, borderTop: '1px solid #f3f4f6' }}>
-      <Stack direction="row" spacing={1} justifyContent="flex-end">
+    <Box sx={{ px: { xs: 2, sm: 3 }, py: 2.5, borderTop: '1px solid #f3f4f6' }}>
+      <Stack
+        direction="row"
+        spacing={1}
+        useFlexGap
+        flexWrap="wrap"
+        justifyContent={{ xs: 'flex-start', sm: 'flex-end' }}
+      >
 
         {/* 작성자 수정 */}
         {permissions.canEdit && (

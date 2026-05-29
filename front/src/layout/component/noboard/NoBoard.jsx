@@ -248,7 +248,7 @@ const BulletinBoard = () => {
                     </td>
 
                     {/* 작성자: md 미만 숨김 */}
-                    <td className="hidden md:table-cell px-3 sm:px-5 py-4 sm:py-5 text-gray-400 text-xs sm:text-sm">
+                    <td className="hidden md:table-cell px-3 sm:px-5 py-4 sm:py-5 text-gray-400 text-xs sm:text-sm whitespace-nowrap">
                       {notice.authorName}
                     </td>
 

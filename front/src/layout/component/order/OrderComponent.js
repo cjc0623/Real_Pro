@@ -149,27 +149,64 @@ const OrderComponent = () => {
     }
   }, [matchingNo, setOrderSheet, fullEmail, fullPhone]);
 
+  // ── 사이트 공통 디자인 토큰 ──
+  const MAX_W = 760;
+  const cardSx = {
+    p: { xs: 2.5, md: 3 },
+    mb: 3,
+    borderRadius: "14px",
+    border: "1px solid #f3f4f6",
+    boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
+    maxWidth: MAX_W,
+    mx: "auto",
+    bgcolor: "#fff",
+  };
+  const sectionHeadSx = { maxWidth: MAX_W, mx: "auto", mb: 1.25, mt: 0.5 };
+  const sectionTitleSx = { fontWeight: 700, fontSize: 16, color: "#111827" };
+  // 입력 가능 필드
+  const tfSx = {
+    "& .MuiOutlinedInput-root": {
+      borderRadius: "10px",
+      backgroundColor: "#fff",
+      fontSize: "14px",
+    },
+  };
+  // 읽기 전용(서버에서 받아온 정보) — 회색 배경으로 구분
+  const roSx = {
+    "& .MuiOutlinedInput-root": {
+      borderRadius: "10px",
+      backgroundColor: "#f9fafb",
+      fontSize: "14px",
+      color: "#6b7280",
+    },
+  };
+  const selectSx = { borderRadius: "10px", backgroundColor: "#fff", fontSize: "14px" };
+
   const LabelBox = (props) => (
-    <Box sx={{ mb: 0.5 }}>
-      <Typography sx={{ fontWeight: 600 }}>{props.text} :</Typography>
+    <Box sx={{ mb: 0.75 }}>
+      <Typography sx={{ fontWeight: 600, fontSize: 14, color: "#374151" }}>
+        {props.text}
+      </Typography>
     </Box>
   );
 
   return (
-    <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, bgcolor: "#fafafa", minHeight: "100vh", pb: 10 }}>
-      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 2, mb: 3, flexWrap: "wrap" }}>
-        <Typography variant="h5" sx={{ fontWeight: 800 }}>
+    <Box sx={{ px: { xs: 2, sm: 3 }, py: { xs: 4, md: 6 }, bgcolor: "#fafafa", minHeight: "100vh", pb: 10, fontFamily: "inherit" }}>
+      {/* ── 페이지 제목 ── */}
+      <Box sx={{ textAlign: "center", mb: 5 }}>
+        <Typography sx={{ fontWeight: 900, fontSize: { xs: 24, sm: 30 }, color: "#111827", mb: 1 }}>
           주문서 작성
         </Typography>
-
+        <Typography sx={{ fontSize: 14, color: "#9ca3af" }}>
+          입력하신 정보로 배송이 진행됩니다. 내용을 확인해주세요.
+        </Typography>
       </Box>
 
-      {/* 공통 필드 래퍼 컴포넌트 인라인 스타일 */}
       {/* 출발지 정보 */}
-      <Box display="flex" justifyContent="flex-start" sx={{ borderRadius: 3, maxWidth: 800, mx: "auto" }}>
-        <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>출발지 정보 입력</Typography>
+      <Box sx={sectionHeadSx}>
+        <Typography sx={sectionTitleSx}>출발지 정보 입력</Typography>
       </Box>
-      <Paper variant="outlined" sx={{ p: { xs: 2, md: 3 }, mb: 3, borderRadius: 3, maxWidth: 800, mx: "auto" }}>
+      <Paper elevation={0} sx={cardSx}>
 
         {/* 주문자 */}
         <Box sx={{ mb: 2 }}>
@@ -177,20 +214,20 @@ const OrderComponent = () => {
           <TextField
             size="small"
             fullWidth
-            sx={{ mt: { xs: 0.5, sm: 0 }, width: { xs: '100%', sm: NAME_WIDTH } }}
+            sx={{ ...roSx, mt: { xs: 0.5, sm: 0 }, width: { xs: '100%', sm: NAME_WIDTH } }}
             value={serverData.ordererName}
             inputProps={{ readOnly: true }}
           />
         </Box>
 
         {/* 출발 주소 */}
-        <Box sx={{ mb: 1.5 }}>
+        <Box sx={{ mb: 2 }}>
           <LabelBox text="물품 출발 주소" />
           <TextField
             size="small"
             placeholder="도로명/지번 전체 주소"
             fullWidth
-            sx={{ mt: 0.5 }}
+            sx={{ ...roSx, mt: 0.5 }}
             value={serverData.startAddress}
             inputProps={{ readOnly: true }}
           />
@@ -204,7 +241,7 @@ const OrderComponent = () => {
             name="startRestAddress"
             placeholder="상세 주소"
             fullWidth
-            sx={{ mt: 0.5 }}
+            sx={{ ...tfSx, mt: 0.5 }}
             value={orderSheet.startRestAddress}
             onChange={(e) => {
               const val = e.target.value.replace(/[<>{}]/g, "");
@@ -217,11 +254,11 @@ const OrderComponent = () => {
         <Box sx={{ mb: 2 }}>
           <LabelBox text="휴대전화" />
           <Box sx={{ display: "flex", gap: 1, alignItems: 'center', mt: 0.5 }}>
-            <TextField size="small" sx={{ flex: 1 }} value={p1} inputProps={{ readOnly: true }} />
-            <Typography>-</Typography>
-            <TextField size="small" sx={{ flex: 1 }} value={p2} inputProps={{ readOnly: true }} />
-            <Typography>-</Typography>
-            <TextField size="small" sx={{ flex: 1 }} value={p3} inputProps={{ readOnly: true }} />
+            <TextField size="small" sx={{ ...roSx, flex: 1 }} value={p1} inputProps={{ readOnly: true }} />
+            <Typography sx={{ color: "#9ca3af" }}>-</Typography>
+            <TextField size="small" sx={{ ...roSx, flex: 1 }} value={p2} inputProps={{ readOnly: true }} />
+            <Typography sx={{ color: "#9ca3af" }}>-</Typography>
+            <TextField size="small" sx={{ ...roSx, flex: 1 }} value={p3} inputProps={{ readOnly: true }} />
           </Box>
         </Box>
 
@@ -231,14 +268,14 @@ const OrderComponent = () => {
           <Box sx={{ display: "flex", gap: 1, alignItems: 'center', mt: 0.5 }}>
             <TextField
               size="small"
-              sx={{ flex: 1 }}
+              sx={{ ...roSx, flex: 1 }}
               inputProps={{ readOnly: true }}
               value={(serverData?.ordererEmail ?? '').split('@')[0] ?? ''}
             />
-            <Typography>@</Typography>
+            <Typography sx={{ color: "#9ca3af" }}>@</Typography>
             <TextField
               size="small"
-              sx={{ flex: 1 }}
+              sx={{ ...roSx, flex: 1 }}
               value={(serverData?.ordererEmail ?? '').split('@')[1] ?? ''}
               inputProps={{ readOnly: true }}
             />
@@ -247,10 +284,10 @@ const OrderComponent = () => {
       </Paper>
 
       {/* 도착지 정보 */}
-      <Box display="flex" justifyContent="flex-start" sx={{ borderRadius: 3, maxWidth: 800, mx: "auto" }}>
-        <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>도착지 정보 입력</Typography>
+      <Box sx={sectionHeadSx}>
+        <Typography sx={sectionTitleSx}>도착지 정보 입력</Typography>
       </Box>
-      <Paper variant="outlined" sx={{ p: { xs: 2, md: 3 }, mb: 3, borderRadius: 3, maxWidth: 800, mx: "auto" }}>
+      <Paper elevation={0} sx={cardSx}>
 
         {/* 받는분 */}
         <Box sx={{ mb: 2 }}>
@@ -259,7 +296,7 @@ const OrderComponent = () => {
             size="small"
             name="addressee"
             fullWidth
-            sx={{ mt: 0.5, width: { xs: '100%', sm: NAME_WIDTH } }}
+            sx={{ ...tfSx, mt: 0.5, width: { xs: '100%', sm: NAME_WIDTH } }}
             onChange={(e) => {
               const val = e.target.value.replace(/[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/g, "").slice(0, 20);
               setOrderSheet(prev => ({ ...prev, addressee: val }));
@@ -269,13 +306,13 @@ const OrderComponent = () => {
         </Box>
 
         {/* 도착 주소 */}
-        <Box sx={{ mb: 1.5 }}>
+        <Box sx={{ mb: 2 }}>
           <LabelBox text="물품 도착 주소" />
           <TextField
             size="small"
             placeholder="도로명/지번 전체 주소"
             fullWidth
-            sx={{ mt: 0.5 }}
+            sx={{ ...roSx, mt: 0.5 }}
             value={serverData.endAddress}
             inputProps={{ readOnly: true }}
           />
@@ -289,7 +326,7 @@ const OrderComponent = () => {
             name="endRestAddress"
             placeholder="상세 주소"
             fullWidth
-            sx={{ mt: 0.5 }}
+            sx={{ ...tfSx, mt: 0.5 }}
             value={orderSheet.endRestAddress}
             onChange={(e) => {
               const val = e.target.value.replace(/[<>{}]/g, "");
@@ -304,19 +341,21 @@ const OrderComponent = () => {
           <Box sx={{ display: "flex", gap: 1, alignItems: 'center', mt: 0.5 }}>
             <TextField
               size="small"
-              sx={{ flex: 1 }}
+              sx={{ ...tfSx, flex: 1 }}
               onChange={(e) => SetstartPNum(e.target.value.replace(/\D/g, "").slice(0, 3))}
               value={startPNum}
             />
+            <Typography sx={{ color: "#9ca3af" }}>-</Typography>
             <TextField
               size="small"
-              sx={{ flex: 1 }}
+              sx={{ ...tfSx, flex: 1 }}
               onChange={(e) => SetMddlePNum(e.target.value.replace(/\D/g, "").slice(0, 4))}
               value={middlePNum}
             />
+            <Typography sx={{ color: "#9ca3af" }}>-</Typography>
             <TextField
               size="small"
-              sx={{ flex: 1 }}
+              sx={{ ...tfSx, flex: 1 }}
               onChange={(e) => SetEndPNum(e.target.value.replace(/\D/g, "").slice(0, 4))}
               value={endPNum}
             />
@@ -330,14 +369,14 @@ const OrderComponent = () => {
             <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flex: { xs: '1 1 100%', sm: 1 } }}>
               <TextField
                 size="small"
-                sx={{ flex: 1 }}
+                sx={{ ...tfSx, flex: 1 }}
                 value={emailLocal}
                 onChange={(e) => setEmailLocal(e.target.value.replace(/[^a-zA-Z0-9._-]/g, ""))}
               />
-              <Typography>@</Typography>
+              <Typography sx={{ color: "#9ca3af" }}>@</Typography>
               <TextField
                 size="small"
-                sx={{ flex: 1 }}
+                sx={{ ...tfSx, flex: 1 }}
                 value={emailDomain === "custom" ? customDomain : emailDomain}
                 onChange={(e) => setCustomDomain(e.target.value.replace(/[^a-zA-Z0-9.-]/g, ""))}
                 placeholder="이메일 도메인"
@@ -348,7 +387,7 @@ const OrderComponent = () => {
               size="small"
               value={emailDomain}
               onChange={(e) => setEmailDomain(e.target.value)}
-              sx={{ flex: { xs: '1 1 100%', sm: '0 0 130px' } }}
+              sx={{ ...selectSx, flex: { xs: '1 1 100%', sm: '0 0 130px' } }}
             >
               <MenuItem value="naver.com">naver.com</MenuItem>
               <MenuItem value="gmail.com">gmail.com</MenuItem>
@@ -360,25 +399,25 @@ const OrderComponent = () => {
       </Paper>
 
       {/* 운임 상세 내역 */}
-      <Box display="flex" justifyContent="flex-start" sx={{ borderRadius: 3, maxWidth: 800, mx: "auto" }}>
-        <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>운임 상세 내역</Typography>
+      <Box sx={sectionHeadSx}>
+        <Typography sx={sectionTitleSx}>운임 상세 내역</Typography>
       </Box>
-      <Paper variant="outlined" sx={{ p: { xs: 2, md: 3 }, mb: 3, borderRadius: 3, maxWidth: 800, mx: "auto", bgcolor: "#fff" }}>
+      <Paper elevation={0} sx={cardSx}>
         <Grid container spacing={1.5}>
           <Grid item xs={12} display="flex" justifyContent="space-between">
-            <Typography color="textSecondary">기본 운임 (거리 비례)</Typography>
-            <Typography fontWeight="500">
+            <Typography sx={{ color: "#6b7280", fontSize: 14 }}>기본 운임 (거리 비례)</Typography>
+            <Typography sx={{ fontWeight: 600, fontSize: 14, color: "#374151" }}>
               {(Number(serverData.baseCost) + Number(serverData.distanceCost)).toLocaleString()}원
             </Typography>
           </Grid>
           {Number(serverData.distanceDiscount) > 0 && (
-            <Grid item xs={12} display="flex" justifyContent="space-between" sx={{ color: "#d32f2f" }}>
+            <Grid item xs={12} display="flex" justifyContent="space-between" sx={{ color: "#DC2626" }}>
               <Typography variant="body2">ㄴ 🚛 장거리 우대 자동 할인</Typography>
               <Typography variant="body2">-{Number(serverData.distanceDiscount).toLocaleString()}원</Typography>
             </Grid>
           )}
           {Number(serverData.specialOptionCost) > 0 && (
-            <Grid item xs={12} display="flex" justifyContent="space-between" color="textSecondary">
+            <Grid item xs={12} display="flex" justifyContent="space-between" sx={{ color: "#6b7280" }}>
               <Typography variant="body2">ㄴ ➕ 특이사항 추가 비용</Typography>
               <Typography variant="body2">+{Number(serverData.specialOptionCost).toLocaleString()}원</Typography>
             </Grid>
@@ -393,8 +432,8 @@ const OrderComponent = () => {
             </Grid>
           )}
           <Grid item xs={12} display="flex" justifyContent="space-between" alignItems="center" sx={{ mt: 1 }}>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>최종 결제 예정 금액</Typography>
-            <Typography variant="h5" sx={{ fontWeight: 900, color: "primary.main" }}>
+            <Typography sx={{ fontWeight: 700, fontSize: 17, color: "#111827" }}>최종 결제 예정 금액</Typography>
+            <Typography sx={{ fontWeight: 900, fontSize: 26, color: "#DC2626" }}>
               {(Number(serverData.totalCost) - discountAmount).toLocaleString()}원
             </Typography>
           </Grid>
@@ -402,10 +441,10 @@ const OrderComponent = () => {
       </Paper>
 
       {/* 쿠폰 선택 */}
-      <Box display="flex" justifyContent="flex-start" sx={{ borderRadius: 3, maxWidth: 800, mx: "auto" }}>
-        <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>쿠폰 할인 적용</Typography>
+      <Box sx={sectionHeadSx}>
+        <Typography sx={sectionTitleSx}>쿠폰 할인 적용</Typography>
       </Box>
-      <Paper variant="outlined" sx={{ p: { xs: 2, md: 3 }, mb: 3, borderRadius: 3, maxWidth: 800, mx: "auto" }}>
+      <Paper elevation={0} sx={cardSx}>
         <Box>
           <LabelBox text="쿠폰 선택" />
           <Select
@@ -414,7 +453,7 @@ const OrderComponent = () => {
             value={selectedMcno}
             onChange={handleCouponChange}
             displayEmpty
-            sx={{ mt: 0.5 }}
+            sx={{ ...selectSx, mt: 0.5 }}
           >
             <MenuItem value="">사용 안 함</MenuItem>
             {coupons.map((c) => (
@@ -427,12 +466,14 @@ const OrderComponent = () => {
         </Box>
       </Paper>
 
-      <OrderPaymentSelect
-        serverData={serverData}
-        orderSheet={orderSheet}
-        selectedMcno={selectedMcno}
-        discountAmount={discountAmount}
-      />
+      <Box sx={{ maxWidth: MAX_W, mx: "auto" }}>
+        <OrderPaymentSelect
+          serverData={serverData}
+          orderSheet={orderSheet}
+          selectedMcno={selectedMcno}
+          discountAmount={discountAmount}
+        />
+      </Box>
     </Box>
   );
 }
