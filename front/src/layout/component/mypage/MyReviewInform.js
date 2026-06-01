@@ -510,16 +510,18 @@ const MyReviewInform = () => {
                     const path = img.thumbnailPath || img.imagePath;
 
                     return (
-                      <img
+                      <Box
                         key={img.reviewImageNo}
+                        component="img"
                         src={`${API_SERVER_HOST}/${path}`}
                         alt="review-thumbnail"
                         onClick={() => setSelectedImage(img.imagePath)}
-                        style={{
-                          width: 100,
-                          height: 100,
+                        sx={{
+                          width: { xs: "calc(33.33% - 8px)", sm: 100 },
+                          height: { xs: "auto", sm: 100 },
+                          aspectRatio: "1/1",
                           objectFit: "cover",
-                          borderRadius: "12px", // 🟢 동글동글 이미지 가공
+                          borderRadius: "12px",
                           border: "1px solid #e2e8f0",
                           cursor: "pointer",
                         }}
@@ -887,7 +889,22 @@ const MyReviewInform = () => {
                       {review.images?.length > 0 && (
                         <Box sx={{ display: "flex", gap: 1, mb: 1.5, flexWrap: "wrap" }}>
                           {review.images.slice(0, 3).map((img) => (
-                            <img key={img.reviewImageNo} src={`${API_SERVER_HOST}/${img.thumbnailPath || img.imagePath}`} alt="review-thumbnail" onClick={() => setSelectedImage(img.imagePath)} style={{ width: 96, height: 96, objectFit: "cover", borderRadius: "12px", border: "1px solid #e2e8f0", cursor: "pointer" }} />
+                            <Box
+                              key={img.reviewImageNo}
+                              component="img"
+                              src={`${API_SERVER_HOST}/${img.thumbnailPath || img.imagePath}`}
+                              alt="review-thumbnail"
+                              onClick={() => setSelectedImage(img.imagePath)}
+                              sx={{
+                                width: { xs: "calc(33.33% - 8px)", sm: 96 },
+                                height: { xs: "auto", sm: 96 },
+                                aspectRatio: "1/1",
+                                objectFit: "cover",
+                                borderRadius: "12px",
+                                border: "1px solid #e2e8f0",
+                                cursor: "pointer",
+                              }}
+                            />
                           ))}
                         </Box>
                       )}
@@ -930,14 +947,15 @@ const MyReviewInform = () => {
         PaperProps={{ sx: { borderRadius: "16px" } }}
       >
         <DialogTitle sx={{ fontWeight: "bold" }}>이미지 보기</DialogTitle>
-        <DialogContent sx={{ textAlign: "center", py: 2 }}>
+        <DialogContent sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 2, minHeight: '200px' }}>
           {selectedImage && (
-            <img
+            <Box
+              component="img"
               src={`${API_SERVER_HOST}/${selectedImage}`}
               alt="preview"
-              style={{
+              sx={{
                 maxWidth: "100%",
-                maxHeight: "65vh",
+                maxHeight: "70vh",
                 objectFit: "contain",
                 borderRadius: "12px",
               }}

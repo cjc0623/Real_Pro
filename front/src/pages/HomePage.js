@@ -71,11 +71,11 @@ const HomePage = () => {
   const handleNextSpecial = () =>
     setSelectedSpecialIndex(prev => (prev === specialVehicleList.length - 1 ? 0 : prev + 1));
 
-  // 🟢 [자동 롤링] 3초마다 특수 차량 자동 변경
+  // 🟢 [자동 롤링] 5초마다 특수 차량 자동 변경
   useEffect(() => {
     const timer = setInterval(() => {
       setSelectedSpecialIndex(prev => (prev === specialVehicleList.length - 1 ? 0 : prev + 1));
-    }, 3000);
+    }, 5000);
     return () => clearInterval(timer);
   }, []);
 
