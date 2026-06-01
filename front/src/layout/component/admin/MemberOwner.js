@@ -18,12 +18,17 @@ import {
   Button,
   Stack
 } from "@mui/material";
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 import SearchIcon from "@mui/icons-material/Search";
 import { useNavigate, useLocation, NavLink } from "react-router-dom";
 import { fetchMembers } from "../../../api/adminApi/adminMembersApi";
 import DeliveryDetailsModal from "./DeliveryDetailsModal"; 
 
 const MemberOwner = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -105,7 +110,8 @@ const MemberOwner = () => {
   };
 
   return (
-    <Box flexGrow={1} p={{ xs: 2.5, md: 5 }} sx={{ bgcolor: "#f8fafc", minHeight: "100vh" }}>
+    /* 🟢 [가려짐 버그 원천 차단] 모바일에서 하단 탭바 위로 페이지네이션이 보일 수 있게 pb(100px) 추가 */
+    <Box flexGrow={1} p={{ xs: 2.5, md: 5 }} pb={{ xs: "100px", md: 5 }} sx={{ bgcolor: "#f8fafc", minHeight: "100vh" }}>
           {/* 📱 MemberOwner 뼈대 규격과 100% 일치화시킨 가변 인클로저 프레임 */}
           <Box
             display="flex"
@@ -285,7 +291,7 @@ const MemberOwner = () => {
           page={page} 
           onChange={(_, v) => setPage(v)} 
           color="primary" 
-          size="medium" 
+          size={isMobile ? "small" : "medium"} 
           sx={{
             "& .MuiPaginationItem-root": { fontWeight: "bold", color: "#475569" },
             "& .MuiPaginationItem-root.Mui-selected": { bgcolor: "#2563eb", color: "#ffffff", "&:hover": { bgcolor: "#1d4ed8" } }

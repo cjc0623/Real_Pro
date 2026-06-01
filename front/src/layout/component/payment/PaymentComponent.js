@@ -53,6 +53,11 @@ const PaymentComponent = () => {
   const navigate = useNavigate();
   const paymentNo = state?.paymentNo || sessionStorage.getItem("paymentNo");
 
+  // 🟢 페이지 진입 시 스크롤 위치를 맨 위로 강제 이동
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   useEffect(() => {
     if (!paymentNo) {
       alert("잘못된 접근 방식입니다.");

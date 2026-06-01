@@ -218,9 +218,10 @@ const EditVehicleInform = () => {
           // 🟢 Grid item에 display="flex"를 주어 내부 카드가 100% 일치된 고정 높이를 가지게 유도
           // 🟢 모바일(xs)에서 단독 배치될 때 비정상적으로 좌우로 늘어나는 현상을 막기 위해 maxWidth 제안선 바인딩 추가
           <Grid item key={idx} xs={12} sm={6} lg={4} display="flex" sx={{ maxWidth: { xs: '450px', sm: '100%' } }}>
-            {/* 화이트 플로팅 카드화 피팅 (flexDirection: 'column' 구조 일치) */}
+            {/* 🟢 height: '100%' 추가로 카드가 Grid item 높이만큼 완벽하게 늘어나도록 설정 */}
             <Paper elevation={0} sx={{
-              width: '100%',   
+              width: '100%',
+              height: '100%', 
               p: 3,
               borderRadius: "20px",
               backgroundColor: "#ffffff",
@@ -229,6 +230,8 @@ const EditVehicleInform = () => {
               display: 'flex', 
               flexDirection: 'column', 
               boxSizing: 'border-box',
+              height: { xs: 380, sm: 420 }, // 🟢 모든 카드의 세로 높이를 고정하여 통일
+              overflow: 'hidden', // 🟢 내용물이 카드를 뚫고 나가지 않게 차단
               transition: 'transform 0.2s',
               '&:hover': { transform: 'translateY(-3px)' }
             }}>
@@ -249,17 +252,37 @@ const EditVehicleInform = () => {
               </Box>
 
               {/* 🟢 flexGrow: 1과 내부 flex 배치를 설정해 글자 수가 달라도 본문 높이가 완전 유기적으로 동일하게 유지되도록 확장 */}
-              <Box sx={{ textAlign: 'center', mt: 2.5, flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                <Box>
-                  <Box display="flex" justifyContent="center" alignItems="center" gap={1} mb={1} flexWrap="wrap">
-                    <Typography fontWeight="800" variant="h6" color="#334155">{vehicle.name}</Typography>
+              <Box sx={{ textAlign: 'center', mt: 2, flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0 }}>
+                <Box sx={{ width: '100%', minWidth: 0 }}>
+                  <Box display="flex" justifyContent="center" alignItems="center" gap={1} mb={1} flexWrap="nowrap" sx={{ width: '100%', minWidth: 0 }}>
+                    <Typography 
+                      fontWeight="800" 
+                      variant="h6" 
+                      color="#334155" 
+                      sx={{ 
+                        overflow: 'hidden', 
+                        textOverflow: 'ellipsis', 
+                        whiteSpace: 'nowrap',
+                        flexShrink: 1 // 🟢 이름이 길면 줄어들게 설정
+                      }}
+                    >
+                      {vehicle.name}
+                    </Typography>
                     {/* 상태 태그를 마이페이지 양식에 맞춰 알약(Pill) 형태로 밴딩 */}
-                    {vehicle.status === 'PENDING' && <Chip label="승인 대기중" size="small" sx={{ fontWeight: 'bold', borderRadius: '8px', bgcolor: '#fff7ed', color: '#ea580c' }} />}
-                    {vehicle.status === 'APPROVED' && <Chip label="승인 완료" size="small" sx={{ fontWeight: 'bold', borderRadius: '8px', bgcolor: '#eff6ff', color: '#2563eb' }} />}
-                    {vehicle.status === 'REJECTED' && <Chip label="승인 거절" size="small" sx={{ fontWeight: 'bold', borderRadius: '8px', bgcolor: '#fef2f2', color: '#dc2626' }} />}
+                    {vehicle.status === 'PENDING' && <Chip label="대기" size="small" sx={{ fontWeight: 'bold', borderRadius: '8px', bgcolor: '#fff7ed', color: '#ea580c', flexShrink: 0 }} />}
+                    {vehicle.status === 'APPROVED' && <Chip label="승인" size="small" sx={{ fontWeight: 'bold', borderRadius: '8px', bgcolor: '#eff6ff', color: '#2563eb', flexShrink: 0 }} />}
+                    {vehicle.status === 'REJECTED' && <Chip label="거절" size="small" sx={{ fontWeight: 'bold', borderRadius: '8px', bgcolor: '#fef2f2', color: '#dc2626', flexShrink: 0 }} />}
                   </Box>
-                  <Typography color="textSecondary" fontSize="0.9rem" fontWeight="500">{vehicle.weight}</Typography>
-                  <Typography variant="body2" color="#2563eb" fontWeight="700" mt={0.8}>차량번호: {vehicle.cargoNumber}</Typography>
+                  <Typography color="textSecondary" fontSize="0.9rem" fontWeight="500" noWrap>{vehicle.weight}</Typography>
+                  <Typography 
+                    variant="body2" 
+                    color="#2563eb" 
+                    fontWeight="700" 
+                    mt={0.8}
+                    sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} // 🟢 차량번호 말줄임 처리
+                  >
+                    차량번호: {vehicle.cargoNumber}
+                  </Typography>
                 </Box>
               </Box>
 
@@ -275,22 +298,54 @@ const EditVehicleInform = () => {
         ))}
 
 
-        {/* 신규 차량 추가 버튼 영역 라운딩 스타일 최적화 */}
-        {/* 🟢 마찬가지로 display="flex"를 주어 좌측 카드들과 세로 박스 높이가 한 픽셀 오차도 없이 맞물리게 설정 */}
+        {/* 🟢 신규 차량 추가 버튼 UI 완전 개편 및 사이즈 통일 */}
         <Grid item xs={12} sm={6} lg={4} display="flex" sx={{ maxWidth: { xs: '450px', sm: '100%' } }}>
           <Paper onClick={() => handleOpen()} elevation={0} sx={{
             width: '100%',   
-            flexGrow: 1, // Grid의 stretch 효과로 다른 차량 카드 높이와 동일하게 무조건 확장시킴
-            minHeight: { xs: 200, sm: 310, md: 360 },  // ← 최소 높이 밸런스 매칭
+            height: { xs: 380, sm: 420 }, // 🟢 등록된 차량 카드와 높이를 1px 오차 없이 일치화
+            minHeight: 'auto',
             border: '2px dashed #cbd5e1', 
             borderRadius: "20px",
-            backgroundColor: "#ffffff",
-            display: 'flex', justifyContent: 'center', alignItems: 'center', cursor: 'pointer',
-            transition: 'all 0.2s',
+            backgroundColor: "#f8fafc", // 다른 카드와 차별성을 두기 위한 배경
+            display: 'flex', 
+            flexDirection: 'column',
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            cursor: 'pointer',
+            transition: 'all 0.2s ease-in-out',
             boxSizing: 'border-box',
-            '&:hover': { borderColor: '#2563eb', bgcolor: '#f0f7ff', '& .add-txt': { color: '#2563eb' } }
+            '&:hover': { 
+              borderColor: '#2563eb', 
+              bgcolor: '#f0f7ff', 
+              transform: 'translateY(-3px)',
+              boxShadow: '0 10px 25px rgba(37, 99, 235, 0.1)',
+              '& .add-icon': { color: '#2563eb', transform: 'scale(1.1)', bgcolor: '#dbeafe' },
+              '& .add-txt': { color: '#2563eb' } 
+            }
           }}>
-            <Typography variant="h6" className="add-txt" sx={{ fontWeight: "800", color: "#64748b", transition: "color 0.2s" }}>＋ 신규 차량 추가</Typography>
+            {/* 커다란 플러스 아이콘 역할을 하는 동그란 박스 */}
+            <Box className="add-icon" sx={{ 
+              width: 64, 
+              height: 64, 
+              borderRadius: '50%', 
+              bgcolor: '#e2e8f0', 
+              display: 'flex', 
+              justifyContent: 'center', 
+              alignItems: 'center', 
+              mb: 2, 
+              transition: 'all 0.2s ease-in-out', 
+              color: '#64748b', 
+              fontSize: '2rem', 
+              fontWeight: 'bold'
+            }}>
+              ＋
+            </Box>
+            <Typography variant="h6" className="add-txt" sx={{ fontWeight: "800", color: "#64748b", transition: "color 0.2s" }}>
+              신규 차량 추가
+            </Typography>
+            <Typography variant="body2" sx={{ mt: 1, color: '#94a3b8', fontWeight: 500 }}>
+              새로운 운송 차량을 등록하세요
+            </Typography>
           </Paper>
         </Grid>
       </Grid>

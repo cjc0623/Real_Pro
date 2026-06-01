@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Box, Typography, Card, CardContent, CardMedia, Button, Grid, Chip, Divider, Paper, Stack } from '@mui/material';
+import { Box, Typography, Card, CardContent, CardMedia, Button, Grid, Chip, Divider, Paper, Stack, Pagination } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:8080';
 
@@ -21,6 +23,9 @@ const toPreviewUrl = (p) => {
 };
 
 const AdminCargoApproval = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
   const [pendingList, setPendingList] = useState([]);
 
   const fetchPendingCargos = async () => {
@@ -59,8 +64,10 @@ const AdminCargoApproval = () => {
   };
 
   return (
+    /* 🟢 [가려짐 버그 원천 차단] 모바일에서 하단 탭바 위로 페이지네이션이 보일 수 있게 pb(100px) 추가 */
     <Box sx={{
       p: { xs: 2, sm: 3.5, md: 5 }, 
+      pb: { xs: "100px", md: 5 },
       pl: { xs: 2, sm: 4, md: 6, lg: 10 }, 
       pr: { xs: 2, sm: 4, md: 6, lg: 10 }, 
       bgcolor: '#f8fafc', 
@@ -155,6 +162,19 @@ const AdminCargoApproval = () => {
           ))}
         </Grid>
       )}
+
+      {/* 하단 페이지네이션 (다른 관리자 메뉴와 디자인 통일) */}
+      <Box display="flex" justifyContent="center" mt={6}>
+        <Pagination 
+          count={1} 
+          color="primary" 
+          size={isMobile ? "small" : "medium"} 
+          sx={{
+            "& .MuiPaginationItem-root": { fontWeight: "bold", color: "#475569" },
+            "& .MuiPaginationItem-root.Mui-selected": { bgcolor: "#2563eb", color: "#ffffff", "&:hover": { bgcolor: "#1d4ed8" } }
+          }}
+        />
+      </Box>
     </Box>
   );
 };

@@ -1,7 +1,7 @@
 import React from 'react';
 import {
     Box, Typography, Table, TableHead, TableRow, TableCell, TableBody,
-    Chip, Paper, Modal, TableContainer
+    Chip, Paper, Modal, TableContainer, Divider
 } from "@mui/material";
 
 const DeliveryDetailsModal = ({ open, onClose, selectedUser }) => {
@@ -72,24 +72,49 @@ const DeliveryDetailsModal = ({ open, onClose, selectedUser }) => {
                 </Typography>
                 
                 {selectedUser && (selectedUser.details || []).length > 0 ? (
-                    /* 📱 내역이 너무 많을 때 모달 헤더는 고정하고 본문 테이블만 안에서 부드럽게 스크롤 되도록 유도 */
-                    <TableContainer 
-                        component={Paper} 
-                        variant="outlined" 
-                        sx={{ 
-                            mb: 1, 
-                            borderRadius: '16px', 
-                            borderColor: '#e2e8f0',
-                            overflowX: 'auto', // 🟢 모바일 가로 짤림 전면 방어 스크롤 트랙 가동
-                            maxHeight: '60vh'
-                        }}
-                    >
-                        {selectedUser.details.length === 0 ? (
-                            <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 4, fontWeight: 500 }}>
-                                {isOwner ? '주문 기록이 없습니다(물주)' : '배송 기록이 없습니다(차주)'}
-                            </Typography>
-                        ) : (
-                            /* whiteSpace: 'nowrap' 배치로 화면이 수축해도 데이터 열이 깨지거나 잘리지 않고 일렬 배치 보장 */
+                    <>
+                        {/* 📱 1. 모바일 전용 수직 카드 리스트 (반응형: 한눈에 보기) */}
+                        <Box sx={{ display: { xs: 'flex', md: 'none' }, flexDirection: 'column', gap: 2, overflowY: 'auto', maxHeight: '60vh', mb: 1, pr: 0.5 }}>
+                            {selectedUser.details
+                                .sort((a, b) => new Date(b.date) - new Date(a.date))
+                                .map((d, i) => (
+                                    <Paper key={i} variant="outlined" sx={{ p: 2, borderRadius: '16px', bgcolor: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                                        <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5}>
+                                            <Typography variant="caption" fontWeight="800" color="#64748b">{d.date}</Typography>
+                                            {getStatusChip(d.deliveryStatus)}
+                                        </Box>
+                                        <Box sx={{ mb: 1.5 }}>
+                                            <Typography variant="body2" color="#334155" sx={{ mb: 0.5 }}>
+                                                <strong style={{ color: '#2563eb', marginRight: '4px' }}>출발</strong> {d.start}
+                                            </Typography>
+                                            <Typography variant="body2" color="#334155">
+                                                <strong style={{ color: '#ef4444', marginRight: '4px' }}>도착</strong> {d.end}
+                                            </Typography>
+                                        </Box>
+                                        <Divider sx={{ my: 1.5, borderStyle: 'dashed' }} />
+                                        <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1}>
+                                            <Typography variant="caption" color="#64748b">{d.type} · {d.distance}</Typography>
+                                            <Typography variant="subtitle1" fontWeight="900" color="#2563eb">{d.amount}</Typography>
+                                        </Box>
+                                        <Typography variant="caption" display="block" sx={{ mt: 1, color: '#94a3b8' }}>
+                                            주문: {d.owner} / 배송: {d.carrierName || '-'}
+                                        </Typography>
+                                    </Paper>
+                                ))}
+                        </Box>
+
+                        {/* 💻 2. 데스크톱 전용 와이드 테이블 (md 이상) */}
+                        <TableContainer 
+                            component={Paper} 
+                            variant="outlined" 
+                            sx={{ 
+                                mb: 1, 
+                                borderRadius: '16px', 
+                                borderColor: '#e2e8f0',
+                                display: { xs: 'none', md: 'block' },
+                                maxHeight: '60vh'
+                            }}
+                        >
                             <Table size="small" sx={{ minWidth: 750, '& .MuiTableCell-root': { py: 1.5, whiteSpace: 'nowrap' } }}>
                                 <TableHead>
                                     <TableRow sx={{ bgcolor: '#f8fafc' }}>
@@ -122,8 +147,8 @@ const DeliveryDetailsModal = ({ open, onClose, selectedUser }) => {
                                     ))}
                                 </TableBody>
                             </Table>
-                        )}
-                    </TableContainer>
+                        </TableContainer>
+                    </>
                 ) : selectedUser && (
                     <Paper variant="outlined" sx={{ mb: 1, p: 4, borderRadius: '16px', borderColor: '#e2e8f0', textAlign: 'center' }}>
                         <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
