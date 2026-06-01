@@ -5,11 +5,32 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { completePayment } from "../../../api/paymentApi/paymentApi";
 
 const Row = ({ label, value, dim }) => (
-  <Stack direction="row" alignItems="flex-start" spacing={2} sx={{ py: 1 }}>
-    <Box sx={{ width: { xs: 104, sm: 150 }, flexShrink: 0, textAlign: "right", color: "#9ca3af", fontSize: 14 }}>
+  <Stack
+    direction={{ xs: "column", sm: "row" }}
+    alignItems={{ xs: "flex-start", sm: "flex-start" }}
+    spacing={{ xs: 0.25, sm: 2 }}
+    sx={{ py: 1 }}
+  >
+    <Box
+      sx={{
+        width: { xs: "100%", sm: 150 },
+        flexShrink: 0,
+        textAlign: { xs: "left", sm: "right" },
+        color: "#9ca3af",
+        fontSize: { xs: 13, sm: 14 },
+      }}
+    >
       {label}
     </Box>
-    <Typography sx={{ whiteSpace: "pre-wrap", wordBreak: "break-all", fontWeight: 600, fontSize: 14, color: dim ? "#9ca3af" : "#111827" }}>
+    <Typography
+      sx={{
+        whiteSpace: "pre-wrap",
+        wordBreak: "break-all",
+        fontWeight: 600,
+        fontSize: 14,
+        color: dim ? "#9ca3af" : "#111827",
+      }}
+    >
       {value}
     </Typography>
   </Stack>
@@ -129,8 +150,10 @@ const PaymentComponent = () => {
 
         <Row label="받으시는 분 :" value={viewData.addresseeName} />
         <Row label="전화번호 :" value={formatPhone(viewData.addresseePhone)} />
-        <Row label="배달지 정보 :" value={viewData.endAddress} />
-        <Row label={"\u00A0"} value={viewData.endRestAddress} />
+        <Row
+          label="배달지 정보 :"
+          value={[viewData.endAddress, viewData.endRestAddress].filter(Boolean).join("\n")}
+        />
 
         <Divider sx={{ my: 1.5, borderColor: "#f3f4f6" }} />
 
@@ -193,7 +216,10 @@ const PaymentComponent = () => {
           fontSize: 15,
           "&:hover": { backgroundColor: "#B91C1C" },
         }}
-        onClick={() => navigate("/")}
+        onClick={() => {
+          navigate("/");
+          window.scrollTo(0, 0);
+        }}
       >
         홈으로 가기
       </Button>

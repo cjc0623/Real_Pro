@@ -529,7 +529,7 @@ const DeliveryInfoPage = () => {
                       <Button variant="outlined" fullWidth onClick={() => handleOpenStartModal(mNo)} sx={{ borderRadius: "8px" }}>배송 시작</Button>
                     )}
                     {s === 'IN_TRANSIT' && (
-                      <Button variant="contained" fullWidth color="success" onClick={() => handleOpenCompleteModal(mNo)} sx={{ borderRadius: "8px" }}>배송 완료 처리</Button>
+                      <Button variant="contained" fullWidth color="success" onClick={() => handleOpenCompleteModal(mNo)} sx={{ borderRadius: "8px" }}>배송 완료</Button>
                     )}
                   </>
                 )}
@@ -681,9 +681,9 @@ const DeliveryInfoPage = () => {
               disableElevation
               size="small"
               onClick={() => handleOpenCompleteModal(item.matchingNo ?? item.mno ?? item.matching_no)}
-              sx={{ borderRadius: "10px", fontWeight: "bold", bgcolor: "#10b981", "&:hover": { bgcolor: "#059669" } }}
+              sx={{ borderRadius: "10px", fontWeight: "bold", whiteSpace: "nowrap", bgcolor: "#10b981", "&:hover": { bgcolor: "#059669" } }}
             >
-              배송 완료 처리
+              배송 완료
             </Button>
           );
         }
@@ -701,7 +701,7 @@ const DeliveryInfoPage = () => {
           <TableCell align="center" sx={{ color: '#334155', fontWeight: 500 }}> {isOwner ? (item.memName || '-') : (item.driverName ?? '-')}</TableCell>
           <TableCell align="center">
             {mNo ? (
-              <Button variant="outlined" size="small" onClick={() => handleViewOrderSummary(mNo)} sx={{ borderRadius: "10px", color: "#64748b", borderColor: "#cbd5e1", "&:hover": { bgcolor: "#f1f5f9" } }}>
+              <Button variant="outlined" size="small" onClick={() => handleViewOrderSummary(mNo)} sx={{ borderRadius: "10px", whiteSpace: "nowrap", color: "#64748b", borderColor: "#cbd5e1", "&:hover": { bgcolor: "#f1f5f9" } }}>
                 주문서 보기
               </Button>
             ) : (
@@ -788,7 +788,7 @@ const DeliveryInfoPage = () => {
           {/* 주문서 보기 */}
           <TableCell align="center">
             {matchingNo ? (
-              <Button variant="outlined" size="small" onClick={() => handleViewOrderSummary(matchingNo)} sx={{ borderRadius: "10px", color: "#64748b", borderColor: "#cbd5e1", "&:hover": { bgcolor: "#f1f5f9" } }}>
+              <Button variant="outlined" size="small" onClick={() => handleViewOrderSummary(matchingNo)} sx={{ borderRadius: "10px", whiteSpace: "nowrap", color: "#64748b", borderColor: "#cbd5e1", "&:hover": { bgcolor: "#f1f5f9" } }}>
                 주문서 보기
               </Button>
             ) : (

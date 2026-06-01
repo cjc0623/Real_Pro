@@ -2,13 +2,11 @@ import React, { useEffect, useMemo, useState } from "react";
 import {
   Box,
   Paper,
-  Grid,
   Typography,
   TextField,
   Button,
   Select,
   MenuItem,
-  Divider,
   ToggleButtonGroup,
   ToggleButton,
   OutlinedInput,
@@ -402,43 +400,76 @@ const OrderComponent = () => {
       <Box sx={sectionHeadSx}>
         <Typography sx={sectionTitleSx}>운임 상세 내역</Typography>
       </Box>
-      <Paper elevation={0} sx={cardSx}>
-        <Grid container spacing={1.5}>
-          <Grid item xs={12} display="flex" justifyContent="space-between">
-            <Typography sx={{ color: "#6b7280", fontSize: 14 }}>기본 운임 (거리 비례)</Typography>
-            <Typography sx={{ fontWeight: 600, fontSize: 14, color: "#374151" }}>
+      <Box sx={{ maxWidth: MAX_W, mx: "auto", mb: 3 }}>
+        {/* 운임 항목 카드 */}
+        <Box
+          sx={{
+            p: { xs: 2.5, md: 3 },
+            borderRadius: "14px",
+            border: "1px solid #f3f4f6",
+            boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
+            bgcolor: "#fff",
+          }}
+        >
+          {/* 기본 운임 */}
+          <Box display="flex" justifyContent="space-between" alignItems="center">
+            <Typography sx={{ color: "#374151", fontSize: 15, fontWeight: 600 }}>기본 운임</Typography>
+            <Typography sx={{ fontWeight: 600, fontSize: 15, color: "#374151" }}>
               {(Number(serverData.baseCost) + Number(serverData.distanceCost)).toLocaleString()}원
             </Typography>
-          </Grid>
+          </Box>
+          <Typography sx={{ color: "#9ca3af", fontSize: 12, mt: 0.25 }}>거리 기준 자동 산정</Typography>
+
+          {/* 장거리 우대 할인 */}
           {Number(serverData.distanceDiscount) > 0 && (
-            <Grid item xs={12} display="flex" justifyContent="space-between" sx={{ color: "#DC2626" }}>
-              <Typography variant="body2">ㄴ 🚛 장거리 우대 자동 할인</Typography>
-              <Typography variant="body2">-{Number(serverData.distanceDiscount).toLocaleString()}원</Typography>
-            </Grid>
+            <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mt: 1.75 }}>
+              <Typography sx={{ color: "#374151", fontSize: 14 }}>장거리 우대 할인</Typography>
+              <Typography sx={{ color: "#DC2626", fontSize: 14, fontWeight: 600 }}>
+                -{Number(serverData.distanceDiscount).toLocaleString()}원
+              </Typography>
+            </Box>
           )}
+
+          {/* 특이사항 추가 비용 */}
           {Number(serverData.specialOptionCost) > 0 && (
-            <Grid item xs={12} display="flex" justifyContent="space-between" sx={{ color: "#6b7280" }}>
-              <Typography variant="body2">ㄴ ➕ 특이사항 추가 비용</Typography>
-              <Typography variant="body2">+{Number(serverData.specialOptionCost).toLocaleString()}원</Typography>
-            </Grid>
+            <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mt: 1.75 }}>
+              <Typography sx={{ color: "#374151", fontSize: 14 }}>특이사항 추가 비용</Typography>
+              <Typography sx={{ color: "#374151", fontSize: 14, fontWeight: 600 }}>
+                +{Number(serverData.specialOptionCost).toLocaleString()}원
+              </Typography>
+            </Box>
           )}
-          <Grid item xs={12} sx={{ my: 0.5 }}>
-            <Divider sx={{ borderStyle: 'dashed' }} />
-          </Grid>
+
+          {/* 쿠폰 할인 */}
           {discountAmount > 0 && (
-            <Grid item xs={12} display="flex" justifyContent="space-between" sx={{ color: "#1976d2" }}>
-              <Typography variant="body2" fontWeight="bold">ㄴ 🎫 추가 쿠폰 할인 적용</Typography>
-              <Typography variant="body2" fontWeight="bold">-{discountAmount.toLocaleString()}원</Typography>
-            </Grid>
+            <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mt: 1.75 }}>
+              <Typography sx={{ color: "#374151", fontSize: 14 }}>쿠폰 할인</Typography>
+              <Typography sx={{ color: "#1976d2", fontSize: 14, fontWeight: 600 }}>
+                -{discountAmount.toLocaleString()}원
+              </Typography>
+            </Box>
           )}
-          <Grid item xs={12} display="flex" justifyContent="space-between" alignItems="center" sx={{ mt: 1 }}>
-            <Typography sx={{ fontWeight: 700, fontSize: 17, color: "#111827" }}>최종 결제 예정 금액</Typography>
-            <Typography sx={{ fontWeight: 900, fontSize: 26, color: "#DC2626" }}>
-              {(Number(serverData.totalCost) - discountAmount).toLocaleString()}원
-            </Typography>
-          </Grid>
-        </Grid>
-      </Paper>
+        </Box>
+
+        {/* 최종 결제 금액 카드 */}
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          sx={{
+            mt: 1.5,
+            p: { xs: 2.5, md: 3 },
+            borderRadius: "14px",
+            border: "1px solid #fee2e2",
+            bgcolor: "#fef2f2",
+          }}
+        >
+          <Typography sx={{ fontWeight: 700, fontSize: 16, color: "#111827" }}>최종 결제 금액</Typography>
+          <Typography sx={{ fontWeight: 900, fontSize: 26, color: "#DC2626" }}>
+            {(Number(serverData.totalCost) - discountAmount).toLocaleString()}원
+          </Typography>
+        </Box>
+      </Box>
 
       {/* 쿠폰 선택 */}
       <Box sx={sectionHeadSx}>

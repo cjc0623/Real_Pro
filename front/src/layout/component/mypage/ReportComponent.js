@@ -9,6 +9,7 @@ import {
 const initState = {
   reporterId: '',
   targetId: '',
+  targetName: '',
   content: '',
 };
 
@@ -32,6 +33,7 @@ const ReportComponent = ({ matchingNo, onClose }) => {
           ...prevState,
           reporterId: data.reporterId,
           targetId: data.targetId,
+          targetName: data.targetName,
         }));
         setError(null);
       } catch (err) {

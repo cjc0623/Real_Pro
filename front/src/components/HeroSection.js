@@ -31,17 +31,17 @@ const HeroSection = () => {
           </p>
 
           {/* 상단 뱃지/태그 */}
-          <div className="flex flex-wrap gap-2 mb-6">
-            <span className="inline-flex items-center gap-1.5 bg-gray-100 text-gray-600 font-semibold
-                             text-sm px-3.5 py-1.5 rounded-full border border-gray-200">
+          <div className="flex flex-nowrap gap-1.5 sm:gap-2 mb-6">
+            <span className="inline-flex items-center gap-1 sm:gap-1.5 bg-gray-100 text-gray-600 font-semibold
+                             whitespace-nowrap text-xs sm:text-sm px-2.5 sm:px-3.5 py-1.5 rounded-full border border-gray-200">
               <span className="text-red-500">✓</span> 실시간 견적
             </span>
-            <span className="inline-flex items-center gap-1.5 bg-gray-100 text-gray-600 font-semibold
-                             text-sm px-3.5 py-1.5 rounded-full border border-gray-200">
+            <span className="inline-flex items-center gap-1 sm:gap-1.5 bg-gray-100 text-gray-600 font-semibold
+                             whitespace-nowrap text-xs sm:text-sm px-2.5 sm:px-3.5 py-1.5 rounded-full border border-gray-200">
               <span className="text-red-500">✓</span> 24시간 접수
             </span>
-            <span className="inline-flex items-center gap-1.5 bg-gray-100 text-gray-600 font-semibold
-                             text-sm px-3.5 py-1.5 rounded-full border border-gray-200">
+            <span className="inline-flex items-center gap-1 sm:gap-1.5 bg-gray-100 text-gray-600 font-semibold
+                             whitespace-nowrap text-xs sm:text-sm px-2.5 sm:px-3.5 py-1.5 rounded-full border border-gray-200">
               <span className="text-red-500">✓</span> 안전 운송
             </span>
           </div>
