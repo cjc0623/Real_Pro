@@ -157,6 +157,21 @@ const formatDateHour = (v) => {
 };
 const statusKo = (s) => s === 'IN_TRANSIT' ? '배송 중' : s === 'COMPLETED' ? '배송 완료' : '대기';
 
+// InfoRow 컴포넌트 정의 (오류 해결 및 줄바꿈 최적화)
+const InfoRow = ({ label, value }) => (
+  <Box sx={{ display: "flex", gap: 1, mb: 0.5 }}>
+    <Typography
+      component="span"
+      sx={{ width: 70, flexShrink: 0, color: "text.secondary", fontSize: 13 }}
+    >
+      {label}
+    </Typography>
+    <Typography component="span" sx={{ fontSize: 13, fontWeight: 600, wordBreak: "break-all" }}>
+      {value || "-"}
+    </Typography>
+  </Box>
+);
+
 // ===== 메인 컴포넌트 =====
 const DeliveryInfoPage = () => {
   const getRequesterId = (item) =>
@@ -803,10 +818,10 @@ const DeliveryInfoPage = () => {
   if (!userType) return <Box sx={{ p: 6, color: '#2563eb', fontWeight: 'bold' }}>사용자 타입 확인 중…</Box>;
 
   return (
-    <Box sx={{ bgcolor: '#f8fafc', minHeight: '100vh', py: 6, pb: { xs: '80px', md: 6 }, overflow: 'hidden' }}>
+    <Box sx={{ bgcolor: '#f8fafc', minHeight: '100vh', pt: 6, pb: { xs: 15, md: 6 }, overflow: 'hidden' }}>
       <Container maxWidth="xl" disableGutters sx={{ px: { xs: 2, sm: 3, md: 4 }, maxWidth: '100vw', boxSizing: 'border-box' }}>
-        
-        <Typography variant="h4" fontWeight="900" color="#0f172a" mb={6} textAlign="left" sx={{ fontSize: { xs: '1.75rem', md: '2.125rem' } }}>
+
+        <Typography variant="h4" fontWeight="900" color="#0f172a" letterSpacing="-0.5px" mb={6} sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.25rem' }, textAlign: { xs: 'center', md: 'left' } }}>
           {isMember ? '배송 정보 관리' : '차주 배송 관리'}
         </Typography>
 
@@ -985,14 +1000,19 @@ const DeliveryInfoPage = () => {
         </Box>
       </Modal>
 
-      {/* Review Modal 다듬기 */}
-      <Dialog open={openReviewModal} onClose={handleCloseReviewModal} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: "20px", p: 1 } }}>
-        <DialogTitle sx={{ fontWeight: "bold" }}>✍️ 리뷰 작성</DialogTitle>
-        <DialogContent>
-          <Box sx={{ bgcolor: "#f8fafc", p: 2, borderRadius: "12px", mb: 2, display: 'flex', flexDirection: 'column', gap: 0.5, border: "1px solid #e2e8f0" }}>
-            <Typography variant="body2" color="#475569"><strong>화물명 :</strong> {selectedReviewItem?.cargoType || '-'}</Typography>
-            <Typography variant="body2" color="#475569"><strong>배송 완료일 :</strong> {formatDateHour(selectedReviewItem?.deliveryCompletedAt)}</Typography>
-            <Typography variant="body2" color="#475569"><strong>운전 기사 :</strong> {selectedReviewItem?.driverName || '-'}</Typography>
+      <Dialog 
+        open={openReviewModal} 
+        onClose={handleCloseReviewModal} 
+        maxWidth="sm" 
+        fullWidth 
+        PaperProps={{ sx: { borderRadius: "20px", p: 1, maxHeight: { xs: "82vh", sm: "85vh" }, display: "flex", flexDirection: "column" } }}
+      >
+        <DialogTitle sx={{ fontWeight: "bold", flexShrink: 0 }}>✍️ 리뷰 작성</DialogTitle>
+        <DialogContent sx={{ overflowY: "auto", overflowX: "hidden", flex: "1 1 auto" }}>
+          <Box sx={{ bgcolor: "#f8fafc", p: 2, borderRadius: "12px", mb: 2, display: 'flex', flexDirection: 'column', gap: 0.2, border: "1px solid #e2e8f0" }}>
+            <InfoRow label="화물명" value={selectedReviewItem?.cargoType} />
+            <InfoRow label="배송완료" value={formatDateHour(selectedReviewItem?.deliveryCompletedAt)} />
+            <InfoRow label="운전기사" value={selectedReviewItem?.driverName} />
           </Box>
 
           <Typography gutterBottom fontWeight="bold" color="#1e293b" sx={{ mt: 1 }}>별점 선택</Typography>
@@ -1020,7 +1040,7 @@ const DeliveryInfoPage = () => {
           </Box>
         </DialogContent>
 
-        <DialogActions sx={{ p: 2.5 }}>
+        <DialogActions sx={{ p: 2.5, flexShrink: 0 }}>
           <Button onClick={handleCloseReviewModal} sx={{ color: "#64748b", fontWeight: "bold" }}>닫기</Button>
           <Button
             onClick={async () => {

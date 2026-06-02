@@ -77,7 +77,7 @@ const AdminCargoApproval = () => {
     }}>
       {/* 타이틀과 디바이더는 데스크톱에서 예쁘게 항상 왼쪽 정렬 상태 유지 */}
       <Typography variant="h4" fontWeight="900" mb={2} color="#0f172a" letterSpacing="-0.5px"
-        sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' }, textAlign: 'left' }} 
+        sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.25rem' }, textAlign: { xs: 'center', md: 'left' } }} 
       >
         차량 등록 승인 관리
       </Typography>
@@ -167,10 +167,10 @@ const AdminCargoApproval = () => {
       <Box display="flex" justifyContent="center" mt={6}>
         <Pagination 
           count={1} 
-          color="primary" 
-          size={isMobile ? "small" : "medium"} 
+          color="primary"
+          size={isMobile ? "small" : "medium"}
           sx={{
-            "& .MuiPaginationItem-root": { fontWeight: "bold", color: "#475569" },
+            "& .MuiPaginationItem-root": { fontWeight: "bold", color: "#475569", borderRadius: "8px" },
             "& .MuiPaginationItem-root.Mui-selected": { bgcolor: "#2563eb", color: "#ffffff", "&:hover": { bgcolor: "#1d4ed8" } }
           }}
         />

@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
   Box, Grid, Paper, Typography, Button, Modal, TextField,
-  IconButton, Select, MenuItem, InputLabel, FormControl, Chip
+  IconButton, Select, MenuItem, InputLabel, FormControl, Chip, Pagination
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 import { useParams, useNavigate } from 'react-router-dom';
 
 // ===== 공통 API 베이스/인스턴스 =====
@@ -31,11 +33,18 @@ const EditVehicleInform = () => {
   const { cargoId } = useParams();
   const navigate = useNavigate();
 
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
   const [vehicles, setVehicles] = useState([]);
   const [open, setOpen] = useState(false);
   const [editingIndex, setEditingIndex] = useState(null);
   const [weightOptions, setWeightOptions] = useState(['0.5톤','1톤','2톤','3톤','4톤','5톤이상']); 
   const [loading, setLoading] = useState(false); 
+
+  // 페이지네이션 상태 추가 (한 페이지에 6개씩 표시)
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 6;
   
 
   const [formData, setFormData] = useState({
@@ -209,15 +218,81 @@ const EditVehicleInform = () => {
   };
 
   return (
-    <Box sx={{ p: { xs: 2.5, sm: 4, md: 5 }, pl: { xs: 2, sm: 4, md: 6, lg: 10 }, pr: { xs: 2, sm: 4, md: 6, lg: 10 }, bgcolor: '#f8fafc', minHeight: '100vh' }}>
-      <Typography variant="h4" fontWeight="900" color="#0f172a" mb={5} textAlign="left">내 차량 관리</Typography>
+    <Box 
+      sx={{ 
+        p: { xs: 2.5, sm: 4, md: 5 }, 
+        pb: { xs: 10, md: 15 }, // 하단 여백(텀)을 넉넉히 추가하여 카드가 짤리지 않게 개선
+        pl: { xs: 2, sm: 4, md: 6, lg: 10 }, 
+        pr: { xs: 2, sm: 4, md: 6, lg: 10 }, 
+        bgcolor: '#f8fafc', 
+        minHeight: '100vh' 
+      }}
+    >
+      <Box 
+        display="flex" 
+        justifyContent="space-between" 
+        alignItems="center" 
+        mb={5}
+        gap={1} // 제목과 버튼 사이의 최소 간격 확보
+      >
+        <Typography 
+          variant="h4" 
+          fontWeight="900" 
+          color="#0f172a" 
+          letterSpacing="-0.5px" 
+          sx={{ 
+            fontSize: { xs: '1.25rem', sm: '1.75rem', md: '2.25rem' }, 
+            textAlign: 'left',
+            whiteSpace: 'nowrap' // 제목 줄바꿈 방지
+          }}
+        >
+          내 차량 관리
+        </Typography>
+        <Button 
+          variant="contained" 
+          disableElevation 
+          onClick={() => handleOpen()} 
+          sx={{ 
+            borderRadius: "12px", 
+            fontWeight: "bold", 
+            bgcolor: "#2563eb", 
+            px: { xs: 1.5, sm: 3 }, // 모바일에서 버튼 패딩 축소
+            py: 1.2, 
+            fontSize: { xs: '0.75rem', sm: '0.875rem' }, // 모바일에서 버튼 폰트 축소
+            whiteSpace: 'nowrap', // 버튼 텍스트 한 줄 유지
+            minWidth: 'fit-content',
+            boxShadow: "0 4px 14px rgba(37, 99, 235, 0.25)", 
+            "&:hover": { bgcolor: "#1d4ed8" } 
+          }}
+        >
+          + 신규 차량 등록
+        </Button>
+      </Box>
 
       {/* 🟢 AdminCargoApproval 양식과 똑같이 alignItems="stretch" 적용 및 모바일 1열 상태일 때를 대비해 justifyContent 반응형 분기 추가 */}
-      <Grid container spacing={{ xs: 3, md: 4 }} alignItems="stretch" justifyContent={{ xs: 'center', sm: 'flex-start' }}>
-        {vehicles.map((vehicle, idx) => (
+      {vehicles.length === 0 ? (
+        <Paper 
+          elevation={0} 
+          sx={{ 
+            py: 12, 
+            textAlign: 'center', 
+            borderRadius: "24px", 
+            border: '2px dashed #e2e8f0', 
+            bgcolor: '#ffffff' 
+          }}
+        >
+          <Typography variant="h6" fontWeight="800" color="#64748b" mb={1}>등록된 차량이 없습니다.</Typography>
+          <Typography variant="body2" color="#94a3b8" fontWeight="500">운송 서비스를 시작하려면 상단의 버튼을 눌러 새로운 차량을 등록해주세요.</Typography>
+        </Paper>
+      ) : (
+      <>
+        <Grid container spacing={{ xs: 3, md: 4 }} alignItems="stretch" justifyContent={{ xs: 'center', sm: 'flex-start' }}>
+          {vehicles.slice((page - 1) * itemsPerPage, page * itemsPerPage).map((vehicle, idx) => {
+            const actualIndex = (page - 1) * itemsPerPage + idx;
+            return (
           // 🟢 Grid item에 display="flex"를 주어 내부 카드가 100% 일치된 고정 높이를 가지게 유도
           // 🟢 모바일(xs)에서 단독 배치될 때 비정상적으로 좌우로 늘어나는 현상을 막기 위해 maxWidth 제안선 바인딩 추가
-          <Grid item key={idx} xs={12} sm={6} lg={4} display="flex" sx={{ maxWidth: { xs: '450px', sm: '100%' } }}>
+              <Grid item key={vehicle.no || actualIndex} xs={12} sm={6} lg={4} display="flex" sx={{ maxWidth: { xs: '450px', sm: '100%' } }}>
             {/* 🟢 height: '100%' 추가로 카드가 Grid item 높이만큼 완벽하게 늘어나도록 설정 */}
             <Paper elevation={0} sx={{
               width: '100%',
@@ -289,87 +364,56 @@ const EditVehicleInform = () => {
               {/* 🟢 mt: 'auto' 배치로 본문 컨텐츠가 밀리거나 버튼 유무와 관계없이 무조건 하단 바닥선에 칼정렬 고정 */}
               <Box sx={{ mt: 'auto', pt: 3 }} display="flex" gap={1.2}>
                 {vehicle.status !== 'APPROVED' && (
-                  <Button fullWidth variant="contained" disableElevation onClick={() => handleOpen(idx)} sx={{ borderRadius: "12px", fontWeight: "bold", bgcolor: "#2563eb", "&:hover": { bgcolor: "#1d4ed8" } }}>수정</Button>
+                      <Button fullWidth variant="contained" disableElevation onClick={() => handleOpen(actualIndex)} sx={{ borderRadius: "12px", fontWeight: "bold", bgcolor: "#2563eb", "&:hover": { bgcolor: "#1d4ed8" } }}>수정</Button>
                 )}
-                <Button fullWidth variant="outlined" color="error" onClick={() => handleDelete(idx)} sx={{ borderRadius: "12px", fontWeight: "bold", borderColor: "#fee2e2", bgcolor: "#fff5f5", "&:hover": { bgcolor: "#ffe4e4" } }}>삭제</Button>
+                    <Button fullWidth variant="outlined" color="error" onClick={() => handleDelete(actualIndex)} sx={{ borderRadius: "12px", fontWeight: "bold", borderColor: "#fee2e2", bgcolor: "#fff5f5", "&:hover": { bgcolor: "#ffe4e4" } }}>삭제</Button>
               </Box>
             </Paper>
           </Grid>
-        ))}
-
-
-        {/* 🟢 신규 차량 추가 버튼 UI 완전 개편 및 사이즈 통일 */}
-        <Grid item xs={12} sm={6} lg={4} display="flex" sx={{ maxWidth: { xs: '450px', sm: '100%' } }}>
-          <Paper onClick={() => handleOpen()} elevation={0} sx={{
-            width: '100%',   
-            height: { xs: 380, sm: 420 }, // 🟢 등록된 차량 카드와 높이를 1px 오차 없이 일치화
-            minHeight: 'auto',
-            border: '2px dashed #cbd5e1', 
-            borderRadius: "20px",
-            backgroundColor: "#f8fafc", // 다른 카드와 차별성을 두기 위한 배경
-            display: 'flex', 
-            flexDirection: 'column',
-            justifyContent: 'center', 
-            alignItems: 'center', 
-            cursor: 'pointer',
-            transition: 'all 0.2s ease-in-out',
-            boxSizing: 'border-box',
-            '&:hover': { 
-              borderColor: '#2563eb', 
-              bgcolor: '#f0f7ff', 
-              transform: 'translateY(-3px)',
-              boxShadow: '0 10px 25px rgba(37, 99, 235, 0.1)',
-              '& .add-icon': { color: '#2563eb', transform: 'scale(1.1)', bgcolor: '#dbeafe' },
-              '& .add-txt': { color: '#2563eb' } 
-            }
-          }}>
-            {/* 커다란 플러스 아이콘 역할을 하는 동그란 박스 */}
-            <Box className="add-icon" sx={{ 
-              width: 64, 
-              height: 64, 
-              borderRadius: '50%', 
-              bgcolor: '#e2e8f0', 
-              display: 'flex', 
-              justifyContent: 'center', 
-              alignItems: 'center', 
-              mb: 2, 
-              transition: 'all 0.2s ease-in-out', 
-              color: '#64748b', 
-              fontSize: '2rem', 
-              fontWeight: 'bold'
-            }}>
-              ＋
-            </Box>
-            <Typography variant="h6" className="add-txt" sx={{ fontWeight: "800", color: "#64748b", transition: "color 0.2s" }}>
-              신규 차량 추가
-            </Typography>
-            <Typography variant="body2" sx={{ mt: 1, color: '#94a3b8', fontWeight: 500 }}>
-              새로운 운송 차량을 등록하세요
-            </Typography>
-          </Paper>
+            );
+          })}
         </Grid>
-      </Grid>
+
+        {/* 하단 페이지네이션 섹션 */}
+        <Box display="flex" justifyContent="center" mt={6}>
+          <Pagination 
+            count={Math.ceil(vehicles.length / itemsPerPage)} 
+            page={page} 
+            onChange={(e, value) => setPage(value)}
+            color="primary"
+            size={isMobile ? "small" : "medium"}
+            sx={{
+              "& .MuiPaginationItem-root": { fontWeight: "bold", color: "#475569", borderRadius: "8px" },
+              "& .MuiPaginationItem-root.Mui-selected": { bgcolor: "#2563eb", color: "#ffffff", "&:hover": { bgcolor: "#1d4ed8" } }
+            }}
+          />
+        </Box>
+      </>
+      )}
 
       {/* 모달 팝업 내부 입력 필드 동글동글 마사지 */}
       <Modal open={open} onClose={handleClose}>
         <Box sx={{
-          p: { xs: 3, md: 5 },
-          bgcolor: '#ffffff', 
-          borderRadius: "24px", // 모달 바깥 모서리 대폭 곡률 추가
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          p: { xs: 2.5, md: 4 },
+          bgcolor: '#ffffff',
+          borderRadius: "24px",
           boxShadow: "0 20px 50px rgba(15, 23, 42, 0.08)",
-          width: '90%', maxWidth: 950,
-          mx: 'auto', mt: { xs: '5%', md: '6%' },  
-          position: 'relative',
-          maxHeight: '85vh',   
-          overflowY: 'auto'    
+          width: { xs: '92%', sm: '85%', md: 800 },
+          maxHeight: '90vh',
+          overflowY: 'auto',
+          outline: 'none'
         }}>
-          <IconButton onClick={handleClose} sx={{ position: 'absolute', top: 16, right: 16, color: "#64748b", "&:hover": { bgcolor: "#f1f5f9" } }}>
+          <IconButton onClick={handleClose} sx={{ position: 'absolute', top: 12, right: 12, color: "#64748b", "&:hover": { bgcolor: "#f1f5f9" } }}>
             <CloseIcon />
           </IconButton>
-          <Typography variant="h6" fontWeight="900" color="#0f172a" mb={4}>차량 정보 입력</Typography>
+          <Typography variant="h6" fontWeight="900" color="#0f172a" mb={2.5}>차량 정보 입력</Typography>
           
-          <Box display="flex" gap={4} flexDirection={{ xs: 'column', md: 'row' }}>
-            <Box sx={{ flex: 1, bgcolor: '#f8fafc', aspectRatio: '5/3', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: "16px", border: "1px solid #e2e8f0", overflow: "hidden" }}>
+          <Box display="flex" gap={3} flexDirection={{ xs: 'column', md: 'row' }}>
+            <Box sx={{ flex: 1, bgcolor: '#f8fafc', height: { xs: 160, md: 'auto' }, aspectRatio: { md: '4/3' }, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: "16px", border: "1px solid #e2e8f0", overflow: "hidden" }}>
               <img
                 src={formData.preview || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="500" height="300"><rect width="100%" height="100%" fill="%23f8fafc"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%2394a3b8" font-size="20" font-family="sans-serif" font-weight="bold">No Vehicle Image</text></svg>'}
                 alt="preview"
@@ -377,27 +421,27 @@ const EditVehicleInform = () => {
               />
             </Box>
             
-            <Box flex={1} display="flex" flexDirection="column" gap={2.5}>
-              <TextField label="차량 이름 (예: 다마스)" value={formData.name} onChange={handleChange('name')} fullWidth sx={inputSkinedStyle} />
-              <TextField label="차량 번호 (예: 12가 3456)" value={formData.cargoNumber} onChange={handleChange('cargoNumber')} fullWidth sx={inputSkinedStyle} />
+            <Box flex={1.2} display="flex" flexDirection="column" gap={1.8}>
+              <TextField label="차량 이름" placeholder="예: 다마스" value={formData.name} onChange={handleChange('name')} fullWidth size="small" sx={inputSkinedStyle} />
+              <TextField label="차량 번호" placeholder="예: 12가 3456" value={formData.cargoNumber} onChange={handleChange('cargoNumber')} fullWidth size="small" sx={inputSkinedStyle} />
               
               <FormControl fullWidth sx={inputSkinedStyle}>
-                <InputLabel id="weight-label">적재 무게</InputLabel>
-                <Select labelId="weight-label" label="적재 무게" value={formData.weight} onChange={handleChange('weight')}>
+                <InputLabel id="weight-label" size="small">적재 무게</InputLabel>
+                <Select labelId="weight-label" label="적재 무게" value={formData.weight} onChange={handleChange('weight')} size="small">
                   {weightOptions.map((w) => (
                     <MenuItem key={w} value={w}>{w}</MenuItem>
                   ))}
                 </Select>
               </FormControl>
               
-              <Button variant="outlined" component="label" sx={{ borderRadius: "12px", py: 1.2, fontWeight: "bold", color: "#2563eb", borderColor: "#cbd5e1", "&:hover": { bgcolor: "#eff6ff" } }}>
+              <Button variant="outlined" component="label" sx={{ borderRadius: "12px", py: 1, fontWeight: "bold", color: "#2563eb", borderColor: "#cbd5e1", "&:hover": { bgcolor: "#eff6ff" } }}>
                 차량 이미지 업로드
                 <input hidden accept="image/*" type="file" onChange={handleImageChange} />
               </Button>
             </Box>
           </Box>
           
-          <Box mt={5} display="flex" gap={2}>
+          <Box mt={3} display="flex" gap={2}>
             <Button fullWidth variant="contained" disableElevation onClick={handleSave} disabled={loading} sx={{ py: 1.5, borderRadius: "12px", fontWeight: "bold", bgcolor: "#2563eb", "&:hover": { bgcolor: "#1d4ed8" } }}>
               {loading ? '저장 중...' : '저장 (관리자 승인 대기)'}
             </Button>

@@ -8,8 +8,12 @@ import SearchIcon from "@mui/icons-material/Search";
 import { getPostList, getPostDetail } from "../../../api/qaboardApi";
 import { createResponse, updateResponse } from "../../../api/adminResponseApi"; 
 import { useNavigate, useLocation, NavLink } from "react-router-dom";
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 const Inquirie = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const [currentPage, setCurrentPage] = useState(1);
   const navigate = useNavigate();
@@ -300,15 +304,15 @@ const Inquirie = () => {
       )}
 
       {/* 하단 페이지네이션 구역: 바닥 보정 패딩 덕분에 모바일 탭 바 위로 가림 없이 자동 세팅 */}
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 6 }}>
         <Pagination 
           count={totalPages} 
           page={currentPage} 
           onChange={handlePageChange} 
           color="primary"
-          size="medium"
+          size={isMobile ? "small" : "medium"}
           sx={{
-            "& .MuiPaginationItem-root": { fontWeight: "bold", color: "#475569" },
+            "& .MuiPaginationItem-root": { fontWeight: "bold", color: "#475569", borderRadius: "8px" },
             "& .MuiPaginationItem-root.Mui-selected": { bgcolor: "#2563eb", color: "#ffffff", "&:hover": { bgcolor: "#1d4ed8" } }
           }}
         />

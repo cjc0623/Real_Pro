@@ -7,7 +7,7 @@ import CounselorChat from './layout/component/CounselorChat';
 import FloatingButtons from './components/FloatingButtons';
 import { useDispatch } from 'react-redux';
 import { getUserInfoAsync } from './slice/loginSlice';
-import { Box, Fab, Zoom, Tooltip, Fade, useMediaQuery, useTheme, useScrollTrigger, Slide } from '@mui/material';
+import { Box, Fab, Zoom, Tooltip, Fade, useMediaQuery, useTheme, useScrollTrigger, Slide, GlobalStyles } from '@mui/material';
 import { Close as CloseIcon, SupportAgent as SupportAgentIcon } from '@mui/icons-material';
 
 function App() {
@@ -35,6 +35,16 @@ function App() {
 
   return (
     <>
+      {/* 전역 스크롤바 숨김 스타일: 기능은 유지하되 시각적으로 제거 */}
+      <GlobalStyles styles={{
+        '*::-webkit-scrollbar': {
+          display: 'none',
+        },
+        '*': {
+          msOverflowStyle: 'none', // IE 및 Edge용
+          scrollbarWidth: 'none',   // Firefox용
+        },
+      }} />
       <RouterProvider router={root} />
 
       {/* 채팅창 활성화 시 배경 블러 처리 (UX 개선) */}

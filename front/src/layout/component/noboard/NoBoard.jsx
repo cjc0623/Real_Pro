@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { CircularProgress, Alert, Pagination } from '@mui/material';
+import { CircularProgress, Alert, Pagination, Box } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 import { getNotices, getCategoryDisplayName } from '../../../api/noticeApi';
 import { isCurrentUserAdmin } from '../../../utils/jwtUtils';
@@ -29,6 +31,9 @@ const CategoryBadge = ({ category }) => {
 /* ── 메인 컴포넌트 ─────────────────────────────────────── */
 const BulletinBoard = () => {
   const navigate = useNavigate();
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const [currentPage,    setCurrentPage]    = useState(0);
   const [notices,        setNotices]        = useState([]);
@@ -80,7 +85,7 @@ const BulletinBoard = () => {
 
   return (
     /* ── 컨테이너: 모바일 px-4, 데스크탑 px-6 ── */
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-10 font-sans">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-8 pb-32 sm:py-10 font-sans">
 
       {/* ── 브레드크럼 ── */}
       <nav className="flex items-center gap-1.5 text-xs sm:text-sm text-gray-400 mb-6 sm:mb-10">
@@ -266,17 +271,19 @@ const BulletinBoard = () => {
 
       {/* ── 페이지네이션 ── */}
       {totalPages > 1 && (
-        <div className="flex justify-center mt-6 sm:mt-8">
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 6 }}>
           <Pagination
             count={totalPages}
             page={currentPage + 1}
             onChange={handlePageChange}
             color="primary"
-            size="medium"
-            showFirstButton
-            showLastButton
+            size={isMobile ? "small" : "medium"}
+            sx={{
+              "& .MuiPaginationItem-root": { fontWeight: "bold", color: "#475569", borderRadius: "8px" },
+              "& .MuiPaginationItem-root.Mui-selected": { bgcolor: "#2563eb", color: "#ffffff", "&:hover": { bgcolor: "#1d4ed8" } }
+            }}
           />
-        </div>
+        </Box>
       )}
 
     </div>

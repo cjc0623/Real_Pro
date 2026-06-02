@@ -129,7 +129,7 @@ const MemberCowner = () => {
                 alignItems={{ xs: 'flex-start', sm: 'center' }}
                 mb={1.5}
               >
-                <Typography variant="h4" fontWeight="900" color="#0f172a" letterSpacing="-0.5px" sx={{ textAlign: { xs: 'center', md: 'left' }, width: '100%' }}>
+                <Typography variant="h4" fontWeight="900" color="#0f172a" letterSpacing="-0.5px" sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.25rem' }, textAlign: { xs: 'center', md: 'left' }, width: '100%' }}>
                   차주 회원 관리
                 </Typography>
     
@@ -285,15 +285,15 @@ const MemberCowner = () => {
         </>
       )}
 
-      <Box display="flex" justifyContent="center" mt={4}>
+      <Box display="flex" justifyContent="center" mt={6}>
         <Pagination 
           count={totalPages} 
           page={page} 
           onChange={(_, v) => setPage(v)} 
-          color="primary" 
-          size={isMobile ? "small" : "medium"} 
+          color="primary"
+          size={isMobile ? "small" : "medium"}
           sx={{
-            "& .MuiPaginationItem-root": { fontWeight: "bold", color: "#475569" },
+            "& .MuiPaginationItem-root": { fontWeight: "bold", color: "#475569", borderRadius: "8px" },
             "& .MuiPaginationItem-root.Mui-selected": { bgcolor: "#2563eb", color: "#ffffff", "&:hover": { bgcolor: "#1d4ed8" } }
           }}
         />

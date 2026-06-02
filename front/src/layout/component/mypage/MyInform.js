@@ -271,7 +271,7 @@ const MyInform = () => {
       <Box sx={{ flexGrow: 1, px: 0 }}>
         {/* 전체 외부 스킨 화이트 융합 */}
         <Box sx={{ p: { xs: 2.5, md: 5 }, bgcolor: '#f8fafc', minHeight: '100vh' }}>
-          <Typography variant="h5" fontWeight="900" color="#0f172a" letterSpacing="-0.5px" mb={4}>
+          <Typography variant="h4" fontWeight="900" color="#0f172a" letterSpacing="-0.5px" mb={4} sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.25rem' }, textAlign: { xs: 'center', md: 'left' } }}>
             {isMember ? '배송 정보 관리 (회원)' : '배송 정보 관리 (차주)'}
           </Typography>
 
