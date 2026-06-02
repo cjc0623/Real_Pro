@@ -222,7 +222,7 @@ const MemberReport = () => {
                 alignItems={{ xs: 'flex-start', sm: 'center' }}
                 mb={1.5}
               >
-                <Typography variant="h4" fontWeight="900" color="#0f172a" letterSpacing="-0.5px" sx={{ textAlign: { xs: 'center', md: 'left' }, width: '100%' }}>
+                <Typography variant="h4" fontWeight="900" color="#0f172a" letterSpacing="-0.5px" sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.25rem' }, textAlign: { xs: 'center', md: 'left' }, width: '100%' }}>
                   신고 내역 관리
                 </Typography>
     
@@ -402,7 +402,7 @@ const MemberReport = () => {
         </>
       )}
 
-      <Box display="flex" justifyContent="center" mt={4}>
+      <Box display="flex" justifyContent="center" mt={6}>
         <Pagination
           count={Math.max(totalPages, 1)}
           page={page}
@@ -410,7 +410,7 @@ const MemberReport = () => {
           color="primary"
           size={isMobile ? "small" : "medium"}
           sx={{
-            "& .MuiPaginationItem-root": { fontWeight: "bold", color: "#475569" },
+            "& .MuiPaginationItem-root": { fontWeight: "bold", color: "#475569", borderRadius: "8px" },
             "& .MuiPaginationItem-root.Mui-selected": { bgcolor: "#2563eb", color: "#ffffff", "&:hover": { bgcolor: "#1d4ed8" } }
           }}
         />

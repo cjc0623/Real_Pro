@@ -19,11 +19,20 @@ export default function BottomNav({ isOwner, cargoId }) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
-  const allTabs = isOwner && cargoId
-    ? [...tabs, { label: '차량관리', icon: <BuildIcon />, path: `/mypage/vehicle/${cargoId}` }]
-    : tabs;
+  // 차주(isOwner) 계정일 경우, '리뷰' 탭의 경로를 
+  // 화주용(/mypage/review)이 아닌 받은 리뷰 관리 페이지(/mypage/review/received)로 변경합니다.
+  const baseTabs = tabs.map(tab => 
+    (tab.label === '리뷰' && isOwner) ? { ...tab, path: '/mypage/review/received' } : tab
+  );
 
-  const current = allTabs.findIndex(t => pathname.startsWith(t.path) && (t.path !== '/mypage' || pathname === '/mypage'));
+  const allTabs = isOwner && cargoId
+    ? [...baseTabs, { label: '차량관리', icon: <BuildIcon />, path: `/mypage/vehicle/${cargoId}` }]
+    : baseTabs;
+
+  // 경로 매칭 로직 개선: 가장 구체적인(긴) 경로가 우선적으로 매칭되도록 수정
+  const current = allTabs.reduce((bestIdx, tab, idx) => {
+    return pathname.startsWith(tab.path) && (bestIdx === -1 || tab.path.length > allTabs[bestIdx].path.length) ? idx : bestIdx;
+  }, -1);
 
   return (
     <Paper

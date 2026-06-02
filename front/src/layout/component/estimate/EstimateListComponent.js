@@ -400,7 +400,7 @@ const EstimateListComponent = () => {
         {renderMobileData(serverData.dtoList)}
       </Box>
 
-      <Box mt={2} display="flex" justifyContent="center" gap={1} sx={{ paddingBottom: 5 }}>
+      <Box mt={6} display="flex" justifyContent="center" gap={1} sx={{ pb: { xs: 15, md: 5 } }}>
         <PageComponent serverData={serverData} movePage={moveToList} />
       </Box>
 

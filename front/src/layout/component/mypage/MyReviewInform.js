@@ -21,7 +21,10 @@ import {
   Avatar,
   Snackbar,
   Alert,
+  Pagination,
 } from "@mui/material";
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 
@@ -83,7 +86,7 @@ const InfoRow = ({ label, value }) => (
     >
       {label}
     </Typography>
-    <Typography component="span" sx={{ fontSize: 13, fontWeight: 600 }}>
+    <Typography component="span" sx={{ fontSize: 13, fontWeight: 600, wordBreak: "break-all" }}>
       {value || "-"}
     </Typography>
   </Box>
@@ -118,6 +121,9 @@ const paginate = (data, { page, size }) => {
 };
 
 const MyReviewInform = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
   const [allReviews, setAllReviews] = useState([]);
   const [serverData, setServerData] = useState(initState);
   const [pageParams, setPageParams] = useState({ page: 1, size: 5 });
@@ -650,7 +656,7 @@ const MyReviewInform = () => {
         maxWidth: '100vw',
         boxSizing: 'border-box',
       }}>
-        <Typography variant="h4" fontWeight="900" color="#0f172a" mb={4} textAlign="left" sx={{ fontSize: { xs: '1.75rem', md: '2.25rem' } }}>
+        <Typography variant="h4" fontWeight="900" color="#0f172a" letterSpacing="-0.5px" mb={4} sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.25rem' }, textAlign: { xs: 'center', md: 'left' } }}>
           내 리뷰 관리
         </Typography>
 
@@ -664,8 +670,7 @@ const MyReviewInform = () => {
 
             <Box
               sx={{
-                mt: 4,
-                py: 1.5,
+                mt: 6,
                 display: "flex",
                 justifyContent: "center",
                 bgcolor: "transparent",
@@ -681,8 +686,8 @@ const MyReviewInform = () => {
       <Dialog open={openEditModal} onClose={handleCloseEditModal} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: "20px", p: 1, maxHeight: { xs: "82vh", sm: "85vh" }, display: "flex", flexDirection: "column" } }}>
         <DialogTitle sx={{ fontWeight: "bold", flexShrink: 0 }}>리뷰 수정</DialogTitle>
 
-        <DialogContent sx={{ overflowY: "auto", flex: "1 1 auto" }}>
-          <Box sx={{ display: 'flex', gap: 2, mb: 2, bgcolor: '#f8fafc', p: 1.5, borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+        <DialogContent sx={{ overflowY: "auto", overflowX: "hidden", flex: "1 1 auto" }}>
+          <Box sx={{ display: 'flex', gap: 2, mb: 2, bgcolor: '#f8fafc', p: 1.5, borderRadius: '12px', border: '1px solid #e2e8f0', flexWrap: 'wrap' }}>
             <Typography variant="body2" color="text.secondary">
               <strong>리뷰번호:</strong> {selectedReview?.reviewNo ?? "-"}
             </Typography>
@@ -813,7 +818,7 @@ const MyReviewInform = () => {
       >
         <DialogTitle sx={{ fontWeight: "bold", flexShrink: 0 }}>운전기사 상세 정보</DialogTitle>
 
-        <DialogContent sx={{ overflowY: "auto", flex: "1 1 auto" }}>
+        <DialogContent sx={{ overflowY: "auto", overflowX: "hidden", flex: "1 1 auto" }}>
           <DriverProfileCard
             title="운전기사 프로필"
             profileInfo={selectedDriverProfileInfo}
@@ -926,10 +931,18 @@ const MyReviewInform = () => {
               <Typography variant="body2" color="text.secondary" textAlign="center" py={3}>등록된 리뷰가 없습니다.</Typography>
             )}
             {pagedDriverReviews.length > 0 && (
-              <Box sx={{ mt: 3, display: "flex", justifyContent: "center", alignItems: "center", gap: 1 }}>
-                <Button size="small" variant="outlined" disabled={driverReviewPage <= 1} onClick={() => setDriverReviewPage((prev) => prev - 1)} sx={{ borderRadius: "8px", fontWeight: "bold" }}>이전</Button>
-                <Typography variant="body2" sx={{ mx: 1, fontWeight: "bold", color: "#475569" }}>{driverReviewPage} / {driverReviewTotalPage}</Typography>
-                <Button size="small" variant="outlined" disabled={driverReviewPage >= driverReviewTotalPage} onClick={() => setDriverReviewPage((prev) => prev + 1)} sx={{ borderRadius: "8px", fontWeight: "bold" }}>다음</Button>
+              <Box sx={{ mt: 6, display: "flex", justifyContent: "center" }}>
+                <Pagination
+                  count={driverReviewTotalPage}
+                  page={driverReviewPage}
+                  onChange={(_, value) => setDriverReviewPage(value)}
+                  color="primary"
+                  size={isMobile ? "small" : "medium"}
+                  sx={{
+                    "& .MuiPaginationItem-root": { fontWeight: "bold", color: "#475569", borderRadius: "8px" },
+                    "& .MuiPaginationItem-root.Mui-selected": { bgcolor: "#2563eb", color: "#ffffff", "&:hover": { bgcolor: "#1d4ed8" } }
+                  }}
+                />
               </Box>
             )}
           </Box>

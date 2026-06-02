@@ -65,7 +65,7 @@ const DeliveryPage = () => {
     };
 
     return (
-        <Box flexGrow={1} p={{ xs: 2.5, md: 5 }} sx={{ bgcolor: "#f8fafc", minHeight: "100vh" }}>
+        <Box flexGrow={1} p={{ xs: 2.5, md: 5 }} pb={{ xs: "120px", md: 5 }} sx={{ bgcolor: "#f8fafc", minHeight: "100vh" }}>
             <Box
                 display="flex"
                 flexDirection={{ xs: 'column', md: 'row' }}

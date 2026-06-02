@@ -34,9 +34,9 @@ const EditVehicleInform = () => {
   const [vehicles, setVehicles] = useState([]);
   const [open, setOpen] = useState(false);
   const [editingIndex, setEditingIndex] = useState(null);
-  const [weightOptions, setWeightOptions] = useState(['0.5톤','1톤','2톤','3톤','4톤','5톤이상']); 
-  const [loading, setLoading] = useState(false); 
-  
+  const [weightOptions, setWeightOptions] = useState(['0.5톤','1톤','2톤','3톤','4톤','5톤이상']);
+  const [loading, setLoading] = useState(false);
+
 
   const [formData, setFormData] = useState({
     no: null,
@@ -124,13 +124,13 @@ const EditVehicleInform = () => {
   const handleSave = async () => {
     const { no, name, weight, cargoNumber, image } = formData;
     if (!cargoId) { alert('접근 권한이 없습니다.'); return; }
-    
+
     // 신규 등록 시 이미지 필수 체크
     if (no === null && !image) {
       alert('차량 등록을 위해 차량 사진 업로드는 필수입니다.');
       return;
     }
-    
+
     if (!name || !weight || !cargoNumber) {
       alert('차량 이름, 적재 무게, 차량 번호를 모두 입력해주세요.');
       return;
@@ -143,7 +143,7 @@ const EditVehicleInform = () => {
         // [수정] 기존 데이터 수정
         const payload = { name, address: weight, weight, cargoNumber };
         await api.put(`/g2i4/cargo/update/${no}`, payload);
-        
+
         if (image) {
           const fd = new FormData();
           fd.append('image', image);
@@ -154,18 +154,18 @@ const EditVehicleInform = () => {
       } else {
         // [신규 등록] 통합 전송 (Multipart/Form-Data)
         const formDataPayload = new FormData();
-        
+
         const dto = {
           name,
           address: weight,
           weight,
           cargoNumber
         };
-        
+
         // 🚨 [에러 해결 핵심] Blob 생성 시 type을 명시적으로 'application/json'으로 지정
         const jsonBlob = new Blob([JSON.stringify(dto)], { type: "application/json" });
         formDataPayload.append('dto', jsonBlob);
-        
+
         // 이미지 파일 추가
         formDataPayload.append('image', image);
 
@@ -359,20 +359,20 @@ const EditVehicleInform = () => {
       <Modal open={open} onClose={handleClose}>
         <Box sx={{
           p: { xs: 3, md: 5 },
-          bgcolor: '#ffffff', 
+          bgcolor: '#ffffff',
           borderRadius: "24px", // 모달 바깥 모서리 대폭 곡률 추가
           boxShadow: "0 20px 50px rgba(15, 23, 42, 0.08)",
           width: '90%', maxWidth: 950,
-          mx: 'auto', mt: { xs: '5%', md: '6%' },  
+          mx: 'auto', mt: { xs: '5%', md: '6%' },
           position: 'relative',
-          maxHeight: '85vh',   
-          overflowY: 'auto'    
+          maxHeight: '85vh',
+          overflowY: 'auto'
         }}>
           <IconButton onClick={handleClose} sx={{ position: 'absolute', top: 16, right: 16, color: "#64748b", "&:hover": { bgcolor: "#f1f5f9" } }}>
             <CloseIcon />
           </IconButton>
           <Typography variant="h6" fontWeight="900" color="#0f172a" mb={4}>차량 정보 입력</Typography>
-          
+
           <Box display="flex" gap={4} flexDirection={{ xs: 'column', md: 'row' }}>
             <Box sx={{ flex: 1, bgcolor: '#f8fafc', aspectRatio: '5/3', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: "16px", border: "1px solid #e2e8f0", overflow: "hidden" }}>
               <img
@@ -381,11 +381,11 @@ const EditVehicleInform = () => {
                 style={{ width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
               />
             </Box>
-            
+
             <Box flex={1} display="flex" flexDirection="column" gap={2.5}>
               <TextField label="차량 이름 (예: 다마스)" value={formData.name} onChange={handleChange('name')} fullWidth sx={inputSkinedStyle} />
               <TextField label="차량 번호 (예: 12가 3456)" value={formData.cargoNumber} onChange={handleChange('cargoNumber')} fullWidth sx={inputSkinedStyle} />
-              
+
               <FormControl fullWidth sx={inputSkinedStyle}>
                 <InputLabel id="weight-label">적재 무게</InputLabel>
                 <Select labelId="weight-label" label="적재 무게" value={formData.weight} onChange={handleChange('weight')}>
@@ -394,14 +394,14 @@ const EditVehicleInform = () => {
                   ))}
                 </Select>
               </FormControl>
-              
+
               <Button variant="outlined" component="label" sx={{ borderRadius: "12px", py: 1.2, fontWeight: "bold", color: "#2563eb", borderColor: "#cbd5e1", "&:hover": { bgcolor: "#eff6ff" } }}>
                 차량 이미지 업로드
                 <input hidden accept="image/*" type="file" onChange={handleImageChange} />
               </Button>
             </Box>
           </Box>
-          
+
           <Box mt={5} display="flex" gap={2}>
             <Button fullWidth variant="contained" disableElevation onClick={handleSave} disabled={loading} sx={{ py: 1.5, borderRadius: "12px", fontWeight: "bold", bgcolor: "#2563eb", "&:hover": { bgcolor: "#1d4ed8" } }}>
               {loading ? '저장 중...' : '저장 (관리자 승인 대기)'}

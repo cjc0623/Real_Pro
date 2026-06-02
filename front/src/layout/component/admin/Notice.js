@@ -294,15 +294,15 @@ const Notice = () => {
       </TableContainer>
 
       {/* 하단 페이지네이션 구역 */}
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 6 }}>
         <Pagination
           count={totalPages}
           page={page + 1}
           onChange={handlePageChange}
           color="primary"
-          size="medium"
+          size={isMobile ? "small" : "medium"}
           sx={{
-            "& .MuiPaginationItem-root": { fontWeight: "bold", color: "#475569" },
+            "& .MuiPaginationItem-root": { fontWeight: "bold", color: "#475569", borderRadius: "8px" },
             "& .MuiPaginationItem-root.Mui-selected": { bgcolor: "#2563eb", color: "#ffffff", "&:hover": { bgcolor: "#1d4ed8" } }
           }}
         />

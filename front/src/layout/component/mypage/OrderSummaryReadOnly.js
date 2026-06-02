@@ -204,7 +204,8 @@ const OrderSummaryReadOnly = () => {
       sx={{
         minHeight: "100vh",
         bgcolor: "#fafafa",
-        py: { xs: 5, md: 7 },
+        pt: { xs: 5, md: 7 },
+        pb: { xs: 15, md: 7 }, // 모바일 하단 탭바에 버튼이 가려지지 않도록 아래쪽에 충분한 텀 추가
         px: { xs: 2, sm: 3 },
         display: "flex",
         flexDirection: "column",

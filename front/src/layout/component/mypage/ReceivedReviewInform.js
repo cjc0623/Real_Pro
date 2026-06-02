@@ -96,7 +96,7 @@ const InfoRow = ({ label, value }) => (
     >
       {label}
     </Typography>
-    <Typography component="span" sx={{ fontSize: 13, fontWeight: 600 }}>
+    <Typography component="span" sx={{ fontSize: 13, fontWeight: 600, wordBreak: "break-all" }}>
       {value || "-"}
     </Typography>
   </Box>
@@ -773,10 +773,10 @@ const ReceivedReviewInform = () => {
     return stats;
   }, [allReviews]);
   return (
-    <Box sx={{ bgcolor: "#f7f9fc", minHeight: "100vh", py: 6 }}>
+    <Box sx={{ bgcolor: "#f7f9fc", minHeight: "100vh", pt: 6, pb: { xs: 15, md: 6 } }}>
       <Container maxWidth="xl" disableGutters sx={{ px: { xs: 1, sm: 2 } }}>
-        <Typography variant="h5" fontWeight="bold" gutterBottom textAlign="center">
-          내가 받은 리뷰
+        <Typography variant="h4" fontWeight="900" color="#0f172a" letterSpacing="-0.5px" mb={4} sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.25rem' }, textAlign: { xs: 'center', md: 'left' } }}>
+           내가 받은 리뷰
         </Typography>
 
         <Box sx={{ mb: 4 }}>
@@ -1074,8 +1074,7 @@ const ReceivedReviewInform = () => {
 
             <Box
               sx={{
-                mt: 2,
-                py: 1.5,
+                mt: 6,
                 display: "flex",
                 justifyContent: "center",
                 bgcolor: "transparent",
@@ -1094,8 +1093,8 @@ const ReceivedReviewInform = () => {
         fullWidth
       >
         <DialogTitle>이미지 보기</DialogTitle>
-
-        <DialogContent sx={{ textAlign: "center" }}>
+        {/* 이미지 중앙 정렬 및 최소 높이 확보 */}
+        <DialogContent sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 2, minHeight: '200px' }}>
           {selectedImage && (
             <img
               src={`http://localhost:8080/${selectedImage}`}
