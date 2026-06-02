@@ -70,7 +70,7 @@ const EstimateListComponent = () => {
 
       if (!token) {
         alert("로그인이 필요합니다.");
-        navigate("/", { replace: true });
+        navigate("/login", { replace: true });
         return;
       }
 
@@ -96,7 +96,7 @@ const EstimateListComponent = () => {
 
         if (status === 401) {
           alert("로그인이 필요합니다.");
-          navigate("/", { replace: true });
+          navigate("/login", { replace: true });
         } else if (status === 403) {
           alert("권한이 없습니다.");
           navigate("/", { replace: true });

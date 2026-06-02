@@ -369,7 +369,14 @@ const QuickSearchPage = () => {
               <Button
                 fullWidth
                 variant="contained"
-                onClick={() => navigate("/estimatepage")}
+                onClick={() =>
+                  navigate("/estimatepage", {
+                    state: {
+                      startAddress: estimate.startAddress,
+                      endAddress: estimate.endAddress,
+                    },
+                  })
+                }
                 endIcon={<ArrowForward />}
                 sx={{
                   height: 52,

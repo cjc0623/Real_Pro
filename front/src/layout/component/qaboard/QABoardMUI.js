@@ -48,7 +48,7 @@ const SECURITY_SAFE_REGEX = /[^a-zA-Z0-9ㄱ-ㅎㅏ-ㅣ가-힣\s.,?!/]/g;
 
 const QABoardMUI = () => {
   const dispatch = useDispatch();
-  const { isAdmin, currentUserId, loginState } = useCustomLogin();
+  const { isAdmin, currentUserId, loginState, isLogin } = useCustomLogin();
 
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
@@ -445,28 +445,31 @@ const QABoardMUI = () => {
             },
           }}
         />
-        <Button
-          variant="contained"
-          onClick={() => setIsNewInquiryOpen(true)}
-          sx={{
-            flexShrink: 0,
-            minWidth: { xs: '100%', sm: 160 },
-            height: 48,
-            borderRadius: '10px',
-            backgroundColor: '#DC2626',
-            textTransform: 'none',
-            fontWeight: 700,
-            fontSize: '14px',
-            boxShadow: 'none',
-            whiteSpace: 'nowrap',
-            '&:hover': {
-              backgroundColor: '#B91C1C',
-              boxShadow: '0 4px 14px rgba(220,38,38,0.3)',
-            },
-          }}
-        >
-          새 문의 작성하기
-        </Button>
+        {/* 로그인한 사용자에게만 문의 작성 버튼 노출 */}
+        {isLogin && (
+          <Button
+            variant="contained"
+            onClick={() => setIsNewInquiryOpen(true)}
+            sx={{
+              flexShrink: 0,
+              minWidth: { xs: '100%', sm: 160 },
+              height: 48,
+              borderRadius: '10px',
+              backgroundColor: '#DC2626',
+              textTransform: 'none',
+              fontWeight: 700,
+              fontSize: '14px',
+              boxShadow: 'none',
+              whiteSpace: 'nowrap',
+              '&:hover': {
+                backgroundColor: '#B91C1C',
+                boxShadow: '0 4px 14px rgba(220,38,38,0.3)',
+              },
+            }}
+          >
+            새 문의 작성하기
+          </Button>
+        )}
       </Box>
 
       {/* ── Q&A 목록 ── */}
@@ -660,7 +663,7 @@ const QABoardMUI = () => {
           <p className="text-gray-400 text-sm mb-6">
             {searchTerm ? '검색 조건에 맞는 게시글이 없습니다.' : '첫 번째 질문을 작성해보세요!'}
           </p>
-          {!searchTerm && (
+          {!searchTerm && isLogin && (
             <Button
               variant="contained"
               onClick={() => setIsNewInquiryOpen(true)}

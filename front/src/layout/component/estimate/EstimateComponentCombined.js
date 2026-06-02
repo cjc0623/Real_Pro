@@ -6,6 +6,8 @@ import {
     Dialog, DialogActions, DialogContent,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import KakaoMapViewer from "./KakaoMapViewer";
 import { DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -13,7 +15,7 @@ import dayjs from "dayjs";
 import { postAdd, postSearchFeesBasic, postSearchFeesExtra } from "../../../api/estimateApi/estimateApi";
 import useCustomMove from "../../../hooks/useCustomMove";
 import { calculateDistanceBetweenAddresses } from "../common/calculateDistanceBetweenAddresses";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { isCurrentUserAdmin } from "../../../utils/jwtUtils";
 import { getCurrentUserInfo } from "../../../utils/jwtUtils";
@@ -56,14 +58,32 @@ const EstimateComponentCombined = () => {
     const [openCancelDialog, setOpenCancelDialog] = useState(false);
     const [openEstimateSend, setOpenEstimateSend] = useState(false);
     const [specialMenuOpen, setSpecialMenuOpen] = useState(false);
+    const [mapCollapsed, setMapCollapsed] = useState(false);
     const { moveToHome } = useCustomMove();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
+    /* 모바일·태블릿에서는 지도가 화면을 너무 차지하므로 기본적으로 접어둔다 */
+    useEffect(() => {
+        setMapCollapsed(isMobile);
+    }, [isMobile]);
     const navigate = useNavigate();
+    const location = useLocation();
     const { roles, email } = useSelector((state) => state.login);
     const authChecked = useRef(false);
     const isAdmin = isCurrentUserAdmin();
     const mapRef = useRef(null);
+
+    /* 간편조회 페이지에서 넘어온 출발지·도착지 주소를 초기 적용 */
+    useEffect(() => {
+        const { startAddress, endAddress } = location.state || {};
+        if (!startAddress && !endAddress) return;
+        setEstimate((prev) => ({
+            ...prev,
+            ...(startAddress ? { startAddress } : {}),
+            ...(endAddress ? { endAddress } : {}),
+        }));
+    }, [location.state]);
 
     useEffect(() => {
         if (authChecked.current) return;
@@ -72,7 +92,7 @@ const EstimateComponentCombined = () => {
         if (!token) {
             authChecked.current = true;
             alert("로그인이 필요합니다.");
-            navigate("/", { replace: true });
+            navigate("/login", { replace: true });
             return;
         }
 
@@ -173,11 +193,18 @@ const EstimateComponentCombined = () => {
                             sx={fieldSx}
                             InputProps={{
                                 readOnly: true,
+                                onClick: () => handleAddressSearch((addr) =>
+                                    setEstimate((prev) => ({ ...prev, startAddress: addr }))
+                                ),
+                                sx: { cursor: "pointer" },
                                 endAdornment: (
                                     <InputAdornment position="end">
-                                        <IconButton onClick={() => handleAddressSearch((addr) =>
-                                            setEstimate((prev) => ({ ...prev, startAddress: addr }))
-                                        )}>
+                                        <IconButton onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleAddressSearch((addr) =>
+                                                setEstimate((prev) => ({ ...prev, startAddress: addr }))
+                                            );
+                                        }}>
                                             <SearchIcon sx={{ fontSize: 20, color: "#9ca3af" }} />
                                         </IconButton>
                                     </InputAdornment>
@@ -193,11 +220,18 @@ const EstimateComponentCombined = () => {
                             sx={fieldSx}
                             InputProps={{
                                 readOnly: true,
+                                onClick: () => handleAddressSearch((addr) =>
+                                    setEstimate((prev) => ({ ...prev, endAddress: addr }))
+                                ),
+                                sx: { cursor: "pointer" },
                                 endAdornment: (
                                     <InputAdornment position="end">
-                                        <IconButton onClick={() => handleAddressSearch((addr) =>
-                                            setEstimate((prev) => ({ ...prev, endAddress: addr }))
-                                        )}>
+                                        <IconButton onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleAddressSearch((addr) =>
+                                                setEstimate((prev) => ({ ...prev, endAddress: addr }))
+                                            );
+                                        }}>
                                             <SearchIcon sx={{ fontSize: 20, color: "#9ca3af" }} />
                                         </IconButton>
                                     </InputAdornment>
@@ -361,9 +395,24 @@ const EstimateComponentCombined = () => {
 
                         {/* 경로 지도 카드 — 상단, 남은 높이 전부 채움 */}
                         <Box sx={{ ...cardSx, flex: 1, display: "flex", flexDirection: "column" }}>
-                            {/* 헤더: 제목 좌측, 초기화 우측 */}
-                            <div className="flex items-center justify-between mb-3">
-                                <p className="text-sm font-bold text-gray-900">경로 지도</p>
+                            {/* 헤더: 제목 좌측, 초기화 우측 — 접힌 경우 아래 여백 제거 */}
+                            <div className={`flex items-center justify-between ${isMobile && mapCollapsed ? "" : "mb-3"}`}>
+                                <div className="flex items-center gap-1">
+                                    <p className="text-sm font-bold text-gray-900">경로 지도</p>
+                                    {/* 모바일·태블릿에서만 지도 접기/펼치기 토글 노출 */}
+                                    {isMobile && (
+                                        <IconButton
+                                            size="small"
+                                            onClick={() => setMapCollapsed((v) => !v)}
+                                            aria-label={mapCollapsed ? "지도 펼치기" : "지도 접기"}
+                                            sx={{ p: 0.5 }}
+                                        >
+                                            {mapCollapsed
+                                                ? <ExpandMoreIcon sx={{ fontSize: 20, color: "#6b7280" }} />
+                                                : <ExpandLessIcon sx={{ fontSize: 20, color: "#6b7280" }} />}
+                                        </IconButton>
+                                    )}
+                                </div>
                                 <Button
                                     size="small"
                                     variant="outlined"
@@ -392,7 +441,14 @@ const EstimateComponentCombined = () => {
                                 </Button>
                             </div>
 
-                            <Box sx={{ flex: 1, minHeight: 300 }}>
+                            {/* 모바일·태블릿에서 접힌 경우 지도를 숨긴다 */}
+                            <Box
+                                sx={{
+                                    flex: 1,
+                                    minHeight: 300,
+                                    display: isMobile && mapCollapsed ? "none" : "block",
+                                }}
+                            >
                                 <KakaoMapViewer
                                     ref={mapRef}
                                     startAddress={estimate.startAddress}

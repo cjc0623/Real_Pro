@@ -22,16 +22,16 @@ const HeroSection = () => {
                       bg-gray-300/30 blur-3xl pointer-events-none" />
 
       {/* ── 메인 히어로 ── */}
-      <div className="relative z-10 max-w-7xl mx-auto px-6 flex flex-col lg:flex-row items-center min-h-[88vh] py-16 gap-8">
+      <div className="relative z-10 max-w-7xl mx-auto px-6 flex flex-col lg:flex-row items-center lg:min-h-[88vh] py-8 lg:py-16 gap-4 lg:gap-8">
 
         {/* 좌측: 텍스트 */}
-        <div className="w-full lg:w-1/2 flex flex-col justify-center order-2 lg:order-1 py-8">
-          <p className="text-red-600 font-bold text-sm tracking-[0.2em] uppercase mb-5">
+        <div className="w-full lg:w-1/2 flex flex-col justify-center order-2 lg:order-1 py-2 lg:py-8">
+          <p className="text-red-600 font-bold text-sm tracking-[0.2em] uppercase mb-3 lg:mb-5">
             First Road Platform
           </p>
 
           {/* 상단 뱃지/태그 */}
-          <div className="flex flex-nowrap gap-1.5 sm:gap-2 mb-6">
+          <div className="flex flex-nowrap gap-1.5 sm:gap-2 mb-4 lg:mb-6">
             <span className="inline-flex items-center gap-1 sm:gap-1.5 bg-gray-100 text-gray-600 font-semibold
                              whitespace-nowrap text-xs sm:text-sm px-2.5 sm:px-3.5 py-1.5 rounded-full border border-gray-200">
               <span className="text-red-500">✓</span> 실시간 견적
@@ -46,12 +46,12 @@ const HeroSection = () => {
             </span>
           </div>
 
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-black text-gray-900 leading-[1.1] mb-6 break-keep">
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-black text-gray-900 leading-[1.1] mb-4 lg:mb-6 break-keep">
             화물운송이<br />
             <span className="text-red-600">간편해집니다</span>
           </h1>
 
-          <p className="text-lg md:text-xl text-gray-500 mb-10 leading-relaxed break-keep max-w-md">
+          <p className="hidden lg:block text-lg md:text-xl text-gray-500 mb-6 lg:mb-10 leading-relaxed break-keep max-w-md">
             비용과 시간을 모두 아껴보세요.<br />
             퍼스트로드가 최적의 물류 솔루션을 제공합니다.
           </p>
@@ -81,7 +81,7 @@ const HeroSection = () => {
           <img
             src={truckImg}
             alt="퍼스트로드 트럭"
-            className="relative z-10 w-full max-w-[660px] h-auto object-contain drop-shadow-2xl scale-x-[-1]"
+            className="relative z-10 w-full max-w-[300px] sm:max-w-[440px] lg:max-w-[660px] h-auto object-contain drop-shadow-2xl scale-x-[-1]"
           />
         </div>
       </div>

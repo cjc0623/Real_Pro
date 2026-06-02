@@ -239,7 +239,7 @@ const BulletinBoard = () => {
 
                     {/* 제목: 항상 표시 */}
                     <td className="px-3 sm:px-4 py-4 sm:py-5">
-                      <div className="flex items-start sm:items-center gap-2 sm:gap-3">
+                      <div className="flex items-center gap-2 sm:gap-3">
                         <CategoryBadge category={notice.category} />
                         <span className="text-gray-800 font-medium text-xs sm:text-sm leading-snug break-keep">
                           {cleanTitle(notice.title)}
