@@ -225,7 +225,7 @@ const EditVehicleInform = () => {
   const THUMB_HEIGHT = { xs: 160, sm: 190 };    // 썸네일 영역 고정 높이
 
   return (
-    <Box sx={{ p: { xs: 2.5, sm: 4, md: 5 }, pl: { xs: 2, sm: 4, md: 6, lg: 10 }, pr: { xs: 2, sm: 4, md: 6, lg: 10 }, bgcolor: '#f8fafc', minHeight: '100vh', pb: { xs: "100px", md: 5 } }}>
+    <Box sx={{ p: { xs: 2.5, sm: 4, md: 5 }, pl: { xs: 2, sm: 4, md: 6, lg: 10 }, pr: { xs: 2, sm: 4, md: 6, lg: 10 }, bgcolor: '#f8fafc', minHeight: { xs: 'calc(100vh - 64px)', md: 'calc(100vh - 80px)' }, pb: { xs: "100px", md: 5 }, width: '100%', maxWidth: '100%', minWidth: 0, overflowX: 'hidden', boxSizing: 'border-box' }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={5} flexDirection="row" gap={1}>
         <Typography variant="h4" fontWeight="900" color="#0f172a" textAlign="left" sx={{ fontSize: { xs: '1.25rem', sm: '1.75rem', md: '2.25rem' }, whiteSpace: 'nowrap' }}>
           내 차량 관리
