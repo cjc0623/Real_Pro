@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Box, Typography, Card, CardContent, CardMedia, Button, Grid, Chip, Divider, Paper, Stack, Pagination } from '@mui/material';
+import { Box, Typography, Button, Chip, Divider, Paper, Stack, Pagination } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 
@@ -25,6 +25,11 @@ const toPreviewUrl = (p) => {
 const AdminCargoApproval = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  // 🟢 EditVehicleInform.js와 동일한 카드 치수 정의
+  const CARD_WIDTH = { xs: '100%', sm: 300 };
+  const CARD_HEIGHT = { xs: 400, sm: 420 };
+  const THUMB_HEIGHT = { xs: 160, sm: 190 };
 
   const [pendingList, setPendingList] = useState([]);
 
@@ -91,76 +96,95 @@ const AdminCargoApproval = () => {
           </Typography>
         </Paper>
       ) : (
-        /* 🚨 [반응형 분기 정렬 핵심] 모바일(xs) 환경에서 1열일 때는 center(중앙), 태블릿(sm) 이상부터는 flex-start(왼쪽 정렬) */
-        <Grid container spacing={{ xs: 2.5, sm: 3, md: 4 }} justifyContent={{ xs: 'center', sm: 'flex-start' }}>
+        /* 🟢 Grid 대신 flexWrap을 사용하여 EditVehicleInform과 동일한 정렬 방식 적용 */
+        <Box sx={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: { xs: 3, md: 4 },
+          justifyContent: { xs: 'center', sm: 'flex-start' },
+        }}>
           {pendingList.map((cargo) => (
-            <Grid item xs={12} sm={6} lg={4} key={cargo.cargoNo} display="flex" sx={{ maxWidth: { xs: '450px', sm: '100%' } }}> 
-              <Card sx={{
+            <Paper key={cargo.cargoNo} elevation={0} sx={{
+              width: CARD_WIDTH,
+              maxWidth: { xs: 420, sm: 'none' },
+              height: CARD_HEIGHT,
+              flexShrink: 0,
+              p: 3,
+              borderRadius: "20px",
+              backgroundColor: "#ffffff",
+              border: '1px solid #f1f5f9',
+              boxShadow: "0 4px 25px rgba(0, 0, 0, 0.02)",
+              display: 'flex',
+              flexDirection: 'column',
+              boxSizing: 'border-box',
+              overflow: 'hidden',
+              transition: 'transform 0.2s',
+              '&:hover': { transform: 'translateY(-3px)' }
+            }}>
+              {/* 썸네일 영역 */}
+              <Box sx={{
                 width: '100%',
-                display: 'flex',
-                flexDirection: 'column', 
-                boxShadow: '0 8px 30px rgba(0, 0, 0, 0.02)',
-                border: "1px solid #f1f5f9",
-                borderRadius: "20px", 
-                backgroundColor: "#ffffff",
+                height: THUMB_HEIGHT,
+                bgcolor: '#f8fafc',
+                borderRadius: "14px",
+                border: "1px solid #e2e8f0",
                 overflow: 'hidden',
-                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 12px 35px rgba(0, 0, 0, 0.05)' }
+                flexShrink: 0
               }}>
-                <CardMedia
-                  component="img"
-                  image={toPreviewUrl(cargo.cargoImage)}
+                <img
+                  src={toPreviewUrl(cargo.cargoImage)}
                   alt={cargo.cargoName}
-                  sx={{ 
-                    height: 200, 
-                    width: '100%',
-                    objectFit: 'cover', 
-                    bgcolor: '#f8fafc', 
-                    borderBottom: "1px solid #f1f5f9" 
-                  }}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                 />
-                
-                <CardContent sx={{ 
-                  p: { xs: 2.5, sm: 3 }, 
-                  flexGrow: 1, 
-                  display: 'flex', 
-                  flexDirection: 'column', 
-                  justifyContent: 'space-between' 
-                }}>
-                  <Box>
-                    <Box display="flex" justifyContent="space-between" alignItems="center" mb={2.5} gap={1}>
-                      <Typography variant="h6" fontWeight="800" color="#334155" sx={{ fontSize: { xs: '1rem', md: '1.15rem' }, wordBreak: 'break-word', letterSpacing: "-0.3px" }}>
-                        {cargo.cargoName}
-                      </Typography>
-                      <Chip label="승인 대기" size="small" sx={{ fontWeight: 'bold', fontSize: "0.75rem", borderRadius: '8px', bgcolor: '#fff7ed', color: '#ea580c', flexShrink: 0 }} />
-                    </Box>
+              </Box>
 
-                    <Stack spacing={1.2} mb={3.5}>
-                      <Typography variant="body2" color="#64748b">
-                        <strong style={{ color: "#334155" }}>차량 번호:</strong> {cargo.cargoNumber || '미기재'}
-                      </Typography>
-                      <Typography variant="body2" color="#64748b">
-                        <strong style={{ color: "#334155" }}>적재 무게:</strong> {cargo.cargoCapacity}
-                      </Typography>
-                      <Typography variant="body2" color="#64748b">
-                        <strong style={{ color: "#334155" }}>차주 ID:</strong> <span style={{ color: "#2563eb", fontWeight: 600 }}>{cargo.ownerId}</span>
-                      </Typography>
-                    </Stack>
+              {/* 콘텐츠 영역 */}
+              <Box sx={{ textAlign: 'center', mt: 2, flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0 }}>
+                <Box sx={{ width: '100%', minWidth: 0 }}>
+                  <Box display="flex" justifyContent="center" alignItems="center" gap={1} mb={1} flexWrap="nowrap" sx={{ width: '100%', minWidth: 0 }}>
+                    <Typography
+                      fontWeight="800"
+                      variant="h6"
+                      color="#334155"
+                      sx={{
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        flexShrink: 1
+                      }}
+                    >
+                      {cargo.cargoName}
+                    </Typography>
+                    <Chip label="대기" size="small" sx={{ fontWeight: 'bold', borderRadius: '8px', bgcolor: '#fff7ed', color: '#ea580c', flexShrink: 0 }} />
                   </Box>
+                  <Typography color="textSecondary" fontSize="0.9rem" fontWeight="500" noWrap>{cargo.cargoCapacity}</Typography>
+                  <Typography
+                    variant="body2"
+                    color="#2563eb"
+                    fontWeight="700"
+                    mt={0.8}
+                    sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                  >
+                    번호: {cargo.cargoNumber || '미기재'}
+                  </Typography>
+                  <Typography variant="caption" display="block" color="#64748b" mt={0.5}>
+                    차주 ID: <b>{cargo.ownerId}</b>
+                  </Typography>
+                </Box>
+              </Box>
 
-                  <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={1.5} mt="auto">
-                    <Button variant="contained" disableElevation fullWidth sx={{ borderRadius: "12px", py: 1.2, fontWeight: 'bold', bgcolor: "#2563eb", "&:hover": { bgcolor: "#1d4ed8" } }} onClick={() => handleApprove(cargo.cargoNo)}>
-                      승인
-                    </Button>
-                    <Button variant="outlined" fullWidth sx={{ borderRadius: "12px", py: 1.2, fontWeight: 'bold', borderColor: "#fee2e2", color: "#ef4444", bgcolor: "#fff5f5", "&:hover": { bgcolor: "#ffe4e4", borderColor: "#fca5a5" } }} onClick={() => handleReject(cargo.cargoNo)}>
-                      거절
-                    </Button>
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
+              {/* 하단 버튼 영역 고정 */}
+              <Box sx={{ mt: 'auto', pt: 3 }} display="flex" gap={1.2}>
+                <Button fullWidth variant="contained" disableElevation onClick={() => handleApprove(cargo.cargoNo)} sx={{ borderRadius: "12px", py: 1.2, fontWeight: 'bold', fontSize: { xs: '0.85rem', sm: '1rem' }, bgcolor: "#2563eb", "&:hover": { bgcolor: "#1d4ed8" } }}>
+                  승인
+                </Button>
+                <Button fullWidth variant="outlined" color="error" onClick={() => handleReject(cargo.cargoNo)} sx={{ borderRadius: "12px", py: 1.2, fontWeight: 'bold', fontSize: { xs: '0.85rem', sm: '1rem' }, borderColor: "#fee2e2", bgcolor: "#fff5f5", "&:hover": { bgcolor: "#ffe4e4" } }}>
+                  거절
+                </Button>
+              </Box>
+            </Paper>
           ))}
-        </Grid>
+        </Box>
       )}
 
       {/* 하단 페이지네이션 (다른 관리자 메뉴와 디자인 통일) */}
