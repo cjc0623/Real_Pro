@@ -121,7 +121,8 @@ const HomePage = () => {
       try {
         // 우선 전체 승인 차량 API 호출 시도
         const res = await axios.get(`${API_SERVER_HOST}/g2i4/cargo/all/approved`);
-        cargoList = res.data || [];
+        // 🚨 [필터링 강화] 서버에서 내려온 데이터 중 status가 'APPROVED'인 것만 추출
+        cargoList = (res.data || []).filter(c => c.status === 'APPROVED');
       } catch (e) {
         // 만약 위 API가 백엔드에 없어서 에러가 나면, 기존 API에서 APPROVED만 직접 걸러냄
         const res = await axios.get(`${API_SERVER_HOST}/g2i4/cargo/list/test2`);

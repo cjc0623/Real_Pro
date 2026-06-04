@@ -52,6 +52,7 @@ export default function BottomNav({ isOwner, cargoId }) {
         value={current}
         onChange={(_, idx) => navigate(allTabs[idx].path)}
         showLabels
+        sx={{ height: 64, backgroundColor: '#f9fafb' }}
       >
         {allTabs.map(tab => (
           <BottomNavigationAction
@@ -59,9 +60,22 @@ export default function BottomNav({ isOwner, cargoId }) {
             label={tab.label}
             icon={tab.icon}
             sx={{
-              '&.Mui-selected': { color: '#c0392b' },
+              '&.Mui-selected': { 
+                color: '#c0392b',
+                '& .MuiBottomNavigationAction-label': {
+                  fontSize: '0.7rem',
+                  fontWeight: 'bold'
+                }
+              },
               minWidth: 0,
-              fontSize: '0.65rem',
+              px: 0, 
+              '& .MuiBottomNavigationAction-label': { 
+                fontSize: '0.7rem',
+                whiteSpace: 'nowrap', 
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                letterSpacing: '-0.5px' 
+              },
             }}
           />
         ))}
