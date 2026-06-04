@@ -13,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.giproject.dto.member.ShipperProfileCardDTO;
 import com.giproject.entity.cargo.CargoOwner;
 import com.giproject.entity.member.Member;
 import com.giproject.repository.cargo.CargoOwnerRepository;
@@ -104,6 +105,27 @@ public class UserInfoController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "NOT_FOUND"));
     }
 
+
+    @GetMapping("/shipper-profile/{memId}")
+    public ResponseEntity<?> getShipperProfile(@PathVariable("memId") String memId) {
+        Member m = memberRepository.findById(memId).orElse(null);
+        if (m == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "NOT_FOUND"));
+        }
+
+        String fileName = m.getProfileImage();
+        String webPath = (fileName == null || fileName.isBlank()) ? null
+                : "/g2i4/uploads/user_profile/" + fileName;
+
+        ShipperProfileCardDTO dto = ShipperProfileCardDTO.builder()
+                .memberId(m.getMemId())
+                .memberName(m.getMemName())
+                .memberProfileImage(webPath)
+                .createdAt(m.getMemCreateIdDateTime())
+                .build();
+
+        return ResponseEntity.ok(dto);
+    }
 
     @PostMapping("/upload-image")
     public ResponseEntity<?> uploadProfileImage(

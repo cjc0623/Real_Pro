@@ -128,6 +128,19 @@ export const getDriverDetail = async (cargoId) => {
   });
   return res.data;
 };
+// 특정 화주(memId)가 작성한 리뷰 목록 - 화주 프로필에서 확인
+export const getShipperWrittenReviews = async (memId) => {
+  const token = sessionStorage.getItem("accessToken");
+
+  const res = await axios.get(`${prefix}/member/${encodeURIComponent(memId)}`, {
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+
+  return res.data;
+};
+
 export const getReviewByReviewNo = async (reviewNo) => {
   const token = sessionStorage.getItem("accessToken");
 

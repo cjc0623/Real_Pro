@@ -18,6 +18,7 @@ import useCustomMove from "../../../hooks/useCustomMove";
 import { useEffect, useState } from "react";
 import { getEstimateList, postAccepted, postRejected } from "../../../api/estimateApi/estimateApi";
 import PageComponent from "../common/PageComponent";
+import ShipperProfileModal from "../common/ShipperProfileModal";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import dayjs from "dayjs";
@@ -45,6 +46,11 @@ const EstimateListComponent = () => {
   const [selectedEno, setSelectedEno] = useState(null);
   const [accepting, setAccepting] = useState(false);
   const [expandedSet, setExpandedSet] = useState(new Set()); // 모바일 아코디언 펼침 상태
+  const [shipperModalMemId, setShipperModalMemId] = useState(null); // 화주 프로필 모달
+
+  const openShipperProfile = (memId) => {
+    if (memId) setShipperModalMemId(memId);
+  };
 
   const toggleExpand = (eno) => {
     setExpandedSet((prev) => {
@@ -190,7 +196,7 @@ const EstimateListComponent = () => {
         <TableRow>
           {/* 수정: 차주만 수락/거절 컬럼 포함 */}
           <TableCell
-            colSpan={canAcceptOrReject ? 9 : 7}
+            colSpan={canAcceptOrReject ? 10 : 8}
             align="center"
             sx={{ border: 0, py: 10 }}
           >
@@ -219,6 +225,23 @@ const EstimateListComponent = () => {
         </TableCell>
         <TableCell align="center" sx={bodyCellSx}>{estimate.cargoType}</TableCell>
         <TableCell align="center" sx={bodyCellSx}>{estimate.totalCost}</TableCell>
+        <TableCell align="center" sx={bodyCellSx}>
+          {estimate.memId ? (
+            <Box
+              component="span"
+              onClick={() => openShipperProfile(estimate.memId)}
+              sx={{
+                cursor: 'pointer',
+                color: '#2563eb',
+                fontWeight: 600,
+                textDecoration: 'underline',
+                '&:hover': { color: '#1d4ed8' },
+              }}
+            >
+              {estimate.memId}
+            </Box>
+          ) : '-'}
+        </TableCell>
 
         {/* 수정: 차주만 수락/거절 버튼 표시, 화주/관리자는 숨김 */}
         {canAcceptOrReject && (
@@ -326,6 +349,22 @@ const EstimateListComponent = () => {
                     </div>
                   ))}
 
+                  {/* 의뢰자(화주) — 클릭 시 프로필 */}
+                  <div className="flex items-center justify-between py-1.5 text-sm border-b border-gray-50 last:border-0">
+                    <span className="text-gray-400">의뢰자</span>
+                    {estimate.memId ? (
+                      <button
+                        type="button"
+                        onClick={() => openShipperProfile(estimate.memId)}
+                        className="text-blue-600 font-semibold underline text-right break-keep"
+                      >
+                        {estimate.memId}
+                      </button>
+                    ) : (
+                      <span className="text-gray-700 font-medium text-right">-</span>
+                    )}
+                  </div>
+
                   {/* 차주: 수락 / 거절 */}
                   {canAcceptOrReject && (
                     <div className="flex gap-2 mt-3">
@@ -368,7 +407,7 @@ const EstimateListComponent = () => {
           WebkitOverflowScrolling: 'touch',
         }}
       >
-        <Table sx={{ minWidth: canAcceptOrReject ? 860 : 680 }}>
+        <Table sx={{ minWidth: canAcceptOrReject ? 960 : 780 }}>
           <TableHead>
             <TableRow>
               <TableCell align="center" sx={headCellSx}>견적번호</TableCell>
@@ -378,6 +417,7 @@ const EstimateListComponent = () => {
               <TableCell align="center" sx={headCellSx}>출발 날짜</TableCell>
               <TableCell align="center" sx={headCellSx}>화물 종류</TableCell>
               <TableCell align="center" sx={headCellSx}>금액</TableCell>
+              <TableCell align="center" sx={headCellSx}>의뢰자</TableCell>
 
               {/* 수정: 차주만 수락/거절 헤더 표시 */}
               {canAcceptOrReject && (
@@ -424,6 +464,12 @@ const EstimateListComponent = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <ShipperProfileModal
+        open={!!shipperModalMemId}
+        memId={shipperModalMemId}
+        onClose={() => setShipperModalMemId(null)}
+      />
     </>
   );
 };

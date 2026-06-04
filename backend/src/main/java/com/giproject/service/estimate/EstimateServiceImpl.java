@@ -172,7 +172,10 @@ public class EstimateServiceImpl implements EstimateService {
                     dto.setMatchingNo(matchingNo);
                     if (matchingNo != null) {
                         matchingRepository.findById(matchingNo).ifPresent(m -> {
-                            if (m.getCargoOwner() != null) dto.setDriverName(m.getCargoOwner().getCargoName());
+                            if (m.getCargoOwner() != null) {
+                                dto.setDriverName(m.getCargoOwner().getCargoName());
+                                dto.setCargoId(m.getCargoOwner().getCargoId());
+                            }
                         });
                     }
                     return dto;
@@ -192,6 +195,7 @@ public class EstimateServiceImpl implements EstimateService {
                             dto.setPaymentNo(p.getPaymentNo());
                             if (p.getOrderSheet() != null && p.getOrderSheet().getMatching() != null && p.getOrderSheet().getMatching().getCargoOwner() != null) {
                                 dto.setDriverName(p.getOrderSheet().getMatching().getCargoOwner().getCargoName());
+                                dto.setCargoId(p.getOrderSheet().getMatching().getCargoOwner().getCargoId());
                             }
                             deliveryRepository.findByPayment_PaymentNo(p.getPaymentNo()).ifPresent(d -> {
                                 dto.setDeliveryStatus(d.getStatus());

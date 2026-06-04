@@ -17,6 +17,15 @@ export const getUserInfo = async () => {
   return res.data; // { userType, data }
 };
 
+// 화주 공개 프로필 카드 (이름/프로필이미지/가입일)
+export const getShipperProfileCard = async (memId) => {
+  const res = await axios.get(`${prefix}/user/shipper-profile/${encodeURIComponent(memId)}`, {
+    headers: authHeaders(),
+    withCredentials: true,
+  });
+  return res.data; // { memberId, memberName, memberProfileImage, createdAt }
+};
+
 // 주소 변경 (userType에 따라 엔드포인트 분기)
 export const putUserAddress = async (userType, id, { address, postcode }) => {
   const base = (userType === "CARGO_OWNER" || userType === "DRIVER") ? "cargo" : "member";

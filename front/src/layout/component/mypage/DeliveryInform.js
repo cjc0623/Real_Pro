@@ -14,6 +14,7 @@ import { simplifyBatch } from "../../../api/addressApi/addressApi";
 import axios from 'axios';
 import ReportComponent from './ReportComponent';
 import { createReview, getReviewExistsByDeliveryNo } from '../../../api/reviewApi/reviewApi';
+import DriverProfileModal from '../common/DriverProfileModal';
 
 
 // ===== 공통 API 베이스/인스턴스 =====
@@ -207,6 +208,12 @@ const DeliveryInfoPage = () => {
   // 배송 시작 모달
   const [openStartModal, setOpenStartModal] = useState(false);
   const [selectedStartMatchingNo, setSelectedStartMatchingNo] = useState(null);
+
+  // 차주 프로필 모달 (화주가 승인 전 확인)
+  const [driverModalCargoId, setDriverModalCargoId] = useState(null);
+  const openDriverProfile = (cargoId) => {
+    if (cargoId) setDriverModalCargoId(cargoId);
+  };
 
   //Review Modal State
   const [openReviewModal, setOpenReviewModal] = useState(false);
@@ -521,7 +528,18 @@ const DeliveryInfoPage = () => {
                   <strong>{type === 'completed' ? '완료일' : '시작일'}:</strong> {formatDateHour(type === 'completed' ? doneAt : item.startTime)}
                 </Typography>
                 <Typography variant="body2" sx={{ color: '#334155' }}>
-                  <strong>{isOwner ? '의뢰자' : '기사님'}:</strong> {isOwner ? (item.memName || '-') : (item.driverName ?? '-')}
+                  <strong>{isOwner ? '의뢰자' : '기사님'}:</strong>{' '}
+                  {isOwner ? (item.memName || '-') : (
+                    item.cargoId ? (
+                      <Box
+                        component="span"
+                        onClick={() => openDriverProfile(item.cargoId)}
+                        sx={{ cursor: 'pointer', color: '#2563eb', fontWeight: 600, textDecoration: 'underline' }}
+                      >
+                        {item.driverName ?? '-'}
+                      </Box>
+                    ) : (item.driverName ?? '-')
+                  )}
                 </Typography>
               </Box>
 
@@ -647,7 +665,17 @@ const DeliveryInfoPage = () => {
             <span style={{ whiteSpace: 'nowrap' }}>{formatDateHour(item.startTime)}</span>
           </TableCell>
           {!isOwner && (
-            <TableCell align="center" sx={{ color: '#334155', fontWeight: 500 }}>{item.driverName ?? '-'}</TableCell>
+            <TableCell align="center" sx={{ color: '#334155', fontWeight: 500 }}>
+              {item.cargoId ? (
+                <Box
+                  component="span"
+                  onClick={() => openDriverProfile(item.cargoId)}
+                  sx={{ cursor: 'pointer', color: '#2563eb', fontWeight: 600, textDecoration: 'underline', '&:hover': { color: '#1d4ed8' } }}
+                >
+                  {item.driverName ?? '-'}
+                </Box>
+              ) : (item.driverName ?? '-')}
+            </TableCell>
           )}
           <TableCell align="center">{rightCell}</TableCell>
         </TableRow>
@@ -1070,6 +1098,12 @@ const DeliveryInfoPage = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <DriverProfileModal
+        open={!!driverModalCargoId}
+        cargoId={driverModalCargoId}
+        onClose={() => setDriverModalCargoId(null)}
+      />
     </Box>
   );
 };

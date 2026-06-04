@@ -38,6 +38,7 @@ public interface MatchingService {
 	    MatchingDTO dto = MatchingDTO.builder()
 	            .matchNo(matching.getMatchingNo())
 	            .eno(matching.getEstimate().getEno())
+	            .memId(e.getMember() != null ? e.getMember().getMemId() : null) // 화주 아이디
 	            .isAccepted(matching.isAccepted())
 	            .acceptedTime(matching.getAcceptedTime())
 	            .route(makeShortRoute(e.getStartAddress(), e.getEndAddress()))
