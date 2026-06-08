@@ -3,9 +3,12 @@ import {
     TextField, Button, Stack, Select, MenuItem,
     FormControl, InputLabel, OutlinedInput, Checkbox, ListItemText,
     Box, IconButton, InputAdornment, useMediaQuery, useTheme,
-    Dialog, DialogActions, DialogContent,
+    Dialog, DialogActions, DialogContent, FormControlLabel, Chip,
 } from "@mui/material";
+import DriverSearchSelect from "../common/DriverSearchSelect";
+import { postDirectRequest } from "../../../api/directRequestApi/directRequestApi";
 import SearchIcon from "@mui/icons-material/Search";
+import CloseIcon from "@mui/icons-material/Close";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import KakaoMapViewer from "./KakaoMapViewer";
@@ -57,6 +60,20 @@ const EstimateComponentCombined = () => {
     const [distanceCost, setDistanceCost] = useState(0);
     const [openCancelDialog, setOpenCancelDialog] = useState(false);
     const [openEstimateSend, setOpenEstimateSend] = useState(false);
+    const [directMode, setDirectMode] = useState(false);          // 직접요청 모드
+    const [selectedDrivers, setSelectedDrivers] = useState([]);   // 다중 선택: [{ id, name }]
+    const [driverModalOpen, setDriverModalOpen] = useState(false); // 차주 선택 모달
+
+    const toggleDriver = (id, name) =>
+        setSelectedDrivers((prev) => {
+            if (prev.some((d) => d.id === id)) return prev.filter((d) => d.id !== id);
+            if (prev.length >= 5) {
+                alert("직접요청은 한 번에 최대 5명까지 선택할 수 있습니다.");
+                return prev;
+            }
+            return [...prev, { id, name }];
+        });
+    const [submitting, setSubmitting] = useState(false);
     const [specialMenuOpen, setSpecialMenuOpen] = useState(false);
     const [mapCollapsed, setMapCollapsed] = useState(false);
     const { moveToHome } = useCustomMove();
@@ -147,12 +164,34 @@ const EstimateComponentCombined = () => {
         }
     };
 
-    const handleClickAdd = () => {
+    const handleClickAdd = async () => {
         if (!estimate.distanceKm) { alert("예상거리를 입력해주세요"); setOpenEstimateSend(false); return; }
         if (!estimate.cargoType) { alert("화물종류를 입력해주세요"); setOpenEstimateSend(false); return; }
         if (!estimate.cargoWeight) { alert("화물무게를 입력해주세요"); setOpenEstimateSend(false); return; }
+        if (directMode && selectedDrivers.length === 0) { alert("직접요청할 차주를 1명 이상 선택해주세요"); setOpenEstimateSend(false); return; }
+
         const estimateToSend = { ...estimate, startTime: estimate.startTime.format("YYYY-MM-DDTHH:mm:ss") };
-        postAdd(estimateToSend).then(() => { alert("견적서 제출이 완료되었습니다."); moveToHome(); window.scrollTo({ top: 0, left: 0 }); });
+
+        try {
+            setSubmitting(true);
+            if (directMode) {
+                await postDirectRequest(estimateToSend, selectedDrivers.map((d) => d.id));
+                alert(`${selectedDrivers.length}명의 차주에게 직접요청을 보냈습니다.`);
+                window.scrollTo({ top: 0, left: 0 });
+                navigate("/mypage/direct-requests/sent");
+            } else {
+                await postAdd(estimateToSend);
+                alert("견적서 제출이 완료되었습니다.");
+                window.scrollTo({ top: 0, left: 0 });
+                navigate("/estimatepage/list");
+            }
+        } catch (e) {
+            const msg = (e?.response && typeof e.response.data === "string") ? e.response.data : "제출 중 오류가 발생했습니다.";
+            alert(msg);
+        } finally {
+            setSubmitting(false);
+            setOpenEstimateSend(false);
+        }
     };
 
     const handleChangeEstimate = (e) => setEstimate((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -341,9 +380,66 @@ const EstimateComponentCombined = () => {
                             </div>
                         )}
 
+                        {/* ── 직접 요청하기 ── */}
+                        <Box sx={{ borderTop: "1px solid #f3f4f6", pt: 1.5 }}>
+                            <FormControlLabel
+                                control={
+                                    <Checkbox
+                                        checked={directMode}
+                                        onChange={(e) => {
+                                            setDirectMode(e.target.checked);
+                                            if (!e.target.checked) {
+                                                setSelectedDrivers([]);
+                                            }
+                                        }}
+                                        sx={{ color: "#2563eb", "&.Mui-checked": { color: "#2563eb" } }}
+                                    />
+                                }
+                                label={
+                                    <span className="text-sm font-semibold text-gray-800">
+                                        특정 차주에게 직접 요청하기
+                                    </span>
+                                }
+                            />
+                            {directMode && (
+                                <Box sx={{ mt: 1 }}>
+                                    <p className="text-xs text-gray-400 mb-2">
+                                        프로필·평점·리뷰를 확인하고 요청할 차주를 선택하세요. (최대 5명)
+                                    </p>
+                                    <Button
+                                        fullWidth
+                                        variant="outlined"
+                                        onClick={() => setDriverModalOpen(true)}
+                                        endIcon={<SearchIcon sx={{ fontSize: 18 }} />}
+                                        sx={{
+                                            borderRadius: "10px", textTransform: "none", fontWeight: 600,
+                                            justifyContent: "space-between", px: 2, py: 1.1,
+                                            borderColor: "#cbd5e1", color: "#334155",
+                                            "&:hover": { borderColor: "#2563eb", bgcolor: "#f8fafc" },
+                                        }}
+                                    >
+                                        {selectedDrivers.length > 0 ? `차주 ${selectedDrivers.length}명 선택됨` : "차주 선택하기"}
+                                    </Button>
+                                    {selectedDrivers.length > 0 && (
+                                        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.6, mt: 1 }}>
+                                            {selectedDrivers.map((d) => (
+                                                <Chip
+                                                    key={d.id}
+                                                    label={d.name || d.id}
+                                                    size="small"
+                                                    onDelete={() => setSelectedDrivers((prev) => prev.filter((x) => x.id !== d.id))}
+                                                    sx={{ bgcolor: "#eff6ff", color: "#2563eb", fontWeight: 600 }}
+                                                />
+                                            ))}
+                                        </Box>
+                                    )}
+                                </Box>
+                            )}
+                        </Box>
+
                         {/* ── 하단 버튼 ── */}
                         <div className="flex gap-2 pt-2">
-                            {/* 견적서 제출 — 빨간 */}
+                            {/* 견적서 제출 / 직접요청 — 빨간 */}
                             <Button
                                 variant="contained"
                                 onClick={() => setOpenEstimateSend(true)}
@@ -364,7 +460,7 @@ const EstimateComponentCombined = () => {
                                     "&:disabled": { backgroundColor: "#e5e7eb", color: "#9ca3af" },
                                 }}
                             >
-                                견적서 제출
+                                {directMode ? "직접 요청 보내기" : "견적서 제출"}
                             </Button>
 
                             {/* 취소 — 아웃라인 */}
@@ -553,6 +649,41 @@ const EstimateComponentCombined = () => {
                 </DialogActions>
             </Dialog>
 
+            {/* ── 차주 선택 다이얼로그 ── */}
+            <Dialog
+                open={driverModalOpen}
+                onClose={() => setDriverModalOpen(false)}
+                fullWidth
+                maxWidth="sm"
+                PaperProps={{ sx: { borderRadius: "16px" } }}
+            >
+                <DialogContent sx={{ p: 3 }}>
+                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+                        <span className="text-lg font-bold text-gray-900">차주 선택 <span className="text-sm font-normal text-gray-400">(최대 5명)</span></span>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                            <span className="text-sm text-blue-600 font-semibold">{selectedDrivers.length}명 선택됨</span>
+                            <IconButton size="small" onClick={() => setDriverModalOpen(false)} aria-label="닫기">
+                                <CloseIcon sx={{ fontSize: 20, color: "#6b7280" }} />
+                            </IconButton>
+                        </Box>
+                    </Box>
+                    <DriverSearchSelect
+                        selectedIds={selectedDrivers.map((d) => d.id)}
+                        onToggle={toggleDriver}
+                    />
+                </DialogContent>
+                <DialogActions sx={{ px: 3, pb: 3 }}>
+                    <Button
+                        fullWidth
+                        variant="contained"
+                        onClick={() => setDriverModalOpen(false)}
+                        sx={{ borderRadius: "10px", textTransform: "none", fontWeight: 700, boxShadow: "none", bgcolor: "#2563eb", "&:hover": { bgcolor: "#1d4ed8" } }}
+                    >
+                        완료
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
             {/* ── 제출 다이얼로그 ── */}
             <Dialog
                 open={openEstimateSend}
@@ -560,7 +691,11 @@ const EstimateComponentCombined = () => {
                 PaperProps={{ sx: { width: 400, borderRadius: "16px", p: 1 } }}
             >
                 <DialogContent>
-                    <p className="text-lg font-bold text-gray-900 mb-1">견적을 제출하시겠습니까?</p>
+                    <p className="text-lg font-bold text-gray-900 mb-1">
+                        {directMode
+                            ? `선택한 차주 ${selectedDrivers.length}명에게 직접요청을 보내시겠습니까?`
+                            : "견적을 제출하시겠습니까?"}
+                    </p>
                     <p className="text-sm text-gray-400">
                         견적 내용과 틀리면 배송이 거절될 수 있습니다.
                     </p>
@@ -583,6 +718,7 @@ const EstimateComponentCombined = () => {
                     <Button
                         onClick={handleClickAdd}
                         variant="contained"
+                        disabled={submitting}
                         sx={{
                             borderRadius: "8px",
                             backgroundColor: "#DC2626",
@@ -590,6 +726,7 @@ const EstimateComponentCombined = () => {
                             fontWeight: 700,
                             boxShadow: "none",
                             "&:hover": { backgroundColor: "#B91C1C" },
+                            "&:disabled": { backgroundColor: "#e5e7eb", color: "#9ca3af" },
                         }}
                     >
                         확인

@@ -123,7 +123,11 @@ export const getDriverProfileCard = async (cargoId) => {
   return res.data;
 };
 export const getDriverDetail = async (cargoId) => {
+  const token = sessionStorage.getItem("accessToken");
   const res = await axios.get(`${prefix}/driver-detail/${cargoId}`, {
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
     withCredentials: true,
   });
   return res.data;

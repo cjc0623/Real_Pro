@@ -9,6 +9,8 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import RateReviewIcon from '@mui/icons-material/RateReview';
 import PersonIcon from '@mui/icons-material/Person';
 import BuildIcon from '@mui/icons-material/Build';
+import SendIcon from '@mui/icons-material/Send';
+import MoveToInboxIcon from '@mui/icons-material/MoveToInbox';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
 import { useMediaQuery, useTheme } from '@mui/material';
@@ -212,6 +214,17 @@ const Sidebar = () => {
               )}
             </NavLink>
             
+            <NavLink to={isOwner ? "/mypage/direct-requests/received" : "/mypage/direct-requests/sent"} style={navStyle}>
+              {({ isActive }) => (
+                <ListItemButton sx={isActive ? activeStyle : listItemStyle}>
+                  <ListItemIcon sx={{ minWidth: 40, color: '#64748b' }}>
+                    {isOwner ? <MoveToInboxIcon /> : <SendIcon />}
+                  </ListItemIcon>
+                  <ListItemText primary={isOwner ? "직접요청 수신함" : "보낸 직접요청"} primaryTypographyProps={{ fontWeight: 600, fontSize: '0.95rem' }} />
+                </ListItemButton>
+              )}
+            </NavLink>
+
             <NavLink to="/mypage/edit" style={navStyle}>
               {({ isActive }) => (
                 <ListItemButton sx={isActive ? activeStyle : listItemStyle}>

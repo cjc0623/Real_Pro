@@ -15,6 +15,7 @@ import axios from 'axios';
 import ReportComponent from './ReportComponent';
 import { createReview, getReviewExistsByDeliveryNo } from '../../../api/reviewApi/reviewApi';
 import DriverProfileModal from '../common/DriverProfileModal';
+import ShipperProfileModal from '../common/ShipperProfileModal';
 
 
 // ===== 공통 API 베이스/인스턴스 =====
@@ -213,6 +214,31 @@ const DeliveryInfoPage = () => {
   const [driverModalCargoId, setDriverModalCargoId] = useState(null);
   const openDriverProfile = (cargoId) => {
     if (cargoId) setDriverModalCargoId(cargoId);
+  };
+
+  // 화주(의뢰자) 프로필 모달 (차주가 의뢰자 확인)
+  const [shipperModalMemId, setShipperModalMemId] = useState(null);
+  const openShipperProfile = (memId) => {
+    if (memId) setShipperModalMemId(memId);
+  };
+
+  // 이름 셀: 차주 화면→의뢰자(화주) 클릭, 화주 화면→운전기사(차주) 클릭
+  const linkSx = { cursor: 'pointer', color: '#2563eb', fontWeight: 600, textDecoration: 'underline', '&:hover': { color: '#1d4ed8' } };
+  const renderPersonName = (item) => {
+    if (isOwner) {
+      // 차주가 보는 의뢰자(화주)
+      return item.memId ? (
+        <Box component="span" onClick={() => openShipperProfile(item.memId)} sx={linkSx}>
+          {item.memName || item.memId}
+        </Box>
+      ) : (item.memName || '-');
+    }
+    // 화주가 보는 운전기사(차주)
+    return item.cargoId ? (
+      <Box component="span" onClick={() => openDriverProfile(item.cargoId)} sx={linkSx}>
+        {item.driverName ?? '-'}
+      </Box>
+    ) : (item.driverName ?? '-');
   };
 
   //Review Modal State
@@ -741,7 +767,7 @@ const DeliveryInfoPage = () => {
           <TableCell align="center" sx={{ color: '#475569' }}>
             <span style={{ whiteSpace: 'nowrap' }}>{formatDateHour(item.startTime)}</span>
           </TableCell>
-          <TableCell align="center" sx={{ color: '#334155', fontWeight: 500 }}> {isOwner ? (item.memName || '-') : (item.driverName ?? '-')}</TableCell>
+          <TableCell align="center" sx={{ color: '#334155', fontWeight: 500 }}> {renderPersonName(item)}</TableCell>
           <TableCell align="center">
             {mNo ? (
               <Button variant="outlined" size="small" onClick={() => handleViewOrderSummary(mNo)} sx={{ borderRadius: "10px", whiteSpace: "nowrap", color: "#64748b", borderColor: "#cbd5e1", "&:hover": { bgcolor: "#f1f5f9" } }}>
@@ -787,7 +813,7 @@ const DeliveryInfoPage = () => {
           <TableCell align="center" sx={{ color: '#475569' }}>{item.startAddress}</TableCell>
           <TableCell align="center" sx={{ color: '#475569' }}>{item.endAddress}</TableCell>
           <TableCell align="center" sx={{ color: '#475569' }} style={{ whiteSpace: 'nowrap' }}>{formatDateHour(doneAt)}</TableCell>
-          <TableCell align="center" sx={{ color: '#334155', fontWeight: 500 }}>{isOwner ? (item.memName || '-') : (item.driverName ?? '-')}</TableCell>
+          <TableCell align="center" sx={{ color: '#334155', fontWeight: 500 }}>{renderPersonName(item)}</TableCell>
 
           {/* 리뷰 (회원 전용) */}
           {isMember && (
@@ -1103,6 +1129,12 @@ const DeliveryInfoPage = () => {
         open={!!driverModalCargoId}
         cargoId={driverModalCargoId}
         onClose={() => setDriverModalCargoId(null)}
+      />
+
+      <ShipperProfileModal
+        open={!!shipperModalMemId}
+        memId={shipperModalMemId}
+        onClose={() => setShipperModalMemId(null)}
       />
     </Box>
   );
