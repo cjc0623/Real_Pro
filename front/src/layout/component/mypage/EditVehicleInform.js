@@ -142,8 +142,21 @@ const EditVehicleInform = () => {
       return;
     }
 
+    if (name.trim().length > 12) {
+      alert('차량 이름은 최대 12자까지만 입력 가능합니다.');
+      return;
+    }
+
     if (!name || !weight || !cargoNumber) {
       alert('차량 이름, 적재 무게, 차량 번호를 모두 입력해주세요.');
+      return;
+    }
+
+    // 🟢 차량 번호 유효성 검사 (한국 자동차 번호판 규격)
+    // 규격: 12가 3456, 123가 4567, 서울80바 1234 등
+    const plateRegex = /^(\d{2,3}[가-힣]\s?\d{4}|[가-힣]{2}\s?\d{2}[가-힣]\s?\d{4})$/;
+    if (!plateRegex.test(cargoNumber.trim())) {
+      alert('올바른 차량 번호 형식이 아닙니다.\n(예: 12가 3456, 123가 4567, 경기80바1234)');
       return;
     }
 
@@ -225,7 +238,7 @@ const EditVehicleInform = () => {
   const THUMB_HEIGHT = { xs: 160, sm: 190 };    // 썸네일 영역 고정 높이
 
   return (
-    <Box sx={{ p: { xs: 2.5, sm: 4, md: 5 }, pl: { xs: 2, sm: 4, md: 6, lg: 10 }, pr: { xs: 2, sm: 4, md: 6, lg: 10 }, bgcolor: '#f8fafc', minHeight: { xs: 'calc(100vh - 64px)', md: 'calc(100vh - 80px)' }, pb: { xs: "100px", md: 5 }, width: '100%', maxWidth: '100%', minWidth: 0, overflowX: 'hidden', boxSizing: 'border-box' }}>
+    <Box sx={{ p: { xs: 2, sm: 4, md: 5 }, pt: { xs: "20px", sm: "40px" }, pl: { xs: 2, sm: 4, md: 6, lg: 10 }, pr: { xs: 2, sm: 4, md: 6, lg: 10 }, bgcolor: '#f8fafc', minHeight: '100vh', pb: { xs: "120px", md: 5 }, width: '100%', maxWidth: '100%', minWidth: 0, overflowX: 'hidden', boxSizing: 'border-box' }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={5} flexDirection="row" gap={1}>
         <Typography variant="h4" fontWeight="900" color="#0f172a" textAlign="left" sx={{ fontSize: { xs: '1.25rem', sm: '1.75rem', md: '2.25rem' }, whiteSpace: 'nowrap' }}>
           내 차량 관리
@@ -297,7 +310,7 @@ const EditVehicleInform = () => {
             {/* 🟢 flexGrow: 1과 내부 flex 배치를 설정해 글자 수가 달라도 본문 높이가 완전 유기적으로 동일하게 유지되도록 확장 */}
             <Box sx={{ textAlign: 'center', mt: 2, flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0 }}>
               <Box sx={{ width: '100%', minWidth: 0 }}>
-                <Box display="flex" justifyContent="center" alignItems="center" gap={1} mb={1} flexWrap="nowrap" sx={{ width: '100%', minWidth: 0 }}>
+                <Box display="flex" justifyContent="center" alignItems="center" gap={0.5} mb={1} sx={{ width: '100%', minWidth: 0, overflow: 'hidden' }}>
                   <Typography
                     fontWeight="800"
                     variant="h6"
@@ -306,7 +319,8 @@ const EditVehicleInform = () => {
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
                       whiteSpace: 'nowrap',
-                      flexShrink: 1 // 🟢 이름이 길면 줄어들게 설정
+                      minWidth: 0,         // 🟢 텍스트가 줄어들 수 있도록 허용
+                      maxWidth: 'calc(100% - 50px)' // 🟢 칩(Chip) 공간을 제외한 최대 폭 설정
                     }}
                   >
                     {vehicle.name}
@@ -322,7 +336,7 @@ const EditVehicleInform = () => {
                   color="#2563eb"
                   fontWeight="700"
                   mt={0.8}
-                  sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} // 🟢 차량번호 말줄임 처리
+                  sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', px: 1 }} // 🟢 차량번호 말줄임 처리 및 좌우 여백
                 >
                   차량번호: {vehicle.cargoNumber}
                 </Typography>
@@ -441,7 +455,17 @@ const EditVehicleInform = () => {
             </Box>
 
             <Box flex={1} display="flex" flexDirection="column" gap={1.5}>
-              <TextField label="차량 이름 (예: 다마스)" size="small" value={formData.name} onChange={handleChange('name')} fullWidth sx={inputSkinedStyle} />
+              <TextField 
+                label="차량 이름 (예: 다마스)" 
+                size="small" 
+                value={formData.name} 
+                onChange={handleChange('name')} 
+                fullWidth 
+                sx={inputSkinedStyle}
+                inputProps={{ maxLength: 12 }}
+                helperText={`${formData.name.length}/12`}
+                FormHelperTextProps={{ sx: { textAlign: 'right', fontWeight: 'bold' } }}
+              />
               <TextField label="차량 번호 (예: 12가 3456)" size="small" value={formData.cargoNumber} onChange={handleChange('cargoNumber')} fullWidth sx={inputSkinedStyle} />
 
               <FormControl fullWidth size="small" sx={inputSkinedStyle}>

@@ -171,31 +171,31 @@ const BulletinBoard = () => {
 
               {/* 번호: sm 미만 숨김 */}
               <th className="hidden sm:table-cell text-left px-3 sm:px-5 py-3 sm:py-4
-                             text-xs font-semibold text-gray-400 uppercase tracking-wider w-14 sm:w-16">
+                             text-xs font-semibold text-gray-400 uppercase tracking-wider w-14 sm:w-16 whitespace-nowrap">
                 번호
               </th>
 
               {/* 분류: md 미만 숨김 */}
               <th className="hidden md:table-cell text-left px-3 py-3 sm:py-4
-                             text-xs font-semibold text-gray-400 uppercase tracking-wider w-24">
+                             text-xs font-semibold text-gray-400 uppercase tracking-wider w-24 whitespace-nowrap">
                 분류
               </th>
 
               {/* 제목: 항상 표시 */}
               <th className="text-left px-3 sm:px-4 py-3 sm:py-4
-                             text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                             text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">
                 제목
               </th>
 
               {/* 작성자: md 미만 숨김 */}
               <th className="hidden md:table-cell text-left px-3 sm:px-5 py-3 sm:py-4
-                             text-xs font-semibold text-gray-400 uppercase tracking-wider w-24">
+                             text-xs font-semibold text-gray-400 uppercase tracking-wider w-24 whitespace-nowrap">
                 작성자
               </th>
 
               {/* 작성일: 항상 표시 */}
               <th className="text-left px-3 sm:px-5 py-3 sm:py-4
-                             text-xs font-semibold text-gray-400 uppercase tracking-wider w-24 sm:w-28">
+                             text-xs font-semibold text-gray-400 uppercase tracking-wider w-24 sm:w-28 whitespace-nowrap">
                 작성일
               </th>
 

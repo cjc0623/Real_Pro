@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Box, Typography, Button, Chip, Divider, Paper, Stack, Pagination } from '@mui/material';
+import { Box, Typography, Button, Chip, Divider, Paper, Stack, Pagination, TextField, InputAdornment } from '@mui/material';
+import SearchIcon from "@mui/icons-material/Search";
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 
@@ -32,6 +33,22 @@ const AdminCargoApproval = () => {
   const THUMB_HEIGHT = { xs: 160, sm: 190 };
 
   const [pendingList, setPendingList] = useState([]);
+
+  // 🔍 검색 상태 추가
+  const [searchKeyword, setSearchKeyword] = useState("");
+
+  // � 페이지네이션 상태 추가 (EditVehicleInform.js와 동일한 8개 기준)
+  const [page, setPage] = useState(1);
+  const pageSize = 8;
+
+  // 차량 번호 또는 차주 ID 기준 필터링 로직
+  const filteredList = pendingList.filter(cargo => 
+    (cargo.cargoNumber || '').toLowerCase().includes(searchKeyword.toLowerCase()) ||
+    (cargo.ownerId || '').toLowerCase().includes(searchKeyword.toLowerCase())
+  );
+
+  const totalPages = Math.max(1, Math.ceil(filteredList.length / pageSize));
+  const pagedList = filteredList.slice((page - 1) * pageSize, page * pageSize);
 
   const fetchPendingCargos = async () => {
     try {
@@ -80,19 +97,54 @@ const AdminCargoApproval = () => {
       width: '100%',
       boxSizing: 'border-box'
     }}>
-      {/* 타이틀과 디바이더는 데스크톱에서 예쁘게 항상 왼쪽 정렬 상태 유지 */}
-      <Typography variant="h4" fontWeight="900" mb={2} color="#0f172a" letterSpacing="-0.5px"
-        sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.25rem' }, textAlign: { xs: 'center', md: 'left' } }} 
+      {/* 상단 타이틀 및 검색바 영역 (다른 관리자 페이지와 규격 통일) */}
+      <Box 
+        display="flex" 
+        flexDirection={{ xs: 'column', md: 'row' }} 
+        justifyContent="space-between" 
+        alignItems={{ xs: 'stretch', md: 'center' }} 
+        gap={2} 
+        mb={2}
       >
-        차량 등록 승인 관리
-      </Typography>
+        <Typography variant="h4" fontWeight="900" color="#0f172a" letterSpacing="-0.5px"
+          sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.25rem' }, textAlign: { xs: 'center', md: 'left' } }} 
+        >
+          차량 등록 승인 관리
+        </Typography>
+
+        <TextField
+          variant="outlined"
+          placeholder="차량 번호 또는 차주 ID 검색"
+          size="small"
+          value={searchKeyword}
+          onChange={(e) => {
+            setSearchKeyword(e.target.value);
+            setPage(1); // 검색 시 1페이지로 강제 이동
+          }}
+          sx={{ 
+            width: { xs: '100%', md: 280 }, 
+            flexShrink: 0,
+            "& .MuiOutlinedInput-root": {
+              borderRadius: "14px",
+              backgroundColor: "#ffffff",
+              fontSize: "0.85rem",
+              "& fieldset": { borderColor: "#e2e8f0" },
+              "&:hover fieldset": { borderColor: "#cbd5e1" },
+              "&.Mui-focused fieldset": { borderColor: "#2563eb", borderWidth: "2px" },
+            }
+          }}
+          InputProps={{
+            startAdornment: <SearchIcon fontSize="small" sx={{ mr: 1, color: "#2563eb" }} />, 
+          }}
+        />
+      </Box>
 
       <Divider sx={{ mb: 4, borderColor: '#e2e8f0' }} />
 
-      {pendingList.length === 0 ? (
+      {filteredList.length === 0 ? (
         <Paper elevation={0} sx={{ p: { xs: 4, md: 6 }, textAlign: 'center', borderRadius: "24px", border: "1px solid #f1f5f9", boxShadow: "0 8px 30px rgba(0,0,0,0.02)", backgroundColor: '#ffffff' }}>
           <Typography variant="h6" color="#94a3b8" fontWeight="600" sx={{ fontSize: { xs: '1rem', sm: '1.15rem' } }}>
-            현재 승인 대기 중인 차량이 없습니다.
+            {searchKeyword ? "검색 결과와 일치하는 차량이 없습니다." : "현재 승인 대기 중인 차량이 없습니다."}
           </Typography>
         </Paper>
       ) : (
@@ -103,7 +155,7 @@ const AdminCargoApproval = () => {
           gap: { xs: 3, md: 4 },
           justifyContent: { xs: 'center', sm: 'flex-start' },
         }}>
-          {pendingList.map((cargo) => (
+          {pagedList.map((cargo) => (
             <Paper key={cargo.cargoNo} elevation={0} sx={{
               width: CARD_WIDTH,
               maxWidth: { xs: 420, sm: 'none' },
@@ -190,7 +242,12 @@ const AdminCargoApproval = () => {
       {/* 하단 페이지네이션 (다른 관리자 메뉴와 디자인 통일) */}
       <Box display="flex" justifyContent="center" mt={6}>
         <Pagination 
-          count={1} 
+          count={totalPages} 
+          page={page}
+          onChange={(_, value) => {
+            setPage(value);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
           color="primary"
           size={isMobile ? "small" : "medium"}
           sx={{
