@@ -14,7 +14,10 @@ function App() {
   const dispatch = useDispatch();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const trigger = useScrollTrigger(); // 스크롤 방향 감지 (true: 아래로 스크롤 중)
+  const trigger = useScrollTrigger({
+    threshold: 10, 
+  }); 
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeChat, setActiveChat] = useState(null); // 'ai', 'counselor', 또는 null
 
@@ -82,27 +85,27 @@ function App() {
         >
           {/* 상담 및 가이드 버튼 그룹 (애니메이션 적용) */}
           <Zoom in={isMenuOpen} unmountOnExit>
-            <Box 
-              sx={{ 
-                position: 'absolute', 
+            <Box
+              sx={{
+                position: 'absolute',
                 bottom: isMobile ? '62px' : '72px',
-                display: 'flex', 
-                flexDirection: 'column', 
-                alignItems: 'center', 
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
                 gap: isMobile ? '8px' : '12px',
-                width: isMobile ? '52px' : '64px' 
+                width: isMobile ? '52px' : '64px'
               }}
             >
               <Box sx={{ width: isMobile ? '52px' : '64px', height: isMobile ? '52px' : '64px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                <AiChatBot 
-                  isOpen={activeChat === 'ai'} 
-                  onToggle={() => setActiveChat(activeChat === 'ai' ? null : 'ai')} 
+                <AiChatBot
+                  isOpen={activeChat === 'ai'}
+                  onToggle={() => setActiveChat(activeChat === 'ai' ? null : 'ai')}
                 />
               </Box>
               <Box sx={{ width: isMobile ? '52px' : '64px', height: isMobile ? '52px' : '64px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                <CounselorChat 
-                  isOpen={activeChat === 'counselor'} 
-                  onToggle={() => setActiveChat(activeChat === 'counselor' ? null : 'counselor')} 
+                <CounselorChat
+                  isOpen={activeChat === 'counselor'}
+                  onToggle={() => setActiveChat(activeChat === 'counselor' ? null : 'counselor')}
                 />
               </Box>
               <Box sx={{ width: isMobile ? '52px' : '64px', height: isMobile ? '52px' : '64px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -114,21 +117,21 @@ function App() {
           {/* 메인 토글 버튼 (위치 고정) */}
           <Zoom in={!activeChat}>
             <Tooltip title={isMenuOpen ? "닫기" : "고객지원 메뉴"} placement="left">
-              <Fab 
-                onClick={handleMenuToggle} 
-                sx={{ 
-                  width: isMobile ? 52 : 60, 
-                  height: isMobile ? 52 : 60, 
+              <Fab
+                onClick={handleMenuToggle}
+                sx={{
+                  width: isMobile ? 52 : 60,
+                  height: isMobile ? 52 : 60,
                   background: isMenuOpen ? '#334155' : 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
                   color: 'white',
-                  boxShadow: '0 8px 25px rgba(15, 23, 42, 0.35)', 
+                  boxShadow: '0 8px 25px rgba(15, 23, 42, 0.35)',
                   flexShrink: 0,
                   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                   '&:hover': { transform: 'scale(1.1) rotate(5deg)', background: '#334155' }
                 }}
               >
-              <div style={{ display: 'flex', transform: isMenuOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.4s ease', alignItems: 'center', justifyContent: 'center' }}>
-                {isMenuOpen ? <CloseIcon sx={{ fontSize: isMobile ? 24 : 28 }} /> : <SupportAgentIcon sx={{ fontSize: isMobile ? 24 : 28 }} />}
+                <div style={{ display: 'flex', transform: isMenuOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.4s ease', alignItems: 'center', justifyContent: 'center' }}>
+                  {isMenuOpen ? <CloseIcon sx={{ fontSize: isMobile ? 24 : 28 }} /> : <SupportAgentIcon sx={{ fontSize: isMobile ? 24 : 28 }} />}
                 </div>
               </Fab>
             </Tooltip>

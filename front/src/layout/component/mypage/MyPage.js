@@ -87,8 +87,8 @@ const MyPage = () => {
 
         <Box sx={{
           p: { xs: 2.5, md: 7 },
-          pb: { xs: 20, md: 7 }, // 하단 탭바에 가려지지 않도록 모바일 여백을 20(160px)으로 더 확장
-          bgcolor: '#f3f4f6',
+          pb: { xs: "120px", md: 7 }, // 스크롤 시 버튼이 사라지는 공간 확보
+          bgcolor: '#f8fafc',
           minHeight: '100vh'
         }}>
           <Typography variant="h5" fontWeight="bold" gutterBottom>

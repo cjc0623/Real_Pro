@@ -46,6 +46,7 @@ const MemberReport = () => {
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null);
+  const [suspendReason, setSuspendReason] = useState("");
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -135,6 +136,7 @@ const MemberReport = () => {
   const handleClose = () => {
     setDialogOpen(false);
     setSelectedReport(null);
+    setSuspendReason("");
   };
 
   const handleSuspend = async (period) => {
@@ -150,18 +152,16 @@ const MemberReport = () => {
       PERMANENT: "영구정지",
     };
 
-    const reason = window.prompt(
-      `${selectedReport.targetId} 계정에 대한 ${labelMap[period]} 사유를 입력하세요.`
-    );
-
-    if (reason === null) return;
-    if (!reason.trim()) {
-      alert("정지 사유를 입력해주세요.");
+    if (!suspendReason.trim()) {
+      alert("하단 입력란에 정지 사유를 먼저 입력해주세요.");
       return;
     }
 
+    const ok = window.confirm(`${selectedReport.targetId} 계정을 ${labelMap[period]} 하시겠습니까?`);
+    if (!ok) return;
+
     try {
-      const result = await suspendUser(selectedReport.targetId, period, reason.trim());
+      const result = await suspendUser(selectedReport.targetId, period, suspendReason.trim());
       alert(result?.message || `${labelMap[period]} 처리가 완료되었습니다.`);
       handleClose();
       loadUnreadCount();
@@ -422,8 +422,14 @@ const MemberReport = () => {
           onClose={handleClose}
           fullWidth
           maxWidth="sm"
-          fullScreen={isMobile}
-          PaperProps={{ sx: { borderRadius: "24px", p: 1 } }}
+          PaperProps={{ 
+            sx: { 
+              borderRadius: "24px", 
+              p: 1,
+              width: { xs: 'calc(100% - 32px)', sm: 'auto' }, // 모바일 좌우 16px씩 여백 확보
+              maxHeight: '90vh' // 화면 높이의 90%까지만 차지하도록 제한
+            } 
+          }}
         >
           <DialogTitle sx={{ fontWeight: "bold", fontSize: "1.2rem" }}>📋 신고 상세 정보</DialogTitle>
           <DialogContent dividers sx={{ borderColor: "#f1f5f9" }}>
@@ -444,34 +450,57 @@ const MemberReport = () => {
             <Paper variant="outlined" sx={{ p: 2, mt: 1, borderRadius: "12px", borderColor: "#cbd5e1", whiteSpace: "pre-wrap", minHeight: "100px", bgcolor: "#ffffff", fontSize: "0.95rem", color: "#334155", lineHeight: 1.5 }}>
               {selectedReport.content ?? "-"}
             </Paper>
+
+            {/* 🟢 정지 사유 입력 구역 추가: 관리자가 작성한 메모가 사용자에게 알람으로 뜸 */}
+            <Box sx={{ mt: 3, pt: 2, borderTop: "1px dashed #e2e8f0" }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: "bold", color: "#dc2626", mb: 1 }}>
+                🛑 정지 처리 사유 입력
+              </Typography>
+              <TextField
+                fullWidth
+                multiline
+                rows={2}
+                placeholder="사용자가 로그인할 때 확인할 수 있도록 구체적인 정지 사유를 입력하세요."
+                value={suspendReason}
+                onChange={(e) => setSuspendReason(e.target.value)}
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: "12px", bgcolor: "#fff1f1" } }}
+              />
+            </Box>
           </DialogContent>
 
           <DialogActions
             sx={{
               px: 3,
               py: 2.5,
-              display: "flex",
-              flexWrap: "wrap",
-              gap: 1.2,
-              justifyContent: { xs: 'center', md: 'flex-end' },
+              flexDirection: "column",
+              gap: 2,
             }}
           >
-            <Button onClick={handleClose} sx={{ color: "#64748b", fontWeight: "bold" }}>닫기</Button>
-            <Button onClick={() => handleSuspend("WEEK")} color="warning" variant="outlined" sx={{ borderRadius: "10px", fontWeight: "bold" }}>
-              7일 정지
-            </Button>
-            <Button onClick={() => handleSuspend("MONTH")} color="warning" variant="outlined" sx={{ borderRadius: "10px", fontWeight: "bold" }}>
-              30일 정지
-            </Button>
-            <Button onClick={() => handleSuspend("YEAR")} color="warning" variant="outlined" sx={{ borderRadius: "10px", fontWeight: "bold" }}>
-              1년 정지
-            </Button>
-            <Button onClick={() => handleSuspend("PERMANENT")} color="error" variant="contained" disableElevation sx={{ borderRadius: "10px", fontWeight: "bold" }}>
-              영구정지
-            </Button>
-            <Button onClick={handleUnsuspend} color="success" variant="text" sx={{ fontWeight: "bold" }}>
-              정지 해제
-            </Button>
+            {/* 첫 번째 줄: 정지 기간 설정 버튼 그룹 */}
+            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, justifyContent: "center", width: "100%" }}>
+              <Button onClick={() => handleSuspend("WEEK")} color="warning" variant="outlined" sx={{ borderRadius: "10px", fontWeight: "bold", flex: { xs: "1 1 40%", sm: "auto" } }}>
+                7일 정지
+              </Button>
+              <Button onClick={() => handleSuspend("MONTH")} color="warning" variant="outlined" sx={{ borderRadius: "10px", fontWeight: "bold", flex: { xs: "1 1 40%", sm: "auto" } }}>
+                30일 정지
+              </Button>
+              <Button onClick={() => handleSuspend("YEAR")} color="warning" variant="outlined" sx={{ borderRadius: "10px", fontWeight: "bold", flex: { xs: "1 1 40%", sm: "auto" } }}>
+                1년 정지
+              </Button>
+              <Button onClick={() => handleSuspend("PERMANENT")} color="error" variant="contained" disableElevation sx={{ borderRadius: "10px", fontWeight: "bold", flex: { xs: "1 1 40%", sm: "auto" } }}>
+                영구정지
+              </Button>
+            </Box>
+
+            {/* 두 번째 줄: 기타 액션 버튼 그룹 */}
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", pt: 1.5, borderTop: "1px solid #f1f5f9" }}>
+              <Button onClick={handleUnsuspend} color="success" variant="text" sx={{ fontWeight: "bold" }}>
+                정지 해제
+              </Button>
+              <Button onClick={handleClose} sx={{ color: "#64748b", fontWeight: "bold", px: 3 }}>
+                닫기
+              </Button>
+            </Box>
           </DialogActions>
         </Dialog>
       )}
