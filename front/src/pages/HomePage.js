@@ -71,25 +71,8 @@ const HomePage = () => {
   const handleNextSpecial = () =>
     setSelectedSpecialIndex(prev => (prev === specialVehicleList.length - 1 ? 0 : prev + 1));
 
-  // 🟢 [자동 롤링] 5초마다 특수 차량 자동 변경
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setSelectedSpecialIndex(prev => (prev === specialVehicleList.length - 1 ? 0 : prev + 1));
-    }, 5000);
-    return () => clearInterval(timer);
-  }, []);
-
   // ✅ 실제로 화면에 보여줄 통합 리스트
   const [displayVehicles, setDisplayVehicles] = useState([]);
-
-  // 🟢 [자동 롤링] 5초마다 용달 화물 서비스 소개 차량 자동 변경
-  useEffect(() => {
-    if (displayVehicles.length <= 1) return;
-    const timer = setInterval(() => {
-      setSelectedVehicleIndex(prev => (prev === displayVehicles.length - 1 ? 0 : prev + 1));
-    }, 5000);
-    return () => clearInterval(timer);
-  }, [displayVehicles.length]);
 
   const { roles, memberId } = useSelector(state => state.login || { roles: [], memberId: null });
   const isDriver = roles.includes("ROLE_DRIVER");
@@ -191,8 +174,9 @@ const HomePage = () => {
                 <p className="text-gray-600 text-lg">마이페이지에서 등록한 모든 차량이 실시간으로 공유됩니다.</p>
               </div>
 
-              {/* ✅ 스크롤바 숨김 클래스 유지 */}
-              <div className="flex flex-col gap-4 max-h-[600px] overflow-y-auto p-4 -m-4 [&::-webkit-scrollbar]:hidden [scrollbar-width:none] [-ms-overflow-style:none]">
+
+          {/* ✅ 스크롤바 숨김 클래스 유지 */}
+          <div className="flex flex-col gap-4 max-h-[600px] overflow-y-auto p-4 -m-4 [&::-webkit-scrollbar]:hidden [scrollbar-width:none] [-ms-overflow-style:none]">
                 {displayVehicles.map((vehicle, index) => (
                   <button
                     key={index}
@@ -200,7 +184,7 @@ const HomePage = () => {
                     className={`py-3 px-5 rounded-[2rem] flex justify-between items-center transition-all duration-300 ${
                       selectedVehicleIndex === index
                         ? 'bg-red-600 shadow-lg scale-105'
-                        : 'bg-white border border-gray-100 shadow-sm hover:border-red-200 hover:shadow-md'
+                    : 'bg-white border border-gray-100 shadow-sm hover:border-red-200 hover:shadow-md'
                     }`}
                   >
                     <span className="flex items-center gap-6">
@@ -274,8 +258,8 @@ const HomePage = () => {
               ‹
             </button>
 
-            {/* 차량 목록 — 데스크탑: 전체, 모바일: 활성만 */}
-            <div className="flex items-end justify-center gap-4 md:gap-8 flex-1">
+        {/* 차량 목록 영역 */}
+        <div className="flex items-end justify-center gap-4 md:gap-8 flex-1">
               {specialVehicleList.map((vehicle, idx) => {
                 const isActive = idx === selectedSpecialIndex;
                 return (

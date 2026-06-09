@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.giproject.controller.order.OrderController;
@@ -113,6 +114,7 @@ public class MatchingServiceImpl implements MatchingService {
     }
 
     @Override
+    @Transactional
     public void rejectMatching(Long estimateNo, CargoOwner cargoOwner) {
         Estimate estimate = esmateRepository.findById(estimateNo)
                 .orElseThrow(() -> new RuntimeException("해당 견적이 존재하지 않습니다"));
@@ -165,6 +167,7 @@ public class MatchingServiceImpl implements MatchingService {
     }
 
     @Override
+    @Transactional
     public Long acceptMatching(Long estimateNo, CargoOwner cargoOwner) {
         Estimate estimate = esmateRepository.findById(estimateNo)
                 .orElseThrow(() -> new RuntimeException("해당 견적이 존재하지 않습니다"));

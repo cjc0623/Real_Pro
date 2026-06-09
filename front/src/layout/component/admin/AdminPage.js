@@ -110,13 +110,7 @@ const AdminPage = () => {
   };
 
   return (
-    <Box sx={{ 
-      p: { xs: 2, sm: 3.5, md: 5 }, // 📱 모바일 패딩 축소로 본문 가득 차게 최적화
-      pl: { xs: 2, sm: 4, md: 6, lg: 10 }, 
-      pr: { xs: 2, sm: 4, md: 6, lg: 10 }, 
-      bgcolor: '#f8fafc', // 사이드바 본체와 조화를 이루는 초경량 화이트-그레이 배경 
-      minHeight: '100vh' 
-    }}>
+    <Box sx={{ flexGrow: 1 }}>
       <Box sx={{ p: 0, maxWidth: 1400, mx: "auto" }}>
         <Typography variant="h4" fontWeight="900" color="#0f172a" letterSpacing="-0.5px" mb={2} sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.25rem' }, textAlign: { xs: 'center', md: 'left' } }}>
                         이용 통계
