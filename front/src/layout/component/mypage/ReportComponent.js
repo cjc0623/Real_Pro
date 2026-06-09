@@ -106,7 +106,9 @@ const ReportComponent = ({ matchingNo, onClose }) => {
   return (
     <Box sx={{ p: 1 }}>
       <Typography variant="caption" display="block" color="text.secondary" mb={1.5}>
-        허위 신고 시 서비스 이용에 제한이 있을 수 있습니다. 정확한 내용을 입력해 주세요.
+        허위 신고 시 서비스 이용에 제한이 있을 수 있습니다.
+        <Box component="br" sx={{ display: { xs: "block", sm: "none" } }} />
+        정확한 내용을 입력해 주세요.
       </Typography>
 
       <TextField

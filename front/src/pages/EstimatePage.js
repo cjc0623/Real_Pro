@@ -1,9 +1,15 @@
+import { useEffect } from "react";
 import { Box } from "@mui/material";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 
 const EstimatePage = () => {
   const navigate = useNavigate();
   const location = useLocation();
+
+  // 페이지 진입·경로 변경(탭 전환) 시 항상 최상단부터 보이도록 스크롤 초기화
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0 });
+  }, [location.pathname]);
 
   const getTabValue = () => {
     if (location.pathname.endsWith("/list")) return 1;

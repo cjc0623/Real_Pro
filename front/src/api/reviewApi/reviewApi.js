@@ -110,7 +110,12 @@ export const getMyReceivedReviewSummary = async () => {
   return res.data;
 };
 export const getMyReviewsWithDriverId = async () => {
+  const token = sessionStorage.getItem("accessToken");
+
   const res = await axios.get(`${prefix}/my/with-driver-id`, {
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
     withCredentials: true,
   });
   return res.data;

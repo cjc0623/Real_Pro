@@ -25,7 +25,7 @@ const normalizeProfileUrl = (v) => {
  * - 카드 클릭 → 선택 토글, "상세" → 프로필+리뷰 모달
  * props: selectedIds(string[]), onToggle(cargoId, driverName)
  */
-const DriverSearchSelect = ({ selectedIds = [], onToggle }) => {
+const DriverSearchSelect = ({ selectedIds = [], onToggle, isMobile = false }) => {
   const [keyword, setKeyword] = useState("");
   const [drivers, setDrivers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -140,7 +140,7 @@ const DriverSearchSelect = ({ selectedIds = [], onToggle }) => {
           <Typography variant="body2">요청 가능한 차주가 없습니다.</Typography>
         </Box>
       ) : (
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 1.2, maxHeight: 360, overflowY: "auto", pr: 0.5 }}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 1.2, ...(isMobile ? {} : { maxHeight: 360, overflowY: "auto", pr: 0.5 }) }}>
           {sortedDrivers.map((d) => {
             const selected = selectedIds.includes(d.driverId);
             return (
@@ -148,6 +148,7 @@ const DriverSearchSelect = ({ selectedIds = [], onToggle }) => {
                 key={d.driverId}
                 onClick={() => onToggle(d.driverId, d.driverName)}
                 sx={{
+                  position: "relative",
                   display: "flex",
                   alignItems: "center",
                   gap: 1.5,
@@ -160,14 +161,22 @@ const DriverSearchSelect = ({ selectedIds = [], onToggle }) => {
                   "&:hover": { borderColor: "#93c5fd", bgcolor: "#f8fafc" },
                 }}
               >
+                {/* 선택 체크: 카드 우상단 절대배치 → 가로 폭 점유 안 함 */}
+                {selected && (
+                  <CheckCircleIcon
+                    sx={{ position: "absolute", top: 8, right: 8, color: "#2563eb", fontSize: 20 }}
+                  />
+                )}
+
                 <Avatar
                   src={normalizeProfileUrl(d.driverProfileImage) || DEFAULT_AVATAR}
                   alt={d.driverName}
-                  sx={{ width: 48, height: 48, border: "1px solid #e5e7eb" }}
+                  sx={{ width: 46, height: 46, flexShrink: 0, border: "1px solid #e5e7eb" }}
                   imgProps={{ onError: (e) => { e.currentTarget.src = DEFAULT_AVATAR; } }}
                 />
+
                 <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.7 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.7, pr: selected ? 3 : 0 }}>
                     <Typography fontWeight={700} color="#0f172a" noWrap>
                       {d.driverName || d.driverId}
                     </Typography>
@@ -178,28 +187,38 @@ const DriverSearchSelect = ({ selectedIds = [], onToggle }) => {
                         size="small"
                         color="success"
                         variant="outlined"
-                        sx={{ height: 20, fontSize: "0.65rem" }}
+                        sx={{ height: 20, fontSize: "0.65rem", flexShrink: 0 }}
                       />
                     )}
                   </Box>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.7, mt: 0.3 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.6, mt: 0.3 }}>
                     <Rating value={Number(d.avgRating) || 0} precision={0.5} readOnly size="small" sx={{ color: "#ffb700" }} />
-                    <Typography variant="caption" color="#64748b">
+                    <Typography variant="caption" color="#64748b" sx={{ whiteSpace: "nowrap" }}>
                       {Number(d.avgRating || 0).toFixed(1)} · 리뷰 {Number(d.reviewCount || 0)}개
                     </Typography>
                   </Box>
                 </Box>
 
+                {/* 상세: 작은 고정폭 칩 버튼 → 텍스트 칸을 잠식하지 않음 */}
                 <Button
                   size="small"
-                  variant="text"
+                  variant="outlined"
                   onClick={(e) => { e.stopPropagation(); setDetailId(d.driverId); }}
-                  sx={{ textTransform: "none", fontSize: "12px", color: "#2563eb" }}
+                  sx={{
+                    flexShrink: 0,
+                    minWidth: 0,
+                    px: 1.4,
+                    py: 0.4,
+                    borderRadius: "999px",
+                    textTransform: "none",
+                    fontSize: "12px",
+                    color: "#2563eb",
+                    borderColor: "#bfdbfe",
+                    "&:hover": { borderColor: "#93c5fd", bgcolor: "#eff6ff" },
+                  }}
                 >
                   상세
                 </Button>
-
-                {selected && <CheckCircleIcon sx={{ color: "#2563eb", fontSize: 22 }} />}
               </Box>
             );
           })}

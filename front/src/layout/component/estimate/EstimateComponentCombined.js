@@ -654,32 +654,76 @@ const EstimateComponentCombined = () => {
                 open={driverModalOpen}
                 onClose={() => setDriverModalOpen(false)}
                 fullWidth
+                fullScreen={isMobile}
                 maxWidth="sm"
-                PaperProps={{ sx: { borderRadius: "16px" } }}
+                PaperProps={{
+                    sx: {
+                        borderRadius: isMobile ? 0 : "16px",
+                        // 모바일 풀스크린: 헤더/푸터 고정, 본문만 스크롤
+                        display: "flex",
+                        flexDirection: "column",
+                        ...(isMobile ? {} : { maxHeight: "90vh" }),
+                    },
+                }}
             >
-                <DialogContent sx={{ p: 3 }}>
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-                        <span className="text-lg font-bold text-gray-900">차주 선택 <span className="text-sm font-normal text-gray-400">(최대 5명)</span></span>
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                            <span className="text-sm text-blue-600 font-semibold">{selectedDrivers.length}명 선택됨</span>
-                            <IconButton size="small" onClick={() => setDriverModalOpen(false)} aria-label="닫기">
-                                <CloseIcon sx={{ fontSize: 20, color: "#6b7280" }} />
-                            </IconButton>
-                        </Box>
+                {/* 고정 헤더 */}
+                <Box
+                    sx={{
+                        flexShrink: 0,
+                        position: "sticky",
+                        top: 0,
+                        zIndex: 2,
+                        bgcolor: "#fff",
+                        px: isMobile ? 2 : 3,
+                        pt: isMobile ? 2 : 3,
+                        pb: 1.5,
+                        borderBottom: "1px solid #f1f5f9",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        gap: 1,
+                    }}
+                >
+                    <span className="text-lg font-bold text-gray-900" style={{ whiteSpace: "nowrap" }}>
+                        차주 선택 <span className="text-sm font-normal text-gray-400">(최대 5명)</span>
+                    </span>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, flexShrink: 0 }}>
+                        <span className="text-sm text-blue-600 font-semibold" style={{ whiteSpace: "nowrap" }}>
+                            {selectedDrivers.length}명 선택됨
+                        </span>
+                        <IconButton size="small" onClick={() => setDriverModalOpen(false)} aria-label="닫기">
+                            <CloseIcon sx={{ fontSize: 20, color: "#6b7280" }} />
+                        </IconButton>
                     </Box>
+                </Box>
+
+                {/* 스크롤 본문 */}
+                <DialogContent sx={{ flex: 1, px: isMobile ? 2 : 3, py: 2 }}>
                     <DriverSearchSelect
                         selectedIds={selectedDrivers.map((d) => d.id)}
                         onToggle={toggleDriver}
+                        isMobile={isMobile}
                     />
                 </DialogContent>
-                <DialogActions sx={{ px: 3, pb: 3 }}>
+
+                {/* 고정 푸터 */}
+                <DialogActions
+                    sx={{
+                        flexShrink: 0,
+                        px: isMobile ? 2 : 3,
+                        py: 2,
+                        borderTop: "1px solid #f1f5f9",
+                        // WebView 하단 안전영역 + FAB 겹침 회피
+                        pb: isMobile ? "calc(env(safe-area-inset-bottom, 0px) + 16px)" : 2,
+                    }}
+                >
                     <Button
                         fullWidth
                         variant="contained"
                         onClick={() => setDriverModalOpen(false)}
-                        sx={{ borderRadius: "10px", textTransform: "none", fontWeight: 700, boxShadow: "none", bgcolor: "#2563eb", "&:hover": { bgcolor: "#1d4ed8" } }}
+                        sx={{ borderRadius: "10px", textTransform: "none", fontWeight: 700, py: 1.2, boxShadow: "none", bgcolor: "#2563eb", "&:hover": { bgcolor: "#1d4ed8" } }}
                     >
-                        완료
+                        완료{selectedDrivers.length > 0 ? ` (${selectedDrivers.length}명)` : ""}
                     </Button>
                 </DialogActions>
             </Dialog>

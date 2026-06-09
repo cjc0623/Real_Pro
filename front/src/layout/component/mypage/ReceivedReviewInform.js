@@ -533,9 +533,6 @@ const ReceivedReviewInform = () => {
     return (
       <Stack spacing={2}>
         {serverData.dtoList.map((item) => {
-          const firstImage = item.images?.[0];
-          const thumbnailPath = firstImage?.thumbnailPath || firstImage?.imagePath;
-
           return (
             <Paper
               key={item.reviewNo}
@@ -597,23 +594,27 @@ const ReceivedReviewInform = () => {
                 <InfoRow label="배송완료" value={formatDateTime(item.deliveryCompletedAt)} />
               </Box>
 
-              {/* 이미지 */}
-              {thumbnailPath && (
-                <Box sx={{ mb: 1.5 }}>
-                  <img
-                    src={`${API_BASE}/${thumbnailPath}`}
-                    alt="review-thumbnail"
-                    onClick={() => setSelectedImage(firstImage.imagePath)}
-                    style={{
-                      width: 180,
-                      maxWidth: "100%",
-                      height: 180,
-                      objectFit: "cover",
-                      borderRadius: 8,
-                      border: "1px solid #ddd",
-                      cursor: "pointer",
-                    }}
-                  />
+              {/* 이미지 (최대 3장) */}
+              {item.images?.length > 0 && (
+                <Box sx={{ display: "flex", gap: 1, mb: 1.5, flexWrap: "wrap" }}>
+                  {item.images.slice(0, 3).map((img) => (
+                    <Box
+                      key={img.reviewImageNo}
+                      component="img"
+                      src={`${API_BASE}/${img.thumbnailPath || img.imagePath}`}
+                      alt="review-thumbnail"
+                      onClick={() => setSelectedImage(img.imagePath)}
+                      sx={{
+                        width: { xs: "calc(33.33% - 8px)", sm: 100 },
+                        height: { xs: "auto", sm: 100 },
+                        aspectRatio: "1/1",
+                        objectFit: "cover",
+                        borderRadius: "8px",
+                        border: "1px solid #ddd",
+                        cursor: "pointer",
+                      }}
+                    />
+                  ))}
                 </Box>
               )}
 
