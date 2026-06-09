@@ -51,6 +51,11 @@ const QuickSearchPage = () => {
   const { roles } = useSelector((state) => state.login);
   const isAdmin = roles.includes("ROLE_ADMIN");
 
+  /* ── 페이지 진입 시 항상 최상단부터 보이도록 스크롤 초기화 ── */
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0 });
+  }, []);
+
   /* ── 요금표 로드 ── */
   useEffect(() => {
     postSearchFeesBasic()
