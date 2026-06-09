@@ -173,8 +173,8 @@ public class DataLoader implements CommandLineRunner {
     private void createQAPostDummyData() {
         QACategory[] categories = QACategory.values();
         AuthorType[] authorTypes = {AuthorType.MEMBER, AuthorType.CARGO, AuthorType.ADMIN};
-        String[] userIds = {"user001", "user002", "user003", "cargo001", "cargo002", "admin001"};
-        String[] userNames = {"김민수", "박철수", "이영희", "최동욱", "강지연", "윤태현"};
+        String[] userIds = {"user001", "user002", "user003", "cargo001", "cargo002"};
+        String[] userNames = {"김기현", "김우근", "서준원", "최현민", "하승준"};
 
         int postIndex = 0;
         for (QACategory category : categories) {
