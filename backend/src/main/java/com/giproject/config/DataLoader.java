@@ -62,6 +62,70 @@ public class DataLoader implements CommandLineRunner {
             memberRepository.save(admin);
         }
         
+        // 화물주(test1) 계정
+        if (!userIndexRepository.existsById("test1")) {
+            userIndexRepository.save(UserIndex.builder().loginId("test1").email("test1@test.com").role(UserIndex.Role.SHIPPER).build());
+        }
+        if (memberRepository.findById("test1").isEmpty()) {
+            Member shipper = Member.builder().memId("test1").memEmail("test1@test.com").memPw(passwordEncoder.encode("qwer1234@")).memName("화물주").memPhone("010-1111-1111").build();
+            shipper.addRole("SHIPPER");
+            memberRepository.save(shipper);
+        }
+
+        // 차주(test2) 계정 및 차량 적재
+        if (!userIndexRepository.existsById("test2")) {
+            userIndexRepository.save(UserIndex.builder().loginId("test2").email("test2@test.com").role(UserIndex.Role.DRIVER).build());
+        }
+        if (cargoOwnerRepository.findById("test2").isEmpty()) {
+            CargoOwner driver = CargoOwner.builder().cargoId("test2").cargoEmail("test2@test.com").cargoPw(passwordEncoder.encode("qwer1234@")).cargoName("차주").cargoPhone("010-2222-2222").build();
+            
+            // 🟢 [최종] DB 필수값(차량종류, 차량번호) 모두 채운 완벽한 트럭 4대
+            com.giproject.entity.cargo.Cargo truck1 = com.giproject.entity.cargo.Cargo.builder()
+                    .cargoOwner(driver)
+                    .cargoName("영업용 다마스")
+                    .cargoCapacity("0.5톤")
+                    .cargoType("다마스") 
+                    .cargoImage("damas.png")
+                    .cargoNumber("서울 11가 1111")
+                    .status("APPROVED")
+                    .build();
+            driver.getCargoList().add(truck1);
+
+            com.giproject.entity.cargo.Cargo truck2 = com.giproject.entity.cargo.Cargo.builder()
+                    .cargoOwner(driver)
+                    .cargoName("신형 포터 카고")
+                    .cargoCapacity("1톤")
+                    .cargoType("카고")
+                    .cargoImage("1truck.png")
+                    .cargoNumber("경기 22나 2222")
+                    .status("APPROVED")
+                    .build();
+            driver.getCargoList().add(truck2);
+
+            com.giproject.entity.cargo.Cargo truck3 = com.giproject.entity.cargo.Cargo.builder()
+                    .cargoOwner(driver)
+                    .cargoName("현대 마이티 카고")
+                    .cargoCapacity("2.5톤")
+                    .cargoType("카고")
+                    .cargoImage("11truck.png")
+                    .cargoNumber("인천 33다 3333")
+                    .status("APPROVED")
+                    .build();
+            driver.getCargoList().add(truck3);
+
+            com.giproject.entity.cargo.Cargo truck4 = com.giproject.entity.cargo.Cargo.builder()
+                    .cargoOwner(driver)
+                    .cargoName("엑시언트 대형 화물 트럭")
+                    .cargoCapacity("5톤")
+                    .cargoType("대형카고")
+                    .cargoImage("25truck.png")
+                    .cargoNumber("부산 44라 4444")
+                    .status("APPROVED")
+                    .build();
+            driver.getCargoList().add(truck4);
+
+            cargoOwnerRepository.save(driver);
+        }
     }
 
     private void createFeeData() {
@@ -109,8 +173,8 @@ public class DataLoader implements CommandLineRunner {
     private void createQAPostDummyData() {
         QACategory[] categories = QACategory.values();
         AuthorType[] authorTypes = {AuthorType.MEMBER, AuthorType.CARGO, AuthorType.ADMIN};
-        String[] userIds = {"user001", "user002", "user003", "cargo001", "cargo002", "admin001"};
-        String[] userNames = {"김민수", "박철수", "이영희", "최동욱", "강지연", "윤태현"};
+        String[] userIds = {"user001", "user002", "user003", "cargo001", "cargo002"};
+        String[] userNames = {"김기현", "김우근", "서준원", "최현민", "하승준"};
 
         int postIndex = 0;
         for (QACategory category : categories) {
@@ -434,7 +498,7 @@ public class DataLoader implements CommandLineRunner {
         // 서비스 (SERVICE) 내용들
         private String[] getDetailedNoticeContents_Service() {
             return new String[]{
-                "고객 요청에 따라 새로운 차량 유형을 추가했습니다.\n\n■ 추가된 차량 유형\n- 냉장/냉동 차량: 신선식품 운송\n- 윙바디 차량: 대형 화물 운송\n- 탑차: 귀중품 및 정밀기기 운송\n- 크레인 차량: 중장비 운송\n\n■ 특수 운송 서비스\n- 당일배송 서비스 확대\n- 새벽배송 서비스\n- 정시배송 보장 서비스\n\n더 다양한 운송 니즈에 부응하겠습니다.",
+                "고객 요청에 따라 새로운 차량 유형을 추가했습니다.\n\n■ 추가된 차량 유형\n- 냉장/냉동 차량: 신선식품 운송\n- 윙바디 차량: 대형 화물 운송\n- 탑차: 귀중품 및 정밀기기 운송\n- 크레인 차량: 중장비 운송\n\n■ 특수 운송 서비스\n- 당일배송 서비스 확대\n- 새벽배송 서비스\n- 정시배송 보장 서비스\n\n더 다양하고 운송 니즈에 부응하겠습니다.",
                 "고객 요청이 많았던 실시간 위치 추적 기능을 정식 오픈합니다.\n\n■ 주요 기능\n- GPS 기반 실시간 위치 확인\n- 예상 도착시간 안내\n- 경로 최적화\n- 배송 완료 알림\n\n■ 이용 방법\n1. 운송 진행 중인 주문 선택\n2. \"위치 추적\" 버튼 클릭\n3. 실시간 위치 및 상태 확인\n\n■ 개인정보 보호\n- 운송 완료 후 위치정보 자동 삭제\n- 당사자만 위치 확인 가능",
                 "더 공정하고 투명한 평가 시스템으로 개선했습니다.\n\n■ 개선사항\n- 5점 평점제에서 10점제로 변경\n- 세부 평가 항목 추가\n  * 시간 준수\n  * 화물 취급\n  * 서비스 친절도\n  * 소통 원활성\n\n■ 평가 보상 시스템\n- 성실한 평가 작성 시 포인트 적립\n- 우수 평가 받은 차주 혜택 제공\n- 평가 조작 방지 시스템 강화\n\n공정한 거래 환경 조성에 동참해주세요.",
                 "고객 편의성 향상을 위해 24시간 고객센터 운영을 시작합니다.\n\n■ 운영 시간\n- 기존: 평일 09:00~18:00\n- 변경: 연중무휴 24시간\n\n■ 지원 채널\n- 전화상담: 1588-1234\n- 실시간 채팅\n- 이메일: support@example.com\n- 카카오톡 채널\n\n■ 긴급상황 대응\n- 운송 중 사고 신고\n- 분실/파손 신고\n- 시스템 장애 신고\n\n언제든지 편리하게 문의하세요!",
@@ -467,28 +531,3 @@ public class DataLoader implements CommandLineRunner {
             };
         }
     }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    

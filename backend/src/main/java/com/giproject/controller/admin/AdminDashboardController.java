@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/g2i4/admin/dashboard")
+@RequestMapping("/fr/admin/dashboard")
 @RequiredArgsConstructor
 public class AdminDashboardController {
 

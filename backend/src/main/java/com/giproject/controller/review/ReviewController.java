@@ -27,7 +27,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
 @RestController
-@RequestMapping("/g2i4/review")
+@RequestMapping("/fr/review")
 @RequiredArgsConstructor
 @Log4j2
 public class ReviewController {
@@ -121,6 +121,12 @@ public class ReviewController {
     public ResponseEntity<List<MyReviewListDTO>> getReceivedReviews(Authentication authentication) {
         String loginId = authentication.getName();
         return ResponseEntity.ok(reviewService.getReceivedReviews(loginId));
+    }
+    // 특정 화주(memId)가 작성한 리뷰 공개 조회 - 차주가 화주 프로필에서 확인
+    @GetMapping("/member/{memId}")
+    public ResponseEntity<List<MyReviewListDTO>> getReviewsByMemberId(
+            @PathVariable(name = "memId") String memId) {
+        return ResponseEntity.ok(reviewService.getMyReviews(memId));
     }
     @GetMapping("/summary/my")
     public ResponseEntity<ReviewSummaryDTO> getMyReceivedReviewSummary(Authentication authentication) {

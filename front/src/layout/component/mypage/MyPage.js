@@ -82,10 +82,15 @@ const MyPage = () => {
 
   return (
     <Box sx={{ display: 'flex' }}>
-        
-      <Box sx={{ flexGrow: 1 , px : 7}}>
 
-        <Box sx={{ p: 7, bgcolor: '#f3f4f6' }}>
+      <Box sx={{ flexGrow: 1, px: { xs: 0, md: 7 } }}>
+
+        <Box sx={{
+          p: { xs: 2.5, md: 7 },
+          pb: { xs: "120px", md: 7 }, // 스크롤 시 버튼이 사라지는 공간 확보
+          bgcolor: '#f8fafc',
+          minHeight: '100vh'
+        }}>
           <Typography variant="h5" fontWeight="bold" gutterBottom>
             배송 정보 관리
           </Typography>
@@ -99,7 +104,7 @@ const MyPage = () => {
               ['취소/중단', '0건'],
             ].map(([label, value], idx) => (
               <Grid item xs={6} md={3} key={idx}>
-                <Paper sx={{ p: 2, width: 300, textAlign: 'center' }}>
+                <Paper sx={{ p: 2, width: '100%', textAlign: 'center', borderRadius: '16px' }}>
                   <Typography variant="body2" color="text.secondary">{label}</Typography>
                   <Typography variant="h6" fontWeight="bold">{value}</Typography>
                 </Paper>
@@ -110,9 +115,9 @@ const MyPage = () => {
           {/* 그래프 & 문의 내역 */}
           <Grid container spacing={2} mb={4}>
             <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 2 }}>
+              <Paper sx={{ p: 2, borderRadius: '16px' }}>
                 <Typography variant="body2" color="text.secondary" mb={2}>월별 수익 현황</Typography>
-                <Box display="flex" width={648} alignItems="center" mb={1}>
+                <Box display="flex" sx={{ width: '100%' }} alignItems="center" mb={1}>
                   <Box sx={{ width: 12, height: 12, bgcolor: 'rgba(75, 192, 192, 1)', borderRadius: '50%', mr: 1 }} />
                   <Typography variant="caption" sx={{ color: 'rgba(75, 192, 192, 1)' }}>월별 수익 (원)</Typography>
                 </Box>
@@ -121,7 +126,7 @@ const MyPage = () => {
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 2, width:648, height:390}}>
+              <Paper sx={{ p: 2, width: '100%', height: 390, borderRadius: '16px' }}>
                 <Typography variant="body2" color="text.secondary" align="center" mb={2}>내 문의 내역</Typography>
                 <TableContainer>
                   <Table size="small" >
@@ -154,7 +159,7 @@ const MyPage = () => {
           </Grid>
 
           {/* 지난 배송 내역 */}
-          <Paper sx={{ p: 2 }}>
+          <Paper sx={{ p: 2, borderRadius: '16px' }}>
             <Typography variant="body2" color="text.secondary" mb={2}>지난 배송 내역</Typography>
             <Grid container spacing={2}>
               {[

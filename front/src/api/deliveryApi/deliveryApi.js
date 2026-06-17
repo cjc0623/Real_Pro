@@ -1,7 +1,7 @@
 import axios from "axios";
 import { API_SERVER_HOST } from "../serverConfig";
 
-const prefix = `${API_SERVER_HOST}/g2i4/delivery`;
+const prefix = `${API_SERVER_HOST}/fr/delivery`;
 
 // 상태: 0(대기) / 1(배송 중) / 2(완료)
 //상태 변경

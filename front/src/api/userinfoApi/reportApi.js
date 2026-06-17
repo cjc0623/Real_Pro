@@ -1,6 +1,6 @@
     import axios from "axios"
 import { API_SERVER_HOST } from "../serverConfig"
-const prefix = `${API_SERVER_HOST}/g2i4/admin/reports`
+const prefix = `${API_SERVER_HOST}/fr/admin/reports`
 export const reportUser = async (deNo) =>{
     // Pass the delivery number as a JSON object in the request body
     const res = await axios.post(`${prefix}/userreport`, 

@@ -13,7 +13,7 @@ import com.giproject.service.delivery.DeliveryService;
 import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Controller
-@RequestMapping("/g2i4/delivery")
+@RequestMapping("/fr/delivery")
 public class DeliveryController {
 	private final DeliveryService deliveryService;
 	

@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-@RequestMapping("/g2i4/address")
+@RequestMapping("/fr/address")
 @RequiredArgsConstructor
 @Validated
 public class AddressController {

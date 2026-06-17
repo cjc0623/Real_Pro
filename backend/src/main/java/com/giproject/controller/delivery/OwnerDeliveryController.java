@@ -12,7 +12,7 @@ import com.giproject.service.delivery.OwnerDeliveryService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/g2i4/owner/deliveries")
+@RequestMapping("/fr/owner/deliveries")
 @RequiredArgsConstructor
 public class OwnerDeliveryController {
 

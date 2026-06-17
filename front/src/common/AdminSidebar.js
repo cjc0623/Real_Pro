@@ -24,10 +24,9 @@ import {
 import PersonIcon from '@mui/icons-material/Person';
 import { fetchUnreadCount } from "../api/adminApi/adminReportsApi";
 import { useTheme, useMediaQuery } from "@mui/material";
-import { BottomNavigation, BottomNavigationAction } from "@mui/material";
-import { useNavigate } from "react-router-dom";
 import AdminBottomNav from '../common/AdminBottomNav';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+
 const drawerWidth = 260;
 // ✅ 마이페이지와 동일한 헤더 높이 설정
 const APPBAR_HEIGHT_MOBILE = 56;
@@ -37,13 +36,14 @@ const AdminSidebar = () => {
   const location = useLocation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  
   const groups = useMemo(() => ([
     {
       title: "이용 통계",
       icon: <DashboardIcon />,
       path: "/admin",
     },
-    { title: "배송 조회", icon: <DashboardIcon />, path: "/admin/deliveryPage" },
+    { title: "배송 조회", icon: <LocalShippingIcon />, path: "/admin/deliveryPage" },
     {
       title: "회원 관리",
       icon: <PeopleIcon />,
@@ -121,8 +121,17 @@ const AdminSidebar = () => {
     { label: "운송료", icon: <MoneyIcon />, path: "/admin/feesBasic" },
   ]), []);
 
-  return (
+  // 🟢 [변경] 기존 12px에서 대시보드 메뉴들을 더 동글동글한 알약(Pill) 형태로 전면 가공 (16px)
+  const listItemStyle = {
+    borderRadius: "16px",
+    mx: 2,
+    mb: 0.8,
+    py: 1.3, // 마이페이지 사이드바와 완벽한 대칭을 위해 세로 패딩 보정
+    transition: "all 0.2s ease",
+    "&:hover": { backgroundColor: "#f1f5f9" },
+  };
 
+  return (
     <>
       {!isMobile && (
         <Drawer
@@ -131,47 +140,55 @@ const AdminSidebar = () => {
             width: drawerWidth,
             flexShrink: 0,
             [`& .MuiDrawer-paper`]: {
-          width: drawerWidth,
-          boxSizing: 'border-box',
-          position: 'sticky', // Fixed가 아닌 Sticky로 헤더와 나란히 배치
-          top: { xs: APPBAR_HEIGHT_MOBILE, md: APPBAR_HEIGHT_DESKTOP },
-          alignSelf: 'flex-start',
-          backgroundColor: "#f9fafb",
-          height: `calc(100vh - ${APPBAR_HEIGHT_DESKTOP}px)`, // 화면 높이에 맞게 조절
-        },
-      }}
-
+              width: drawerWidth,
+              boxSizing: 'border-box',
+              position: 'sticky',
+              top: { xs: APPBAR_HEIGHT_MOBILE, md: APPBAR_HEIGHT_DESKTOP },
+              alignSelf: 'flex-start',
+              backgroundColor: "#ffffff", 
+              borderRight: "1px solid #e2e8f0", 
+              height: `calc(100vh - ${APPBAR_HEIGHT_DESKTOP}px)`,
+            },
+          }}
         >
-          <Box sx={{ paddingTop: "100px" }}>
-            <Box sx={{ p: 2, textAlign: "center" }}>
-              <Typography variant="h6" fontWeight="bold" gutterBottom>
-                관리자 페이지
-              </Typography>
+          <Box sx={{ paddingTop: "30px" }}>
+            <Box sx={{ p: 2, textAlign: "center", mb: 2 }}>
               <Avatar
                 sx={{
-                  bgcolor: "#e5e7eb",
-                  width: 56,
-                  height: 56,
+                  bgcolor: "#eff6ff", 
+                  width: 64,
+                  height: 64,
                   margin: "0 auto",
                   mb: 2,
+                  boxShadow: "0 4px 12px rgba(37, 99, 235, 0.12)" // 은은한 블루 입체그림자 매칭
                 }}
               >
-                <PersonIcon sx={{ color: "#9ca3af", fontSize: 32 }} />
+                <PersonIcon sx={{ color: "#2563eb", fontSize: 36 }} /> 
               </Avatar>
+              <Typography variant="h6" fontWeight="900" color="#1e293b">
+                관리자 페이지
+              </Typography>
             </Box>
 
             <List disablePadding>
               {groups.map((group) =>
                 group.items ? (
                   <Box key={group.title}>
-                    <ListItemButton onClick={() => handleToggle(group.title)}>
-                      {group.icon && <ListItemIcon>{group.icon}</ListItemIcon>}
-                      <ListItemText primary={group.title} />
-                      {openGroups[group.title] ? <ExpandLess /> : <ExpandMore />}
+                    <ListItemButton onClick={() => handleToggle(group.title)} sx={listItemStyle}>
+                      {group.icon && (
+                        <ListItemIcon sx={{ minWidth: 40, color: "#64748b" }}>
+                          {group.icon}
+                        </ListItemIcon>
+                      )}
+                      <ListItemText 
+                        primary={group.title} 
+                        primaryTypographyProps={{ fontWeight: 600, color: "#334155", fontSize: '0.95rem' }} 
+                      />
+                      {openGroups[group.title] ? <ExpandLess sx={{ color: "#94a3b8" }} /> : <ExpandMore sx={{ color: "#94a3b8" }} />}
                     </ListItemButton>
 
                     <Collapse in={openGroups[group.title]} timeout="auto" unmountOnExit>
-                      <List component="div" disablePadding>
+                      <List component="div" disablePadding sx={{ mb: 1 }}>
                         {group.items.map((item) => {
                           const active = location.pathname === item.path;
                           const isReports = item.id === "reports";
@@ -190,13 +207,23 @@ const AdminSidebar = () => {
                               component={Link}
                               to={item.path}
                               selected={active}
-                              sx={{ pl: 4 }}
+                              sx={{ 
+                                ...listItemStyle,
+                                pl: 6,
+                                py: 1.2,
+                                // 🟢 활성화 시 동글동글 핏팅 및 원본 선명한 블루 매칭
+                                "&.Mui-selected": { 
+                                  backgroundColor: "#eff6ff",
+                                  "&:hover": { backgroundColor: "#e0f2fe" }
+                                }
+                              }}
                             >
                               <ListItemText
                                 primary={primaryNode}
                                 primaryTypographyProps={{
-                                  fontWeight: active ? 700 : 400,
-                                  color: active ? "primary.main" : "text.primary",
+                                  fontWeight: active ? 700 : 500,
+                                  color: active ? "#2563eb" : "#64748b", 
+                                  fontSize: "0.95rem"
                                 }}
                               />
                             </ListItemButton>
@@ -211,13 +238,25 @@ const AdminSidebar = () => {
                     component={Link}
                     to={group.path}
                     selected={location.pathname === group.path}
+                    sx={{
+                      ...listItemStyle,
+                      mb: 1.5,
+                      "&.Mui-selected": { 
+                        backgroundColor: "#eff6ff",
+                        "&:hover": { backgroundColor: "#e0f2fe" }
+                      }
+                    }}
                   >
-                    {group.icon && <ListItemIcon>{group.icon}</ListItemIcon>}
+                    {group.icon && (
+                      <ListItemIcon sx={{ minWidth: 40, color: location.pathname === group.path ? "#2563eb" : "#64748b" }}>
+                        {group.icon}
+                      </ListItemIcon>
+                    )}
                     <ListItemText
                       primary={group.title}
                       primaryTypographyProps={{
-                        fontWeight: location.pathname === group.path ? 700 : 400,
-                        color: location.pathname === group.path ? "primary.main" : "text.primary",
+                        fontWeight: location.pathname === group.path ? 700 : 600,
+                        color: location.pathname === group.path ? "#2563eb" : "#334155",
                       }}
                     />
                   </ListItemButton>

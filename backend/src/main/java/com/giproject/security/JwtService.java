@@ -29,7 +29,7 @@ public class JwtService {
     @Value("${jwt.secret:CHANGE_THIS_TO_A_LONG_RANDOM_SECRET_256_BITS_MINIMUM_1234567890}")
     private String secret;
 
-    @Value("${jwt.issuer:giproject}")
+    @Value("${jwt.issuer:fr}")
     private String issuer;
 
     @Value("${jwt.access.expSeconds:1800}")    // 30분

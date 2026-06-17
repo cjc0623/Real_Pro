@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/g2i4/admin/sanctions")
+@RequestMapping("/fr/admin/sanctions")
 @RequiredArgsConstructor
 public class AdminSanctionController {
 
@@ -16,7 +16,7 @@ public class AdminSanctionController {
     /**
      * 관리자 계정 정지
      * 예:
-     * POST /g2i4/admin/sanctions/seojuwon19/suspend
+     * POST /fr/admin/sanctions/seojuwon19/suspend
      */
     @PostMapping("/{loginId}/suspend")
     public ResponseEntity<UserSuspendDTO.SuspendResponse> suspendUser(
@@ -29,7 +29,7 @@ public class AdminSanctionController {
     /**
      * 관리자 계정 정지 해제
      * 예:
-     * POST /g2i4/admin/sanctions/seojuwon19/unsuspend
+     * POST /fr/admin/sanctions/seojuwon19/unsuspend
      */
     @PostMapping("/{loginId}/unsuspend")
     public ResponseEntity<UserSuspendDTO.SuspendResponse> unsuspendUser(

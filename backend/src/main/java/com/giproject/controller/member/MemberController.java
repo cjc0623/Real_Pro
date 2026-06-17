@@ -21,7 +21,7 @@ import lombok.extern.log4j.Log4j2;
 
 @Log4j2
 @RestController
-@RequestMapping({"/api/signup", "/g2i4/member"}) // ✅ 두 prefix 모두 허용
+@RequestMapping({"/api/signup", "/fr/member"}) // ✅ 두 prefix 모두 허용
 @RequiredArgsConstructor
 public class MemberController {
 

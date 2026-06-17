@@ -1,6 +1,6 @@
 import { API_SERVER_HOST } from "../serverConfig";
 
-const BASE = `${API_SERVER_HOST}/g2i4/admin/members`;
+const BASE = `${API_SERVER_HOST}/fr/admin/members`;
 
 export const fetchMembers = async ({
   type = "ALL",

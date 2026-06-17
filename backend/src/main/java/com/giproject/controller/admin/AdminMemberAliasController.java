@@ -22,7 +22,7 @@ public class AdminMemberAliasController {
 
     private final AdminMemberService adminMemberService;
 
-    @GetMapping("/g2i4/admin/users")
+    @GetMapping("/fr/admin/users")
     public Page<AdminMemberDTO> aliasList(
             @RequestParam(name="type", defaultValue="ALL") String type,
             @RequestParam(name="keyword", required=false) String keyword,

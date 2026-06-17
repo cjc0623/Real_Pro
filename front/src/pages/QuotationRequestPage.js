@@ -132,6 +132,7 @@ const QuotationRequestPage = () => {
     }).open();
   }
 
+
   const handleNextStep = async () => {
     if (currentStep === 3) {
       if (!formData.startAddress || !formData.endAddress) {
@@ -180,6 +181,7 @@ const QuotationRequestPage = () => {
 
     // 마지막 4단계: [접수완료] 버튼 눌렀을 때 진짜 DB로 전송!
     if (currentStep === steps.length) {
+
       try {
         // Redux 및 브라우저 저장소에서 토큰을 모두 탐색하여 가져옵니다.
         const activeToken = token || 
@@ -217,7 +219,7 @@ const QuotationRequestPage = () => {
                        formData.freightVehicle === '1ton' ? '1톤' : 
                        formData.freightVehicle === '5ton' ? '5톤' : 
                        formData.freightVehicle.includes('ton') && parseInt(formData.freightVehicle) >= 11 ? '5톤이상' : '1톤',
-                       
+
           deliveryItem: formData.deliveryItem,
           deliveryOption: formData.quickOption,
           paymentMethod: formData.paymentMethod,
@@ -229,7 +231,7 @@ const QuotationRequestPage = () => {
 
         // Authorization 헤더에 찾은 토큰을 담아 전송합니다.
         const response = await axios.post(
-          'http://localhost:8080/g2i4/estimate/', 
+          'http://localhost:8080/fr/estimate/', 
           submitData,
           {
             headers: {
@@ -507,7 +509,9 @@ const QuotationRequestPage = () => {
             </div>
             <div className="flex gap-4">
               <Button variant="contained" size="large" onClick={handlePrevStep} disabled={currentStep === 1} sx={{ bgcolor: '#d1d5db', color: 'black', '&:hover': {bgcolor: '#9ca3af'}, width: '120px', fontWeight: 'bold', boxShadow: 'none' }}>이전</Button>
-              <Button variant="contained" size="large" onClick={handleNextStep} sx={{ bgcolor: '#ef4444', '&:hover': {bgcolor: '#dc2626'}, width: '150px', fontWeight: 'bold', boxShadow: 'none' }}>
+              <Button 
+                variant="contained" size="large" onClick={handleNextStep} sx={{ bgcolor: '#ef4444', '&:hover': {bgcolor: '#dc2626'}, width: '150px', fontWeight: 'bold', boxShadow: 'none' }}
+              >
                 {currentStep === steps.length ? '접수완료' : '다음'}
               </Button>
             </div>

@@ -2,17 +2,16 @@ import React, { useEffect, useMemo, useState } from "react";
 import {
   Box,
   Paper,
-  Grid,
   Typography,
   Divider,
   Button,
+  Stack,
 } from "@mui/material";
 import PrintIcon from "@mui/icons-material/Print";
 import { useLocation } from "react-router-dom";
 import { postOrderPome } from "../../../api/orderAPI/orderApi";
 
-const LABEL_WIDTH = 120;
-const NAME_WIDTH = 110;
+const MAX_W = 720;
 
 const serverInitState = {
   ordererName: "",
@@ -63,46 +62,62 @@ const toCurrency = (v) => {
   return n.toLocaleString("ko-KR");
 };
 
-const FieldRow = ({ label, children, dense = false, className }) => (
-  <Grid
-    className={className}
-    container
-    alignItems="center"
-    wrap="nowrap"
+// 라벨-값 한 줄 : 모바일은 세로, 태블릿 이상은 가로
+const Row = ({ label, children, last }) => (
+  <Stack
+    direction={{ xs: "column", sm: "row" }}
+    spacing={{ xs: 0.25, sm: 2 }}
     sx={{
-      py: dense ? 0.75 : 1.25,
-      borderBottom: "1px dashed #e0e0e0",
+      py: 1.25,
+      borderBottom: last ? "none" : "1px solid #f3f4f6",
     }}
   >
-    <Grid item sx={{ width: LABEL_WIDTH, pr: 2 }}>
-      <Typography sx={{ fontWeight: 600, textAlign: "right" }}>{label}</Typography>
-    </Grid>
-    <Grid item sx={{ flex: 1, minWidth: 0 }}>
-      <Box
-        sx={{
-          px: 1,
-          display: "flex",
-          alignItems: "center",
-          minHeight: 28,
-          fontFamily:
-            "'Pretendard', 'Inter', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
-          color: "#222",
-          wordBreak: "break-all",
-        }}
-      >
-        {children}
-      </Box>
-    </Grid>
-  </Grid>
+    <Box
+      sx={{
+        width: { xs: "100%", sm: 130 },
+        flexShrink: 0,
+        textAlign: { xs: "left", sm: "right" },
+        color: "#9ca3af",
+        fontSize: { xs: 13, sm: 14 },
+      }}
+    >
+      {label}
+    </Box>
+    <Box
+      sx={{
+        flex: 1,
+        minWidth: 0,
+        fontWeight: 600,
+        fontSize: 14,
+        color: "#111827",
+        wordBreak: "break-all",
+        whiteSpace: "pre-wrap",
+      }}
+    >
+      {children}
+    </Box>
+  </Stack>
 );
 
 const SectionTitle = ({ children }) => (
-  <Box sx={{ borderRadius: 3, maxWidth: 800, mx: "auto", mt: 10 }}>
-    <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.25 }}>
+  <Box sx={{ width: "100%", maxWidth: MAX_W, mx: "auto", mb: 1.25, mt: 0.5 }}>
+    <Typography sx={{ fontWeight: 700, fontSize: 16, color: "#111827" }}>
       {children}
     </Typography>
   </Box>
 );
+
+const cardSx = {
+  width: "100%",
+  maxWidth: MAX_W,
+  mx: "auto",
+  mb: 4,
+  borderRadius: "14px",
+  border: "1px solid #f3f4f6",
+  boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
+  bgcolor: "#fff",
+  p: { xs: 2.5, sm: 3 },
+};
 
 const OrderSummaryReadOnly = () => {
   const { state } = useLocation();
@@ -180,158 +195,147 @@ const OrderSummaryReadOnly = () => {
     return joinPhone(src);
   }, [serverData.receiverPhone, passedOrderSheet?.phone]);
 
+  const showCoupon =
+    serverData.finalPaymentAmount !== undefined &&
+    serverData.totalCost > serverData.finalPaymentAmount;
+
   return (
     <Box
       sx={{
-        px: 4,
-        pt: 10,
-        pb: 10,
-        bgcolor: "#fafafa",
         minHeight: "100vh",
+        bgcolor: "#fafafa",
+        pt: { xs: 5, md: 7 },
+        pb: { xs: 15, md: 7 }, // 모바일 하단 탭바에 버튼이 가려지지 않도록 아래쪽에 충분한 텀 추가
+        px: { xs: 2, sm: 3 },
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
       }}
     >
-      <Typography variant="h5" align="center" sx={{ fontWeight: 800, mt: 4, mb: 2, pb: 3 }}>
-        주문서 요약 (읽기 전용)
+      <Typography
+        sx={{
+          fontWeight: 900,
+          fontSize: { xs: 22, sm: 28 },
+          color: "#111827",
+          mb: { xs: 4, sm: 5 },
+          textAlign: "center",
+        }}
+      >
+        주문서 요약 <Box component="span" sx={{ color: "#9ca3af", fontWeight: 700, fontSize: { xs: 14, sm: 18 } }}>(읽기 전용)</Box>
       </Typography>
 
       {/* ===== 출발지(주문자) 정보 ===== */}
       <SectionTitle>출발지 정보</SectionTitle>
-      <Paper
-        variant="outlined"
-        sx={{ p: 0, mb: 5, borderRadius: 3, maxWidth: 800, mx: "auto", overflow: "hidden" }}
-      >
-        <Box sx={{ p: 2.5, "& .field-row:last-of-type": { borderBottom: "none", pb: 0 } }}>
-          <FieldRow className="field-row" label="주문자">
-            <Typography sx={{ width: NAME_WIDTH }}>{serverData.ordererName || ""}</Typography>
-          </FieldRow>
-          <FieldRow className="field-row" label="물품 출발 주소">
-            <Typography>{serverData.startAddress || ""}</Typography>
-          </FieldRow>
-          <FieldRow className="field-row" label="상세 주소">
-            <Typography>{serverData.startRestAddress ?? passedOrderSheet?.startRestAddress ?? ""}</Typography>
-          </FieldRow>
-          <FieldRow className="field-row" label="휴대전화" dense>
-            <Typography>{ordererPhone}</Typography>
-          </FieldRow>
-          <FieldRow className="field-row" label="이메일" dense>
-            <Typography>{serverData.ordererEmail ?? ""}</Typography>
-          </FieldRow>
-        </Box>
+      <Paper elevation={0} sx={cardSx}>
+        <Row label="주문자">{serverData.ordererName || "-"}</Row>
+        <Row label="물품 출발 주소">{serverData.startAddress || "-"}</Row>
+        <Row label="상세 주소">
+          {serverData.startRestAddress ?? passedOrderSheet?.startRestAddress ?? "-"}
+        </Row>
+        <Row label="휴대전화">{ordererPhone || "-"}</Row>
+        <Row label="이메일" last>{serverData.ordererEmail || "-"}</Row>
       </Paper>
 
       {/* ===== 도착지(받는분) 정보 ===== */}
       <SectionTitle>도착지 정보</SectionTitle>
-      <Paper
-        variant="outlined"
-        sx={{ p: 0, mb: 5, borderRadius: 3, maxWidth: 800, mx: "auto", overflow: "hidden" }}
-      >
-        <Box sx={{ p: 2.5, "& .field-row:last-of-type": { borderBottom: "none", pb: 0 } }}>
-          <FieldRow className="field-row" label="받는분">
-            <Typography sx={{ width: NAME_WIDTH }}>
-              {serverData.addressee ?? passedOrderSheet?.addressee ?? ""}
-            </Typography>
-          </FieldRow>
-          <FieldRow className="field-row" label="물품 도착 주소">
-            <Typography>{serverData.endAddress || ""}</Typography>
-          </FieldRow>
-          <FieldRow className="field-row" label="상세 주소">
-            <Typography>{serverData.endRestAddress ?? passedOrderSheet?.endRestAddress ?? ""}</Typography>
-          </FieldRow>
-          <FieldRow className="field-row" label="휴대전화" dense>
-            <Typography>{receiverPhone}</Typography>
-          </FieldRow>
-          <FieldRow className="field-row" label="이메일" dense>
-            <Typography>{serverData.addresseeEmail ?? passedOrderSheet?.addresseeEmail ?? ""}</Typography>
-          </FieldRow>
-        </Box>
+      <Paper elevation={0} sx={cardSx}>
+        <Row label="받는분">
+          {serverData.addressee ?? passedOrderSheet?.addressee ?? "-"}
+        </Row>
+        <Row label="물품 도착 주소">{serverData.endAddress || "-"}</Row>
+        <Row label="상세 주소">
+          {serverData.endRestAddress ?? passedOrderSheet?.endRestAddress ?? "-"}
+        </Row>
+        <Row label="휴대전화">{receiverPhone || "-"}</Row>
+        <Row label="이메일" last>
+          {serverData.addresseeEmail ?? passedOrderSheet?.addresseeEmail ?? "-"}
+        </Row>
       </Paper>
 
       {/* ===== 결제/요금 요약 ===== */}
       <SectionTitle>결제 요약</SectionTitle>
-      <Paper
-        variant="outlined"
-        sx={{ p: 0, mb: 5, borderRadius: 3, maxWidth: 800, mx: "auto", overflow: "hidden" }}
-      >
-        <Box sx={{ p: 2.5 }}>
-          <FieldRow label="기본요금">
-            <Typography>{toCurrency(serverData.baseCost)} 원</Typography>
-          </FieldRow>
-          <FieldRow label="거리요금">
-            <Typography>{toCurrency(serverData.distanceCost)} 원</Typography>
-          </FieldRow>
+      <Paper elevation={0} sx={cardSx}>
+        <Row label="기본요금">{toCurrency(serverData.baseCost)} 원</Row>
+        <Row label="거리요금">{toCurrency(serverData.distanceCost)} 원</Row>
 
-          {/* 🚨 [추가 섹션] 거리 자동 할인 내역 - 기존 코드 보존하며 삽입 */}
-          {Number(serverData.distanceDiscount) > 0 && (
-            <FieldRow label="거리할인">
-              <Typography sx={{ color: "#d32f2f", fontWeight: 700 }}>
-                - {toCurrency(serverData.distanceDiscount)} 원
-              </Typography>
-            </FieldRow>
-          )}
+        {/* 🚨 [추가 섹션] 거리 자동 할인 내역 */}
+        {Number(serverData.distanceDiscount) > 0 && (
+          <Row label="거리할인">
+            <Box component="span" sx={{ color: "#d32f2f", fontWeight: 700 }}>
+              - {toCurrency(serverData.distanceDiscount)} 원
+            </Box>
+          </Row>
+        )}
 
-          <FieldRow label="옵션요금">
-            <Typography>{toCurrency(serverData.specialOptionCost)} 원</Typography>
-          </FieldRow>
+        <Row label="옵션요금" last={!showCoupon}>
+          {toCurrency(serverData.specialOptionCost)} 원
+        </Row>
 
-          {/* 쿠폰 할인 내역 */}
-          {serverData.finalPaymentAmount !== undefined &&
-            serverData.totalCost > serverData.finalPaymentAmount && (
-              <FieldRow label="쿠폰할인">
-                <Typography sx={{ color: "error.main", fontWeight: 700 }}>
-                  - {toCurrency(serverData.totalCost - serverData.finalPaymentAmount)} 원
-                </Typography>
-              </FieldRow>
-            )}
+        {/* 쿠폰 할인 내역 */}
+        {showCoupon && (
+          <Row label="쿠폰할인" last>
+            <Box component="span" sx={{ color: "#d32f2f", fontWeight: 700 }}>
+              - {toCurrency(serverData.totalCost - serverData.finalPaymentAmount)} 원
+            </Box>
+          </Row>
+        )}
 
-          <Divider sx={{ my: 2 }} />
+        <Divider sx={{ my: 2, borderStyle: "dashed", borderColor: "#e5e7eb" }} />
 
-          <Grid container alignItems="center" wrap="nowrap" sx={{ py: 1.5 }}>
-            <Grid item sx={{ width: LABEL_WIDTH, pr: 2 }}>
-              <Typography sx={{ fontWeight: 800, textAlign: "right" }}>총 결제금액 :</Typography>
-            </Grid>
-            <Grid item sx={{ flex: 1, minWidth: 0 }}>
-              <Box
-                sx={{
-                  px: 1,
-                  display: "flex",
-                  alignItems: "center",
-                  minHeight: 32,
-                  fontWeight: 800,
-                  fontSize: 18,
-                  color: "#d32f2f",
-                }}
-              >
-                {/* 💡 최종 결제 금액 출력 로직 */}
-                {toCurrency(serverData.finalPaymentAmount ?? serverData.totalCost)} 원
-              </Box>
-            </Grid>
-          </Grid>
-        </Box>
-      </Paper>
-      <Box className="print-footer">
-        <img 
-          src="/image/logo/main_logo.png" 
-          alt="로고" 
-          style={{ height: 60, width: "auto" }} 
-        />
-      </Box>
-      <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
-        <Button
-          variant="contained"
-          startIcon={<PrintIcon />}
-          onClick={handlePrint}
+        {/* 총 결제금액 강조 박스 */}
+        <Box
           sx={{
-            borderRadius: 3,
-            px: 4,
-            py: 1.5,
-            fontWeight: 700,
-            boxShadow: 3,
-            "@media print": { display: "none" },
+            px: { xs: 2, sm: 2.5 },
+            py: 2,
+            borderRadius: "12px",
+            bgcolor: "#fef2f2",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 1,
           }}
         >
-          인쇄, PDF 저장
-        </Button>
+          <Typography sx={{ fontWeight: 700, fontSize: 15, color: "#111827" }}>
+            총 결제금액
+          </Typography>
+          <Box sx={{ display: "flex", alignItems: "baseline", gap: 0.5 }}>
+            <Typography sx={{ fontSize: { xs: 22, sm: 26 }, fontWeight: 900, color: "#DC2626" }}>
+              {toCurrency(serverData.finalPaymentAmount ?? serverData.totalCost)}
+            </Typography>
+            <Typography sx={{ color: "#DC2626", fontWeight: 900, fontSize: 16 }}>원</Typography>
+          </Box>
+        </Box>
+      </Paper>
+
+      <Box className="print-footer">
+        <img
+          src="/image/logo/main_logo.png"
+          alt="로고"
+          style={{ height: 60, width: "auto" }}
+        />
       </Box>
+
+      <Button
+        variant="contained"
+        startIcon={<PrintIcon />}
+        onClick={handlePrint}
+        disableElevation
+        sx={{
+          mt: 2,
+          minWidth: { xs: "100%", sm: 260 },
+          maxWidth: MAX_W,
+          py: 1.5,
+          borderRadius: "10px",
+          backgroundColor: "#DC2626",
+          textTransform: "none",
+          fontWeight: 700,
+          fontSize: 15,
+          "&:hover": { backgroundColor: "#B91C1C" },
+          "@media print": { display: "none" },
+        }}
+      >
+        인쇄 · PDF 저장
+      </Button>
     </Box>
   );
 };

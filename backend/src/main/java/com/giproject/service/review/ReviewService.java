@@ -61,6 +61,9 @@ public interface ReviewService {
 
 	// 차주 프로필 카드 조회
 	DriverProfileCardDTO getDriverProfileCard(String cargoId);
+
+	// 화주 직접요청용: 차주 탐색 목록 (평점/리뷰수 요약 포함)
+	List<DriverProfileCardDTO> getDriverCards(String keyword, boolean requireVehicle);
 	
 	DriverDetailDTO getDriverDetail(String cargoId);
 	

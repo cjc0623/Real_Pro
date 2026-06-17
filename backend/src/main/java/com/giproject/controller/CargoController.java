@@ -18,7 +18,7 @@ import java.util.*;
 @Slf4j
 @CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 @RestController
-@RequestMapping("/g2i4/cargo")
+@RequestMapping("/fr/cargo")
 @RequiredArgsConstructor
 public class CargoController {
 
@@ -70,7 +70,7 @@ public class CargoController {
             String savedFilename = UUID.randomUUID() + ext;
             Path savePath = CARGO_DIR.resolve(savedFilename).normalize();
             file.transferTo(savePath.toFile());
-            String webPath = "/g2i4/uploads/cargo/" + savedFilename;
+            String webPath = "/fr/uploads/cargo/" + savedFilename;
 
             // 3. 엔티티 생성 및 필드 셋팅
             Cargo cargo = new Cargo();
@@ -156,7 +156,7 @@ public class CargoController {
             Path savePath = CARGO_DIR.resolve(savedFilename).normalize();
             file.transferTo(savePath.toFile());
 
-            String webPath = "/g2i4/uploads/cargo/" + savedFilename;
+            String webPath = "/fr/uploads/cargo/" + savedFilename;
             cargo.setCargoImage(webPath);
             cargoRepository.save(cargo);
 
@@ -169,7 +169,7 @@ public class CargoController {
     }
     /**
      * 승인된 모든 차량 목록 조회 (에러 방지 및 관리자용)
-     * 리액트에서 호출하는 /g2i4/cargo/all/approved 대응
+     * 리액트에서 호출하는 /fr/cargo/all/approved 대응
      */
     @GetMapping("/all/approved")
     public ResponseEntity<List<Cargo>> getAllApprovedCargo() {

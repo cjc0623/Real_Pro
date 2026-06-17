@@ -54,7 +54,7 @@ public class EmailVerificationService {
             SimpleMailMessage msg = new SimpleMailMessage();
             msg.setFrom(from);             // ✅ 네이버는 보통 username과 동일해야 전송됨
             msg.setTo(email);
-            msg.setSubject("[GiProject] 이메일 인증코드");
+            msg.setSubject("[FR] 이메일 인증코드");
             msg.setText("인증코드: " + code + "\n유효시간: 10분");
             mailSender.send(msg);
         } catch (MailException e) {

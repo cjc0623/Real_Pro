@@ -38,6 +38,7 @@ public interface MatchingService {
 	    MatchingDTO dto = MatchingDTO.builder()
 	            .matchNo(matching.getMatchingNo())
 	            .eno(matching.getEstimate().getEno())
+	            .memId(e.getMember() != null ? e.getMember().getMemId() : null) // 화주 아이디
 	            .isAccepted(matching.isAccepted())
 	            .acceptedTime(matching.getAcceptedTime())
 	            .route(makeShortRoute(e.getStartAddress(), e.getEndAddress()))
@@ -67,10 +68,16 @@ public interface MatchingService {
 	    String to = simpleAddress(endAddress);
 	    return from + " → " + to;
 	}
-	
+
 	PageResponseDTO<MatchingDTO> getList(PageRequestDTO requestDTO,String cargoId);
-	
+
 	void rejectMatching(Long estimateNo, CargoOwner cargoOwner);
 	Long acceptMatching(Long estimateNo, CargoOwner cargoOwner);
-	
+
+	/**
+	 * 차주가 해당 견적을 운송할 수 있는 승인 차량(요청 톤수 이상)을 보유했는지 검증.
+	 * 공개모집 수락 / 직접요청 수락이 공유. (실패 시 RuntimeException)
+	 */
+	void validateOwnerCanAccept(Estimate estimate, CargoOwner cargoOwner);
+
 }

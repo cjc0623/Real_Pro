@@ -1,18 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-  Box,
-  Container,
-  Typography,
-  Card,
-  CardContent,
   Button,
-  Paper,
-  Divider,
   Alert,
   CircularProgress,
-  Stack,
-  Chip,
   Snackbar,
   Dialog,
   DialogActions,
@@ -27,8 +18,9 @@ import {
   Person as PersonIcon,
   CalendarToday as CalendarIcon
 } from '@mui/icons-material';
-import { getNoticeDetail, deleteNotice } from '../../../api/noticeApi';
+import { getNoticeDetail, deleteNotice, getCategoryDisplayName } from '../../../api/noticeApi';
 import { isCurrentUserAdmin, getCurrentUserId } from '../../../utils/jwtUtils';
+import Breadcrumb from '../../../components/Breadcrumb';
 
 const PostView = () => {
   const { id } = useParams();
@@ -72,7 +64,7 @@ const PostView = () => {
     // 사용자 정보 초기화
     const adminStatus = isCurrentUserAdmin();
     const userId = getCurrentUserId();
-    
+
     setIsAdmin(adminStatus);
     setCurrentUserId(userId);
   }, [id]);
@@ -125,177 +117,124 @@ const PostView = () => {
     setSnackbar({ ...snackbar, open: false });
   };
 
+  // 공통 컨테이너 (목록·문의 페이지와 동일한 max-w / padding / font)
+  const Page = ({ children }) => (
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12 font-sans">
+      {children}
+    </div>
+  );
+
   if (loading) {
     return (
-      <Container maxWidth="md" sx={{ py: 4, textAlign: 'center' }}>
-        <CircularProgress size={40} />
-        <Typography variant="body1" sx={{ mt: 2 }}>
-          게시글을 불러오는 중입니다...
-        </Typography>
-      </Container>
+      <Page>
+        <div className="flex flex-col items-center py-20">
+          <CircularProgress size={34} />
+          <p className="text-gray-400 text-sm mt-3">게시글을 불러오는 중입니다...</p>
+        </div>
+      </Page>
     );
   }
 
   if (error) {
     return (
-      <Container maxWidth="md" sx={{ py: 4 }}>
-        <Alert severity="error">{error}</Alert>
-        <Box sx={{ textAlign: 'center', mt: 3 }}>
-          <Button variant="outlined" onClick={handleGoBack}>
-            목록으로 돌아가기
-          </Button>
-        </Box>
-      </Container>
+      <Page>
+        <Alert severity="error" sx={{ borderRadius: '10px' }}>{error}</Alert>
+        <div className="text-center mt-6">
+          <button
+            type="button"
+            onClick={handleGoBack}
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg border border-gray-200
+                       text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+          >
+            <ArrowLeftIcon sx={{ fontSize: 18 }} /> 목록으로
+          </button>
+        </div>
+      </Page>
     );
   }
 
   if (!notice) {
     return (
-      <Container maxWidth="md" sx={{ py: 4, textAlign: 'center' }}>
-        <Typography variant="h5" gutterBottom>
-          게시글을 찾을 수 없습니다
-        </Typography>
-        <Button variant="contained" onClick={handleGoBack} sx={{ mt: 2 }}>
-          목록으로 돌아가기
-        </Button>
-      </Container>
+      <Page>
+        <div className="text-center py-16">
+          <p className="text-gray-800 font-semibold text-lg mb-6">게시글을 찾을 수 없습니다</p>
+          <button
+            type="button"
+            onClick={handleGoBack}
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-red-600
+                       text-sm font-bold text-white hover:bg-red-700 transition-colors"
+          >
+            목록으로 돌아가기
+          </button>
+        </div>
+      </Page>
     );
   }
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
-      {/* Header */}
-      <Box 
-        sx={{ 
-          bgcolor: 'primary.main',
-          py: 4,
-          px: 3
-        }}
-      >
-        <Container maxWidth="md">
-          <Button
-            variant="text"
-            onClick={handleGoBack}
-            startIcon={<ArrowLeftIcon />}
-            sx={{ 
-              mb: 2,
-              color: 'primary.contrastText',
-              '&:hover': {
-                bgcolor: 'rgba(255, 255, 255, 0.1)'
-              }
-            }}
-          >
-            목록으로
-          </Button>
-          
-          <Typography 
-            variant="h4" 
-            component="h1" 
-            sx={{ 
-              color: 'primary.contrastText',
-              fontWeight: 'bold',
-              mb: 2
-            }}
-          >
-            {notice.title}
-          </Typography>
-          
-          <Stack 
-            direction="row" 
-            spacing={3} 
-            sx={{ 
-              color: 'primary.contrastText',
-              opacity: 0.8
-            }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <PersonIcon fontSize="small" />
-              <Typography variant="body2">
-                작성자: {notice.authorName}
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <CalendarIcon fontSize="small" />
-              <Typography variant="body2">
-                작성일: {new Date(notice.createdAt).toLocaleDateString('ko-KR')}
-              </Typography>
-            </Box>
-          </Stack>
-        </Container>
-      </Box>
+    <Page>
+      {/* ── 브레드크럼 ── */}
+      <Breadcrumb label="공지사항" />
 
-      <Container maxWidth="md" sx={{ py: 4 }}>
-        {/* Post Content */}
-        <Card sx={{ mb: 3, boxShadow: 2 }}>
-          <CardContent sx={{ p: 4 }}>
-            <Box sx={{ mb: 2 }}>
-              <Chip 
-                label="공지" 
-                color="primary" 
-                size="small" 
-                sx={{ mb: 2 }}
-              />
-            </Box>
-            
-            <Box>
-              {notice.content.split('\n').map((paragraph, index) => (
-                <Typography
-                  key={index}
-                  variant="body1"
-                  paragraph
-                  sx={{
-                    lineHeight: 1.8,
-                    color: 'text.primary',
-                    mb: paragraph.trim() === '' ? 1 : 2
-                  }}
-                >
-                  {paragraph || '\u00A0'} {/* Non-breaking space for empty lines */}
-                </Typography>
-              ))}
-            </Box>
-          </CardContent>
-        </Card>
+      {/* ── 제목 헤더 ── */}
+      <div className="border-b border-gray-200 pb-6 mb-8">
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700">
+          {getCategoryDisplayName(notice.category)}
+        </span>
 
-        {/* Action Buttons */}
-        <Box 
-          sx={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: 2
-          }}
+        <h1 className="text-2xl sm:text-3xl md:text-[2rem] font-black text-gray-900 leading-snug break-keep mt-3 mb-4">
+          {notice.title}
+        </h1>
+
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-400">
+          <span className="flex items-center gap-1">
+            <PersonIcon sx={{ fontSize: 15 }} />
+            {notice.authorName}
+          </span>
+          <span className="flex items-center gap-1">
+            <CalendarIcon sx={{ fontSize: 15 }} />
+            {new Date(notice.createdAt).toLocaleDateString('ko-KR')}
+          </span>
+        </div>
+      </div>
+
+      {/* ── 본문 ── */}
+      <div className="text-[15px] sm:text-base text-gray-700 leading-[1.9] whitespace-pre-wrap break-keep min-h-[160px] mb-10">
+        {notice.content}
+      </div>
+
+      {/* ── 액션 버튼 ── */}
+      <div className="flex items-center justify-between flex-wrap gap-2 border-t border-gray-100 pt-6">
+        <button
+          type="button"
+          onClick={handleGoBack}
+          className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg border border-gray-200
+                     text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
         >
-          <Button
-            variant="outlined"
-            onClick={handleGoBack}
-            startIcon={<ArrowLeftIcon />}
-            size="large"
-          >
-            목록으로
-          </Button>
-          
-          {canEditDelete && (
-            <Stack direction="row" spacing={1}>
-              <Button
-                variant="outlined"
-                onClick={handleEdit}
-                startIcon={<EditIcon />}
-              >
-                수정
-              </Button>
-              <Button
-                variant="outlined"
-                color="error"
-                onClick={handleDeleteClick}
-                startIcon={<DeleteIcon />}
-              >
-                삭제
-              </Button>
-            </Stack>
-          )}
-        </Box>
-      </Container>
+          <ArrowLeftIcon sx={{ fontSize: 18 }} /> 목록으로
+        </button>
+
+        {canEditDelete && (
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleEdit}
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg border border-gray-200
+                         text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              <EditIcon sx={{ fontSize: 17 }} /> 수정
+            </button>
+            <button
+              type="button"
+              onClick={handleDeleteClick}
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg border border-red-200
+                         text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors"
+            >
+              <DeleteIcon sx={{ fontSize: 17 }} /> 삭제
+            </button>
+          </div>
+        )}
+      </div>
 
       {/* Delete Confirmation Dialog */}
       <Dialog
@@ -312,11 +251,33 @@ const PostView = () => {
             정말로 이 게시글을 삭제하시겠습니까? 삭제된 게시글은 복구할 수 없습니다.
           </DialogContentText>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleDeleteCancel} color="primary">
+        <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
+          <Button
+            onClick={handleDeleteCancel}
+            variant="outlined"
+            sx={{
+              borderRadius: '8px',
+              textTransform: 'none',
+              borderColor: '#d1d5db',
+              color: '#6b7280',
+              '&:hover': { borderColor: '#9ca3af', backgroundColor: '#f9fafb' },
+            }}
+          >
             취소
           </Button>
-          <Button onClick={handleDeleteConfirm} color="error" autoFocus>
+          <Button
+            onClick={handleDeleteConfirm}
+            variant="contained"
+            autoFocus
+            sx={{
+              borderRadius: '8px',
+              backgroundColor: '#DC2626',
+              textTransform: 'none',
+              fontWeight: 700,
+              boxShadow: 'none',
+              '&:hover': { backgroundColor: '#B91C1C', boxShadow: 'none' },
+            }}
+          >
             삭제
           </Button>
         </DialogActions>
@@ -333,7 +294,7 @@ const PostView = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
-    </Box>
+    </Page>
   );
 };
 

@@ -79,7 +79,7 @@ const OrderPaymentSelect = ({ serverData, orderSheet, selectedMcno, discountAmou
                 const paymentNo = await acceptedPayment(paymentDTO);
                 createDelivery(paymentNo);
                 alert("주문이 완료되었습니다.");
-                navigate(`/order/payment`, { state: { paymentNo } });
+                navigate(`/order/payment`, { state: { paymentNo }, replace: true });
                 return;
             }
 
@@ -121,7 +121,7 @@ const OrderPaymentSelect = ({ serverData, orderSheet, selectedMcno, discountAmou
             const paymentNo = await acceptedPayment(paymentDTO);
             createDelivery(paymentNo);
             alert("주문이 완료되었습니다.");
-            navigate(`/order/payment`, { state: { paymentNo } });
+            navigate(`/order/payment`, { state: { paymentNo }, replace: true });
 
         } catch (err) {
             console.error("결제 실패:", err);

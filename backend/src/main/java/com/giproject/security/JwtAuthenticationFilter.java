@@ -36,7 +36,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         "/", "/error", "/favicon.ico",
         "/h2-console/**",
         "/uploads/**",
-        "/g2i4/**",
+        "/fr/**",
+        "/g2i4/uploads/**", // 하위호환: 구경로 이미지 요청은 JWT 검사 제외
 
         // === 공개 Auth/API ===
         "/api/auth/login",

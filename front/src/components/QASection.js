@@ -35,7 +35,7 @@ const QASection = () => {
   };
 
   return (
-    <section className="bg-white py-24 font-sans text-black">
+    <section className="bg-white pt-0 pb-24 lg:py-24 font-sans text-black">
       <div className="max-w-7xl mx-auto px-4 text-center">
         <div className="mb-16">
           <p className="text-gray-600 text-lg mb-2">화물운송서비스에 대하여 궁금하신 점 많으시죠?</p>

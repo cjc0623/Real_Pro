@@ -2,7 +2,7 @@
 import axios from "axios";
 import { API_SERVER_HOST } from "../serverConfig";
 
-const FEES_PREFIX = `${API_SERVER_HOST}/g2i4/admin/fees`;
+const FEES_PREFIX = `${API_SERVER_HOST}/fr/admin/fees`;
 
 
 /** ───── Basic ───── **/

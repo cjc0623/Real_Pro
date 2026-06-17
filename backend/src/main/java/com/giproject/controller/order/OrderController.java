@@ -16,7 +16,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/g2i4/subpath/order")
+@RequestMapping("/fr/subpath/order")
 public class OrderController {
 	private final OrderService orderService;
 	

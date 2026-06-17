@@ -17,7 +17,7 @@ const ProcessSection = () => {
       <div className="max-w-7xl mx-auto px-6 text-center text-gray-900">
         <p className="text-red-600 font-bold mb-2">First Road Platform</p>
         <h2 className="text-5xl font-black mb-16">용달화물 접수방법</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-6 gap-6">
           {steps.map((step) => (
             <div key={step.id} className="border border-gray-100 rounded-2xl p-8 shadow-sm hover:shadow-xl transition-all">
               <p className="text-red-600 font-bold text-sm mb-6">{step.id}</p>

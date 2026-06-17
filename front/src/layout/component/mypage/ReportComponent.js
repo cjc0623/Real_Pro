@@ -9,7 +9,20 @@ import {
 const initState = {
   reporterId: '',
   targetId: '',
+  targetName: '',
   content: '',
+};
+
+// 공통 입력 필드 스타일 (다른 마이페이지 컴포넌트와 통일)
+const textFieldStyle = {
+  "& .MuiOutlinedInput-root": {
+    borderRadius: "14px",
+    backgroundColor: "#f8fafc",
+    "& fieldset": { borderColor: "#e2e8f0" },
+    "&:hover fieldset": { borderColor: "#cbd5e1" },
+    "&.Mui-focused fieldset": { borderColor: "#2563eb", borderWidth: "2px" },
+  },
+  "& .MuiInputLabel-root": { fontWeight: 600 }
 };
 
 const ReportComponent = ({ matchingNo, onClose }) => {
@@ -32,6 +45,7 @@ const ReportComponent = ({ matchingNo, onClose }) => {
           ...prevState,
           reporterId: data.reporterId,
           targetId: data.targetId,
+          targetName: data.targetName,
         }));
         setError(null);
       } catch (err) {
@@ -90,27 +104,29 @@ const ReportComponent = ({ matchingNo, onClose }) => {
   };
 
   return (
-    <Box sx={{ p: 2, border: '1px solid #ddd', borderRadius: '4px' }}>
-      <Typography variant="h6" gutterBottom>신고 양식</Typography>
+    <Box sx={{ p: 1 }}>
+      <Typography variant="caption" display="block" color="text.secondary" mb={1.5}>
+        허위 신고 시 서비스 이용에 제한이 있을 수 있습니다.
+        <Box component="br" sx={{ display: { xs: "block", sm: "none" } }} />
+        정확한 내용을 입력해 주세요.
+      </Typography>
 
       <TextField
         label="신고자 ID"
         value={formState.reporterId}
         fullWidth
-        margin="normal"
-        InputProps={{ readOnly: true }}
-        variant="filled"
-        readOnly
+        margin="dense"
+        InputProps={{ readOnly: true, sx: { color: '#64748b' } }}
+        sx={textFieldStyle}
       />
 
       <TextField
         label="신고 대상 ID"
         value={formState.targetId}
         fullWidth
-        margin="normal"
-        InputProps={{ readOnly: true }}
-        variant="filled"
-        readOnly
+        margin="dense"
+        InputProps={{ readOnly: true, sx: { color: '#64748b' } }}
+        sx={textFieldStyle}
       />
 
       <TextField
@@ -118,18 +134,27 @@ const ReportComponent = ({ matchingNo, onClose }) => {
         value={formState.content}
         onChange={handleContentChange}
         fullWidth
-        margin="normal"
+        margin="dense"
         multiline
-        rows={4}
+        rows={3}
         placeholder="신고 내용을 입력하세요..."
+        sx={{ ...textFieldStyle, mt: 0.5 }}
       />
 
       <Button
         variant="contained"
-        color="primary"
+        fullWidth
+        disableElevation
+        sx={{ 
+          mt: 2.5, 
+          py: 1.2, 
+          borderRadius: "12px", 
+          fontWeight: "bold", 
+          bgcolor: "#2563eb", 
+          "&:hover": { bgcolor: "#1d4ed8" } 
+        }}
         onClick={handleSubmit}
         disabled={!formState.content || !formState.targetId}
-        sx={{ mt: 2 }}
       >
         신고 접수
       </Button>

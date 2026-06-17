@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/g2i4/verification")
+@RequestMapping("/fr/verification")
 public class VerificationController {
 
     private final VerificationService verificationService;

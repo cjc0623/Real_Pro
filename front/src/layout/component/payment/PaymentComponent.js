@@ -1,12 +1,36 @@
 import React, { useEffect, useState } from "react";
 import { Box, Paper, Typography, Divider, Button, Stack } from "@mui/material";
+import { CheckCircle as CheckCircleIcon } from "@mui/icons-material";
 import { useLocation, useNavigate } from "react-router-dom";
 import { completePayment } from "../../../api/paymentApi/paymentApi";
 
 const Row = ({ label, value, dim }) => (
-  <Stack direction="row" alignItems="center" spacing={2} sx={{ py: 1 }}>
-    <Box sx={{ width: 160, textAlign: "right", color: "text.secondary" }}>{label}</Box>
-    <Typography sx={{ whiteSpace: "pre-wrap", fontWeight: 600, color: dim ? "text.disabled" : "text.primary" }}>
+  <Stack
+    direction={{ xs: "column", sm: "row" }}
+    alignItems={{ xs: "flex-start", sm: "flex-start" }}
+    spacing={{ xs: 0.25, sm: 2 }}
+    sx={{ py: 1 }}
+  >
+    <Box
+      sx={{
+        width: { xs: "100%", sm: 150 },
+        flexShrink: 0,
+        textAlign: { xs: "left", sm: "right" },
+        color: "#9ca3af",
+        fontSize: { xs: 13, sm: 14 },
+      }}
+    >
+      {label}
+    </Box>
+    <Typography
+      sx={{
+        whiteSpace: "pre-wrap",
+        wordBreak: "break-all",
+        fontWeight: 600,
+        fontSize: 14,
+        color: dim ? "#9ca3af" : "#111827",
+      }}
+    >
       {value}
     </Typography>
   </Stack>
@@ -49,6 +73,11 @@ const PaymentComponent = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const paymentNo = state?.paymentNo || sessionStorage.getItem("paymentNo");
+
+  // 🟢 페이지 진입 시 스크롤 위치를 맨 위로 강제 이동
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   useEffect(() => {
     if (!paymentNo) {
@@ -97,25 +126,41 @@ const PaymentComponent = () => {
   if (!viewData) return null;
 
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "#fafafa", py: 6, px: 2, display: "flex", flexDirection: "column", alignItems: "center" }}>
-      <Typography variant="h5" sx={{ fontWeight: 900, mb: 1 }}>주문 완료</Typography>
-      <Typography sx={{ color: "primary.main", fontWeight: 700, mb: 4 }}>
+    <Box sx={{ minHeight: "100vh", bgcolor: "#fafafa", py: { xs: 5, md: 7 }, px: 2, display: "flex", flexDirection: "column", alignItems: "center" }}>
+      {/* ── 성공 헤더 ── */}
+      <CheckCircleIcon sx={{ fontSize: 56, color: "#16a34a", mb: 1.5 }} />
+      <Typography sx={{ fontWeight: 900, fontSize: { xs: 24, sm: 28 }, color: "#111827", mb: 1 }}>
+        주문 완료
+      </Typography>
+      <Typography sx={{ color: "#6b7280", fontSize: 14, mb: 4 }}>
         고객님의 주문이 정상적으로 완료되었습니다.
       </Typography>
 
-      <Paper elevation={0} sx={{ width: "100%", maxWidth: 760, borderRadius: 3, border: "1px solid #c8c8c8", p: { xs: 2.5, sm: 4 } }}>
+      <Paper
+        elevation={0}
+        sx={{
+          width: "100%",
+          maxWidth: 640,
+          borderRadius: "14px",
+          border: "1px solid #f3f4f6",
+          boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
+          p: { xs: 2.5, sm: 4 },
+        }}
+      >
         <Row label="주문번호 :" value={viewData.orderUuid} />
         <Row label="화물 운반자 이름 :" value={viewData.cargoName} />
         <Row label="화물 운반자 전화번호 :" value={formatPhone(viewData.cargoPhone)} />
 
-        <Divider sx={{ my: 1.5 }} />
+        <Divider sx={{ my: 1.5, borderColor: "#f3f4f6" }} />
 
         <Row label="받으시는 분 :" value={viewData.addresseeName} />
         <Row label="전화번호 :" value={formatPhone(viewData.addresseePhone)} />
-        <Row label="배달지 정보 :" value={viewData.endAddress} />
-        <Row label={"\u00A0"} value={viewData.endRestAddress} />
+        <Row
+          label="배달지 정보 :"
+          value={[viewData.endAddress, viewData.endRestAddress].filter(Boolean).join("\n")}
+        />
 
-        <Divider sx={{ my: 1.5 }} />
+        <Divider sx={{ my: 1.5, borderColor: "#f3f4f6" }} />
 
         <Row label="결제 정보 :" value={viewData.paymentMethod} />
 
@@ -136,24 +181,50 @@ const PaymentComponent = () => {
         <Row label="승인일시 :" value={formatDateTime(viewData.paidAt)} />
 
         {/* 🚨 핵심: 서버가 준 최종 결제액(DB값)을 어떤 계산도 없이 그대로 출력 */}
-        <Stack direction="row" alignItems="center" spacing={1} sx={{ py: 1 }}>
-          <Box sx={{ width: 160, fontWeight: 900, fontSize: 18, textAlign: "right", color: "error.main" }}>
-            최종 결제 금액 :
-          </Box>
-          <Typography sx={{ whiteSpace: "pre-wrap", fontSize: 24, fontWeight: 900, color: "error.main" }}>
-            {formatAmount(viewData.finalCost)}
+        <Box
+          sx={{
+            mt: 2,
+            px: { xs: 2, sm: 2.5 },
+            py: 2,
+            borderRadius: "12px",
+            bgcolor: "#fef2f2",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 1,
+          }}
+        >
+          <Typography sx={{ fontWeight: 700, fontSize: 15, color: "#111827" }}>
+            최종 결제 금액
           </Typography>
-          <Typography sx={{ color: "error.main", fontWeight: 900, fontSize: 18 }}>원</Typography>
-        </Stack>
-
-        <Divider sx={{ my: 1.5 }} />
+          <Box sx={{ display: "flex", alignItems: "baseline", gap: 0.5 }}>
+            <Typography sx={{ fontSize: { xs: 22, sm: 26 }, fontWeight: 900, color: "#DC2626" }}>
+              {formatAmount(viewData.finalCost)}
+            </Typography>
+            <Typography sx={{ color: "#DC2626", fontWeight: 900, fontSize: 16 }}>원</Typography>
+          </Box>
+        </Box>
       </Paper>
 
       <Button
         variant="contained"
         size="large"
-        sx={{ mt: 4, minWidth: 260, borderRadius: 2 }}
-        onClick={() => navigate("/")}
+        disableElevation
+        sx={{
+          mt: 4,
+          minWidth: 260,
+          py: 1.5,
+          borderRadius: "10px",
+          backgroundColor: "#DC2626",
+          textTransform: "none",
+          fontWeight: 700,
+          fontSize: 15,
+          "&:hover": { backgroundColor: "#B91C1C" },
+        }}
+        onClick={() => {
+          navigate("/");
+          window.scrollTo(0, 0);
+        }}
       >
         홈으로 가기
       </Button>

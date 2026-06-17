@@ -84,6 +84,7 @@ public class UserReportServiceImpl implements UserReportService {
                 UserReportDTO.builder()
                         .reporterId(dto.getReporterId())
                         .targetId(dto.getTargetId())
+                        .targetName(dto.getTargetName())
                         .content(dto.getContent())
                         .adminRead(false)
                         .updated(false)

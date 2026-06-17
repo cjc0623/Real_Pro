@@ -10,6 +10,8 @@ const ReceivedReviewInform = lazy(() => import("../layout/component/mypage/Recei
 const DeliveryInformCargo = lazy(() => import("../layout/component/mypage/DeliveryInformCargo"));
 const DeliveryInform = lazy(() => import("../layout/component/mypage/DeliveryInform"));
 const OrderSummaryReadOnly = lazy(() => import("../layout/component/mypage/OrderSummaryReadOnly"));
+const DirectRequestSent = lazy(() => import("../layout/component/mypage/DirectRequestSent"));
+const DirectRequestReceived = lazy(() => import("../layout/component/mypage/DirectRequestReceived"));
 const mypageRouter = [
   {
     index: true,
@@ -41,6 +43,14 @@ const mypageRouter = [
   {
     path: "review/received",
     element: <Suspense fallback={Loading}><ReceivedReviewInform /></Suspense>
+  },
+  {
+    path: "direct-requests/sent",
+    element: <Suspense fallback={Loading}><DirectRequestSent /></Suspense>
+  },
+  {
+    path: "direct-requests/received",
+    element: <Suspense fallback={Loading}><DirectRequestReceived /></Suspense>
   },
 
 ];

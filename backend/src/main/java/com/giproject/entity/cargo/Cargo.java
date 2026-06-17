@@ -30,6 +30,7 @@ public class Cargo {
     private String cargoCapacity;  // 적재 무게
 
     @Column(name = "cargo_created_datetime")
+    @Builder.Default
     private LocalDateTime cargoCreateidDateTime = LocalDateTime.now();
     
     @Column(name = "cargo_image")

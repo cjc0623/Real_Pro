@@ -24,7 +24,7 @@ import java.util.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/g2i4/admin/fees")
+@RequestMapping("/fr/admin/fees")
 @Slf4j
 public class FeesAdminController {
 

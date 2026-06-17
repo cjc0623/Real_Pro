@@ -44,13 +44,13 @@ export default function useAuth() {
                     // ignore
                 }
 
-                if (res.status === 401) {
-                    throw new Error('아이디 또는 비밀번호가 올바르지 않습니다.');
-                }
                 if (res.status === 429) {
                     throw new Error('로그인 시도가 너무 많습니다. 잠시 후 다시 시도해 주세요.');
                 }
-                throw new Error(msg || `로그인 실패 (code: ${res.status})`);
+                
+                // 🟢 서버에서 보내준 메시지(정지 사유 등)가 있다면 우선적으로 표시하고, 없으면 기본 메시지 출력
+                const defaultMsg = res.status === 401 ? '아이디 또는 비밀번호가 올바르지 않습니다.' : `로그인 실패 (code: ${res.status})`;
+                throw new Error(msg || defaultMsg);
             }
 
             // 성공 처리

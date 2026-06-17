@@ -101,13 +101,14 @@ public class SecurityConfig {
 
                 .requestMatchers("/uploads/**", "/review/**", "/h2-console/**").permitAll()
 
-                // ✅ [수정] "/g2i4/coupons/**" 경로를 추가하여 401 에러 해결
-                .requestMatchers("/g2i4/subpath/order/**","/g2i4/payment/**","/g2i4/delivery/**","/g2i4/address/**",
-                                 "/g2i4/estimate/subpath/**","/g2i4/cargo/**","/g2i4/admin/**","/g2i4/main/**",
-                                 "/g2i4/uploads/**","/g2i4/mypage/**","/g2i4/user/**","/g2i4/cargo/**","/g2i4/member/**",
-                                 "/g2i4/qna/**","/g2i4/coupons/**","/api/**").permitAll()
+                // ✅ [수정] "/fr/coupons/**" 경로를 추가하여 401 에러 해결
+                .requestMatchers("/fr/subpath/order/**","/fr/payment/**","/fr/delivery/**","/fr/address/**",
+                                 "/fr/estimate/subpath/**","/fr/cargo/**","/fr/admin/**","/fr/main/**",
+                                 "/fr/uploads/**","/fr/mypage/**","/fr/user/**","/fr/cargo/**","/fr/member/**",
+                                 "/fr/qna/**","/fr/coupons/**","/api/**",
+                                 "/g2i4/uploads/**").permitAll() // 하위호환: 구경로 이미지 허용
 
-                .requestMatchers("/g2i4/estimate/list").hasAnyAuthority("ROLE_DRIVER","ROLE_SHIPPER")
+                .requestMatchers("/fr/estimate/list").hasAnyAuthority("ROLE_DRIVER","ROLE_SHIPPER")
 
                 .anyRequest().authenticated()
             )
@@ -120,7 +121,8 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:3002"));
+        // 🟢 안드로이드 에뮬레이터용 주소(http://10.0.2.2:3000)를 허용 목록에 확실하게 추가했습니다.
+        config.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:3002", "http://10.0.2.2:3000"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

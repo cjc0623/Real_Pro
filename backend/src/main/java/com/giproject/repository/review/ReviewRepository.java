@@ -212,4 +212,42 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 		    WHERE c.cargoId = :cargoId
 		    """)
 		Optional<DriverProfileCardDTO> findDriverProfileCardByCargoId(@Param("cargoId") String cargoId);
+
+		// 화주 직접요청용: 차주 탐색 목록 (평점/리뷰수 요약 포함)
+		// keyword(이름) 부분검색, requireVehicle=true 면 승인된 차량 보유 차주만
+		@Query("""
+			    SELECT new com.giproject.dto.review.DriverProfileCardDTO(
+			        c.cargoId,
+			        c.cargoName,
+			        c.profileImage,
+			        (
+			            SELECT avg(r.rating)
+			            FROM Review r
+			            JOIN Delivery d ON r.deliveryNo = d.deliveryNo
+			            JOIN d.payment p
+			            JOIN p.orderSheet os
+			            JOIN os.matching m
+			            WHERE m.cargoOwner.cargoId = c.cargoId
+			        ),
+			        (
+			            SELECT count(r2)
+			            FROM Review r2
+			            JOIN Delivery d2 ON r2.deliveryNo = d2.deliveryNo
+			            JOIN d2.payment p2
+			            JOIN p2.orderSheet os2
+			            JOIN os2.matching m2
+			            WHERE m2.cargoOwner.cargoId = c.cargoId
+			        ),
+			        c.isVerified
+			    )
+			    FROM CargoOwner c
+			    WHERE (:keyword IS NULL OR LOWER(c.cargoName) LIKE LOWER(CONCAT('%', :keyword, '%')))
+			      AND (:requireVehicle = false OR EXISTS (
+			            SELECT 1 FROM Cargo cg
+			            WHERE cg.cargoOwner = c AND cg.status = 'APPROVED'
+			      ))
+			    """)
+		List<DriverProfileCardDTO> findDriverProfileCards(
+			@Param("keyword") String keyword,
+			@Param("requireVehicle") boolean requireVehicle);
 }

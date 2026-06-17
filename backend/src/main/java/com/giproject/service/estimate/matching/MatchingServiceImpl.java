@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.giproject.controller.order.OrderController;
@@ -113,6 +114,7 @@ public class MatchingServiceImpl implements MatchingService {
     }
 
     @Override
+    @Transactional
     public void rejectMatching(Long estimateNo, CargoOwner cargoOwner) {
         Estimate estimate = esmateRepository.findById(estimateNo)
                 .orElseThrow(() -> new RuntimeException("해당 견적이 존재하지 않습니다"));
@@ -130,12 +132,12 @@ public class MatchingServiceImpl implements MatchingService {
         rejectedMatchingRepository.save(rejected);
     }
 
+    /**
+     * 차주가 해당 견적을 운송할 수 있는 승인 차량(요청 톤수 이상)을 보유했는지 검증.
+     * 공개모집/직접요청 수락 모두 공유.
+     */
     @Override
-    public Long acceptMatching(Long estimateNo, CargoOwner cargoOwner) {
-        Estimate estimate = esmateRepository.findById(estimateNo)
-                .orElseThrow(() -> new RuntimeException("해당 견적이 존재하지 않습니다"));
-
-        // 1. 차주가 보유한 차량 중 '승인(APPROVED)'된 차량 목록 조회
+    public void validateOwnerCanAccept(Estimate estimate, CargoOwner cargoOwner) {
         List<Cargo> approvedCargos =
                 cargoRepository.findByCargoOwner_CargoIdAndStatus(cargoOwner.getCargoId(), "APPROVED");
 
@@ -143,18 +145,16 @@ public class MatchingServiceImpl implements MatchingService {
             throw new RuntimeException("관리자 승인이 완료된 차량이 등록되어 있어야 견적을 수락할 수 있습니다.");
         }
 
-
-        
         boolean hasRightVehicle = approvedCargos.stream()
                 .anyMatch(cargo -> {
                     try {
                         // 문자열에서 숫자만 추출 (예: "1톤" -> 1, "2.5톤" -> 2.5)
                         double reqWeight = Double.parseDouble(estimate.getCargoWeight().replaceAll("[^0-9.]", ""));
                         double myCapacity = Double.parseDouble(cargo.getCargoCapacity().replaceAll("[^0-9.]", ""));
-                        
+
                         return myCapacity >= reqWeight; // 차주 차량이 요청 무게보다 크거나 같으면 수락 가능
                     } catch (Exception e) {
-                        // 숫자 변환 실패 시 기존 equals 방식으로 폴백(Fallback) 하거나 에러 처리
+                        // 숫자 변환 실패 시 기존 equals 방식으로 폴백(Fallback)
                         return cargo.getCargoCapacity().equals(estimate.getCargoWeight());
                     }
                 });
@@ -164,6 +164,16 @@ public class MatchingServiceImpl implements MatchingService {
                     "수락 불가: 해당 견적(" + estimate.getCargoWeight() + ")을 운송할 수 있는 승인된 차량(요청 톤수 이상)을 보유하고 있지 않습니다."
             );
         }
+    }
+
+    @Override
+    @Transactional
+    public Long acceptMatching(Long estimateNo, CargoOwner cargoOwner) {
+        Estimate estimate = esmateRepository.findById(estimateNo)
+                .orElseThrow(() -> new RuntimeException("해당 견적이 존재하지 않습니다"));
+
+        // 승인 차량/톤수 검증
+        validateOwnerCanAccept(estimate, cargoOwner);
 
         Matching matching = matchingRepository.findByEstimate(estimate)
                 .orElseThrow(() -> new RuntimeException("해당 매칭이 없습니다"));
