@@ -4,13 +4,15 @@ import { Box } from "@mui/material";
 import ResponsiveAppBar from "../../../common/ResponsiveAppBar";
 
 const AdminLayout = () => (
-  <>
+  <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', bgcolor: '#f8fafc' }}>
     <ResponsiveAppBar />
-    <AdminSidebar />
-    <Box component="main" sx={{ flexGrow: 1, p: 3, backgroundColor: "#f3f4f6", overflow: "auto" }}>
-      <Outlet />
+    <Box sx={{ display: 'flex', flex: 1 }}>
+      <AdminSidebar />
+      <Box component="main" sx={{ flexGrow: 1, p: { xs: 2, md: 5 }, minWidth: 0 }}>
+        <Outlet />
+      </Box>
     </Box>
-  </>
+  </Box>
 );
 
 export default AdminLayout;

@@ -15,8 +15,8 @@ const pickToken = () =>
 const normalizeProfileUrl = (v) => {
     if (!v) return null;
     if (v.startsWith('http')) return v;
-    if (v.startsWith('/g2i4/uploads/')) return `${API_BASE}${v}`;
-    return `${API_BASE}/g2i4/uploads/user_profile/${encodeURIComponent(v)}`;
+    if (v.startsWith('/fr/uploads/')) return `${API_BASE}${v}`;
+    return `${API_BASE}/fr/uploads/user_profile/${encodeURIComponent(v)}`;
 };
 
 const initState = {
@@ -51,7 +51,7 @@ async function getUserInfoApi() {
     const token = pickToken();
     if (!token) throw new Error("No token found");
 
-    const { data: raw } = await axios.get(`${API_BASE}/g2i4/user/info`, {
+    const { data: raw } = await axios.get(`${API_BASE}/fr/user/info`, {
         headers: { Authorization: `Bearer ${token}` },
     });
     return raw;

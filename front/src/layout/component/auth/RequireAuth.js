@@ -24,7 +24,7 @@ export default function RequireAuth() {
       const token = pickToken();
       if (!token) return setOk(false);
       try {
-        await axios.get(`${API_BASE}/g2i4/user/info`, {
+        await axios.get(`${API_BASE}/fr/user/info`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (!cancelled) setOk(true);

@@ -1,7 +1,7 @@
 import axios from "axios";
 import { API_SERVER_HOST } from "../serverConfig";
 
-const PREFIX = `${API_SERVER_HOST}/g2i4/admin/delivery`;
+const PREFIX = `${API_SERVER_HOST}/fr/admin/delivery`;
 
 export async function searchUserForDeliveryPage(query) {
   const { data } = await axios.get(`${PREFIX}/user-search`, {

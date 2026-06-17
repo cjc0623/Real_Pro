@@ -565,6 +565,18 @@ public class ReviewServiceImpl implements ReviewService {
 	    return dto;
 	}
 	@Override
+	public List<DriverProfileCardDTO> getDriverCards(String keyword, boolean requireVehicle) {
+	    String kw = (keyword == null || keyword.isBlank()) ? null : keyword.trim();
+	    List<DriverProfileCardDTO> list = reviewRepository.findDriverProfileCards(kw, requireVehicle);
+	    list.forEach(dto -> {
+	        if (dto.getAvgRating() == null) dto.setAvgRating(java.math.BigDecimal.ZERO);
+	        if (dto.getReviewCount() == null) dto.setReviewCount(0L);
+	        if (dto.getIsVerified() == null) dto.setIsVerified(false);
+	    });
+	    return list;
+	}
+
+	@Override
 	public DriverDetailDTO getDriverDetail(String cargoId) {
 	    DriverProfileCardDTO profile = getDriverProfileCard(cargoId);
 	    

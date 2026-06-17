@@ -3,9 +3,6 @@ import {
   Box,
   TextField,
   Button,
-  Card,
-  CardContent,
-  Typography,
   Alert,
   Stack,
   FormControl,
@@ -15,7 +12,20 @@ import {
   FormControlLabel,
   Checkbox
 } from '@mui/material';
-import { Save as SaveIcon, Cancel as CancelIcon } from '@mui/icons-material';
+import { Save as SaveIcon, Cancel as CancelIcon, EditNote as EditNoteIcon } from '@mui/icons-material';
+
+// 사이트 공통 입력창 스타일 (borderRadius 10px · 흰 배경)
+const inputSx = {
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '10px',
+    backgroundColor: '#fff',
+    fontSize: '14px',
+  },
+};
+
+// ✅ 보안 패턴: 한글, 영문, 숫자, 공백, 그리고 기본적인 문장부호(. , ? ! /)만 허용
+// SQL 인젝션 위험이 있는 따옴표(' "), 세미콜론(;), 태그(< >), 백슬래시(\) 등을 원천 차단합니다.
+const SECURITY_SAFE_REGEX = /[^a-zA-Z0-9ㄱ-ㅎㅏ-ㅣ가-힣\s.,?!/]/g;
 
 const QAEditForm = ({ item, categories, onSave, onCancel, isVisible }) => {
   const [formData, setFormData] = useState({
@@ -41,7 +51,13 @@ const QAEditForm = ({ item, categories, onSave, onCancel, isVisible }) => {
   if (!isVisible) return null;
 
   const handleChange = (field) => (event) => {
-    const value = field === 'isPrivate' ? event.target.checked : event.target.value;
+    let value = field === 'isPrivate' ? event.target.checked : event.target.value;
+    
+    // ✅ 제목과 내용 입력 시 실시간 보안 필터링 (인젝션 공격 시도 즉시 무력화)
+    if (field === 'title' || field === 'content') {
+        value = value.replace(SECURITY_SAFE_REGEX, "");
+    }
+
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -115,93 +131,118 @@ const QAEditForm = ({ item, categories, onSave, onCancel, isVisible }) => {
   };
 
   return (
-    <Card sx={{ mt: 2, border: '2px solid #2196f3', backgroundColor: '#f3f8ff' }}>
-      <CardContent>
-        <Typography variant="h6" gutterBottom color="primary">
+    <Box sx={{ mt: 2, px: 3, pb: 3, borderTop: '1px solid #f3f4f6' }}>
+
+      {/* 타이틀 */}
+      <Box display="flex" alignItems="center" gap={1} mt={3} mb={2.5}>
+        <EditNoteIcon sx={{ color: '#DC2626', fontSize: 20 }} />
+        <span style={{ fontWeight: 700, fontSize: '15px', color: '#111827' }}>
           게시글 수정
-        </Typography>
+        </span>
+      </Box>
 
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-          </Alert>
-        )}
+      {error && (
+        <Alert severity="error" sx={{ mb: 2, borderRadius: '10px' }}>
+          {error}
+        </Alert>
+      )}
 
-        <form onSubmit={handleSubmit}>
-          <Stack spacing={2}>
-            <TextField
-              fullWidth
-              label="제목"
-              value={formData.title}
-              onChange={handleChange('title')}
-              variant="outlined"
+      <form onSubmit={handleSubmit}>
+        <Stack spacing={2}>
+          <TextField
+            fullWidth
+            label="제목"
+            value={formData.title}
+            onChange={handleChange('title')}
+            variant="outlined"
+            disabled={isSubmitting}
+            required
+            helperText={formData.title.length > 0 ? "특수문자(', \", ;, <, >)는 입력할 수 없습니다." : ""}
+            sx={inputSx}
+          />
+
+          <FormControl fullWidth required>
+            <InputLabel>카테고리</InputLabel>
+            <Select
+              value={formData.category}
+              label="카테고리"
+              onChange={handleChange('category')}
               disabled={isSubmitting}
-              required
-            />
+              sx={{ borderRadius: '10px', backgroundColor: '#fff' }}
+            >
+              {categories?.filter(c => c.id !== 'all').map((category) => (
+                <MenuItem key={category.id} value={category.id}>
+                  {category.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
 
-            <FormControl fullWidth required>
-              <InputLabel>카테고리</InputLabel>
-              <Select
-                value={formData.category}
-                label="카테고리"
-                onChange={handleChange('category')}
+          <TextField
+            fullWidth
+            label="내용"
+            multiline
+            rows={4}
+            value={formData.content}
+            onChange={handleChange('content')}
+            variant="outlined"
+            disabled={isSubmitting}
+            required
+            placeholder="수정할 내용을 입력해주세요"
+            sx={inputSx}
+          />
+
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={formData.isPrivate}
+                onChange={handleChange('isPrivate')}
                 disabled={isSubmitting}
-              >
-                {categories?.filter(c => c.id !== 'all').map((category) => (
-                  <MenuItem key={category.id} value={category.id}>
-                    {category.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+                sx={{ '&.Mui-checked': { color: '#DC2626' } }}
+              />
+            }
+            label="비공개 문의"
+          />
 
-            <TextField
-              fullWidth
-              label="내용"
-              multiline
-              rows={4}
-              value={formData.content}
-              onChange={handleChange('content')}
+          <Stack direction="row" spacing={1.5} justifyContent="flex-end">
+            <Button
+              type="button"
               variant="outlined"
+              onClick={handleCancel}
               disabled={isSubmitting}
-              required
-              placeholder="수정할 내용을 입력해주세요"
-            />
-
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={formData.isPrivate}
-                  onChange={handleChange('isPrivate')}
-                  disabled={isSubmitting}
-                />
-              }
-              label="비공개 문의"
-            />
-
-            <Stack direction="row" spacing={2} justifyContent="flex-end">
-              <Button
-                type="button"
-                variant="outlined"
-                onClick={handleCancel}
-                disabled={isSubmitting}
-                startIcon={<CancelIcon />}
-              >
-                취소
-              </Button>
-              <Button
-                type="submit"
-                variant="contained"
-                disabled={isSubmitting}
-                startIcon={<SaveIcon />}
-              >
-                {isSubmitting ? '수정 중...' : '수정 완료'}
-              </Button>
-            </Stack>
+              startIcon={<CancelIcon />}
+              sx={{
+                borderRadius: '10px',
+                borderColor: '#d1d5db',
+                color: '#6b7280',
+                textTransform: 'none',
+                fontWeight: 600,
+                '&:hover': { borderColor: '#9ca3af', backgroundColor: '#f9fafb' },
+              }}
+            >
+              취소
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={isSubmitting}
+              startIcon={<SaveIcon />}
+              sx={{
+                borderRadius: '10px',
+                backgroundColor: '#DC2626',
+                textTransform: 'none',
+                fontWeight: 700,
+                boxShadow: 'none',
+                '&:hover': { backgroundColor: '#B91C1C', boxShadow: 'none' },
+                '&:disabled': { backgroundColor: '#e5e7eb', color: '#9ca3af' },
+              }}
+            >
+              {isSubmitting ? '수정 중...' : '수정 완료'}
+            </Button>
           </Stack>
-        </form>
-      </CardContent>
-    </Card>
+        </Stack>
+      </form>
+    </Box>
   );
 };
 

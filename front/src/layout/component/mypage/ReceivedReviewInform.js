@@ -54,8 +54,8 @@ const getFirst = (...candidates) =>
 const normalizeProfileUrl = (v) => {
   if (!v) return null;
   if (v.startsWith("http")) return v;
-  if (v.startsWith("/g2i4/uploads/")) return `${API_BASE}${v}`;
-  return `${API_BASE}/g2i4/uploads/user_profile/${encodeURIComponent(v)}`;
+  if (v.startsWith("/fr/uploads/")) return `${API_BASE}${v}`;
+  return `${API_BASE}/fr/uploads/user_profile/${encodeURIComponent(v)}`;
 };
 
 const initState = {
@@ -96,7 +96,7 @@ const InfoRow = ({ label, value }) => (
     >
       {label}
     </Typography>
-    <Typography component="span" sx={{ fontSize: 13, fontWeight: 600 }}>
+    <Typography component="span" sx={{ fontSize: 13, fontWeight: 600, wordBreak: "break-all" }}>
       {value || "-"}
     </Typography>
   </Box>
@@ -346,7 +346,7 @@ const ReceivedReviewInform = () => {
       try {
         const token = sessionStorage.getItem("accessToken");
 
-        const res = await fetch(`${API_BASE}/g2i4/user/info`, {
+        const res = await fetch(`${API_BASE}/fr/user/info`, {
           headers: {
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
@@ -533,9 +533,6 @@ const ReceivedReviewInform = () => {
     return (
       <Stack spacing={2}>
         {serverData.dtoList.map((item) => {
-          const firstImage = item.images?.[0];
-          const thumbnailPath = firstImage?.thumbnailPath || firstImage?.imagePath;
-
           return (
             <Paper
               key={item.reviewNo}
@@ -597,23 +594,27 @@ const ReceivedReviewInform = () => {
                 <InfoRow label="배송완료" value={formatDateTime(item.deliveryCompletedAt)} />
               </Box>
 
-              {/* 이미지 */}
-              {thumbnailPath && (
-                <Box sx={{ mb: 1.5 }}>
-                  <img
-                    src={`${API_BASE}/${thumbnailPath}`}
-                    alt="review-thumbnail"
-                    onClick={() => setSelectedImage(firstImage.imagePath)}
-                    style={{
-                      width: 180,
-                      maxWidth: "100%",
-                      height: 180,
-                      objectFit: "cover",
-                      borderRadius: 8,
-                      border: "1px solid #ddd",
-                      cursor: "pointer",
-                    }}
-                  />
+              {/* 이미지 (최대 3장) */}
+              {item.images?.length > 0 && (
+                <Box sx={{ display: "flex", gap: 1, mb: 1.5, flexWrap: "wrap" }}>
+                  {item.images.slice(0, 3).map((img) => (
+                    <Box
+                      key={img.reviewImageNo}
+                      component="img"
+                      src={`${API_BASE}/${img.thumbnailPath || img.imagePath}`}
+                      alt="review-thumbnail"
+                      onClick={() => setSelectedImage(img.imagePath)}
+                      sx={{
+                        width: { xs: "calc(33.33% - 8px)", sm: 100 },
+                        height: { xs: "auto", sm: 100 },
+                        aspectRatio: "1/1",
+                        objectFit: "cover",
+                        borderRadius: "8px",
+                        border: "1px solid #ddd",
+                        cursor: "pointer",
+                      }}
+                    />
+                  ))}
                 </Box>
               )}
 
@@ -773,10 +774,10 @@ const ReceivedReviewInform = () => {
     return stats;
   }, [allReviews]);
   return (
-    <Box sx={{ bgcolor: "#f7f9fc", minHeight: "100vh", py: 6 }}>
+    <Box sx={{ bgcolor: "#f7f9fc", minHeight: "100vh", pt: 6, pb: { xs: 15, md: 6 } }}>
       <Container maxWidth="xl" disableGutters sx={{ px: { xs: 1, sm: 2 } }}>
-        <Typography variant="h5" fontWeight="bold" gutterBottom textAlign="center">
-          내가 받은 리뷰
+        <Typography variant="h4" fontWeight="900" color="#0f172a" letterSpacing="-0.5px" mb={4} sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.25rem' }, textAlign: { xs: 'center', md: 'left' } }}>
+           내가 받은 리뷰
         </Typography>
 
         <Box sx={{ mb: 4 }}>
@@ -1074,8 +1075,7 @@ const ReceivedReviewInform = () => {
 
             <Box
               sx={{
-                mt: 2,
-                py: 1.5,
+                mt: 6,
                 display: "flex",
                 justifyContent: "center",
                 bgcolor: "transparent",
@@ -1094,8 +1094,8 @@ const ReceivedReviewInform = () => {
         fullWidth
       >
         <DialogTitle>이미지 보기</DialogTitle>
-
-        <DialogContent sx={{ textAlign: "center" }}>
+        {/* 이미지 중앙 정렬 및 최소 높이 확보 */}
+        <DialogContent sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 2, minHeight: '200px' }}>
           {selectedImage && (
             <img
               src={`http://localhost:8080/${selectedImage}`}

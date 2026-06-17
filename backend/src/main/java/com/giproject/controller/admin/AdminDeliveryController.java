@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/g2i4/admin/delivery")
+@RequestMapping("/fr/admin/delivery")
 @RequiredArgsConstructor
 public class AdminDeliveryController {
 

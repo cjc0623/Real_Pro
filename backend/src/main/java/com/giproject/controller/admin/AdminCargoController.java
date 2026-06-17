@@ -11,7 +11,7 @@ import com.giproject.repository.cargo.CargoRepository;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/g2i4/admin/cargo")
+@RequestMapping("/fr/admin/cargo")
 @RequiredArgsConstructor
 public class AdminCargoController {
 

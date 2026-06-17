@@ -14,7 +14,7 @@ const CouponCenter = ({ userId, userType }) => {
             const token = sessionStorage.getItem("accessToken") || sessionStorage.getItem("ACCESS_TOKEN");
 
             // 🚨 3. 주소에서 ${userId}를 지우고, 헤더에 신분증(토큰)을 실어서 보냅니다!
-            const res = await axios.get(`/g2i4/coupons/my-list`, {
+            const res = await axios.get(`/fr/coupons/my-list`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setCoupons(res.data);
@@ -29,7 +29,7 @@ const CouponCenter = ({ userId, userType }) => {
         try {
             // 발급할 때도 토큰을 챙겨가는 것이 안전합니다.
             const token = sessionStorage.getItem("accessToken") || sessionStorage.getItem("ACCESS_TOKEN");
-            await axios.post('/g2i4/coupons/issue-test',
+            await axios.post('/fr/coupons/issue-test',
                 { memId: userId },
                 { headers: { Authorization: `Bearer ${token}` } }
             );

@@ -44,10 +44,7 @@ public class MemberCouponService {
         Coupon coupon = couponRepository.findById(cno)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 쿠폰입니다."));
 
-        // 3) 팀장님의 권한 체크 로직 적용 (화주인지 확인)
-        if (!member.getMemberRoleList().contains("USER")) {
-            return ResponseEntity.badRequest().body("쿠폰 발급은 일반 회원(화주)만 가능합니다.");
-        }
+        
 
         // 4) 발급 및 저장
         MemberCoupon newMemberCoupon = MemberCoupon.builder()
@@ -73,12 +70,7 @@ public class MemberCouponService {
         Member member = memberRepository.findById(memId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. ID: " + memId));
 
-        // 실제 로그에 찍힌 "USER" 권한을 확인
-        boolean hasMemberRole = member.getMemberRoleList().contains("USER"); 
-
-        if (!hasMemberRole) {
-            throw new IllegalArgumentException("쿠폰 발급은 일반 회원(화주)만 가능합니다.");
-        }
+        
 
         List<Coupon> allCoupons = couponRepository.findAll();
 

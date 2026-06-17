@@ -32,6 +32,7 @@ public class UserReport {
 	@Column(nullable = false)
 	private String reporterId;// 신고유저
 	private String targetId;// 신고대상
+	private String targetName;// 신고대상 이름
 	private String content;//신고내용
 	private LocalDateTime createdAt;//신고일
 	

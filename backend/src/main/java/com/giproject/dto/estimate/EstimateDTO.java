@@ -43,6 +43,7 @@ public class EstimateDTO {
     private Long paymentNo;
     private Long deliveryNo;
     private DeliveryStatus deliveryStatus;
-    private String driverName; 
+    private String driverName;
+    private String cargoId;        // 매칭된 차주 아이디 (프로필 조회용)
     private LocalDateTime deliveryCompletedAt;
 }

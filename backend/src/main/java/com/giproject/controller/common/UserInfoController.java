@@ -13,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.giproject.dto.member.ShipperProfileCardDTO;
 import com.giproject.entity.cargo.CargoOwner;
 import com.giproject.entity.member.Member;
 import com.giproject.repository.cargo.CargoOwnerRepository;
@@ -21,7 +22,7 @@ import com.giproject.repository.member.MemberRepository;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/g2i4/user")
+@RequestMapping("/fr/user")
 @RequiredArgsConstructor
 public class UserInfoController {
 
@@ -59,7 +60,7 @@ public class UserInfoController {
         if (m != null) {
             String fileName = m.getProfileImage();
             String webPath  = (fileName == null || fileName.isBlank()) ? null
-                    : "/g2i4/uploads/user_profile/" + fileName;
+                    : "/fr/uploads/user_profile/" + fileName;
 
             Map<String,Object> data = new LinkedHashMap<>();
             data.put("mem_id", m.getMemId());
@@ -83,7 +84,7 @@ public class UserInfoController {
         if (c != null) {
             String fileName = c.getProfileImage();
             String webPath  = (fileName == null || fileName.isBlank()) ? null
-                    : "/g2i4/uploads/user_profile/" + fileName;
+                    : "/fr/uploads/user_profile/" + fileName;
 
             Map<String,Object> data = new LinkedHashMap<>();
             data.put("cargo_id", c.getCargoId());
@@ -104,6 +105,27 @@ public class UserInfoController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "NOT_FOUND"));
     }
 
+
+    @GetMapping("/shipper-profile/{memId}")
+    public ResponseEntity<?> getShipperProfile(@PathVariable("memId") String memId) {
+        Member m = memberRepository.findById(memId).orElse(null);
+        if (m == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "NOT_FOUND"));
+        }
+
+        String fileName = m.getProfileImage();
+        String webPath = (fileName == null || fileName.isBlank()) ? null
+                : "/fr/uploads/user_profile/" + fileName;
+
+        ShipperProfileCardDTO dto = ShipperProfileCardDTO.builder()
+                .memberId(m.getMemId())
+                .memberName(m.getMemName())
+                .memberProfileImage(webPath)
+                .createdAt(m.getMemCreateIdDateTime())
+                .build();
+
+        return ResponseEntity.ok(dto);
+    }
 
     @PostMapping("/upload-image")
     public ResponseEntity<?> uploadProfileImage(
@@ -139,7 +161,7 @@ public class UserInfoController {
             }
 
             // 프론트 미리보기용 웹경로 (정적 매핑과 일치)
-            String webPath = "/g2i4/uploads/user_profile/" + savedFilename;
+            String webPath = "/fr/uploads/user_profile/" + savedFilename;
             return ResponseEntity.ok(Map.of("filename", savedFilename, "webPath", webPath));
 
         } catch (IOException e) {

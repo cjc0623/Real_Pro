@@ -13,7 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/g2i4/cargo")
+@RequestMapping("/fr/cargo")
 @RequiredArgsConstructor
 public class CargoOwnerMutationController {
 

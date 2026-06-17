@@ -1,7 +1,7 @@
 import axios from "axios";
 import { API_SERVER_HOST } from "../serverConfig";
 
-const prefix = `${API_SERVER_HOST}/g2i4/review`;
+const prefix = `${API_SERVER_HOST}/fr/review`;
 
 export const getDriverTrustScore = async (cargoId) => {
   const token = sessionStorage.getItem("accessToken");
@@ -110,7 +110,12 @@ export const getMyReceivedReviewSummary = async () => {
   return res.data;
 };
 export const getMyReviewsWithDriverId = async () => {
+  const token = sessionStorage.getItem("accessToken");
+
   const res = await axios.get(`${prefix}/my/with-driver-id`, {
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
     withCredentials: true,
   });
   return res.data;
@@ -123,11 +128,28 @@ export const getDriverProfileCard = async (cargoId) => {
   return res.data;
 };
 export const getDriverDetail = async (cargoId) => {
+  const token = sessionStorage.getItem("accessToken");
   const res = await axios.get(`${prefix}/driver-detail/${cargoId}`, {
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
     withCredentials: true,
   });
   return res.data;
 };
+// 특정 화주(memId)가 작성한 리뷰 목록 - 화주 프로필에서 확인
+export const getShipperWrittenReviews = async (memId) => {
+  const token = sessionStorage.getItem("accessToken");
+
+  const res = await axios.get(`${prefix}/member/${encodeURIComponent(memId)}`, {
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+
+  return res.data;
+};
+
 export const getReviewByReviewNo = async (reviewNo) => {
   const token = sessionStorage.getItem("accessToken");
 

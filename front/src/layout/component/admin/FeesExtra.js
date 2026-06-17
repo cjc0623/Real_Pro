@@ -1,39 +1,57 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { Box, Typography, CircularProgress, Button, TextField, IconButton, Stack, Alert, Tabs, Tab } from "@mui/material";
+import { Box, Typography, CircularProgress, Button, TextField, IconButton, Stack, Alert, Tabs, Tab, Paper, TableContainer } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { fetchFeesExtraFull, saveFeeExtraCell, addExtraRow, deleteExtraRow } from "../../../api/adminApi/adminApi";
 import { NavLink, useLocation } from "react-router-dom";
 
+// 🟢 [테이블 디자인 리포밍] 팀장님 원래 디자인 폼 유지, 모바일 압축을 위해 패딩 오프셋만 유연하게 보정
 const thStyle = {
-  border: "1px solid #ccc",
-  padding: "8px",
+  borderBottom: "1px solid #e2e8f0",
+  borderRight: "1px solid #f1f5f9",
+  padding: { xs: "12px 6px", sm: "14px 10px" }, // 📱 모바일에서 양옆 패딩을 줄여 압축 홀딩
   textAlign: "center",
-  backgroundColor: "#f5f5f5",
+  backgroundColor: "#f8fafc", 
+  color: "#475569",
+  fontWeight: "bold",
+  fontSize: "0.9rem",
   whiteSpace: "nowrap",
 };
-const tdStyle = { border: "1px solid #ccc", padding: "4px", textAlign: "center" };
+
+const tdStyle = { 
+  borderBottom: "1px solid #f1f5f9", 
+  borderRight: "1px solid #f1f5f9",
+  padding: { xs: "6px 4px", sm: "8px 6px" }, // 📱 모바일 셀 패딩 다이어트
+  textAlign: "center" 
+};
+
+// 🟢 [셀 입력창 디자인 리포밍] 가로 슬라이드 주범이었던 120px 고정 폭을 모바일 가변 폭으로 피팅!
 const inputStyle = {
-  width: "120px",
+  width: "100%", // 👈 가로폭 100% 가변으로 변경하여 화면 밖 탈출 원천 차단
+  maxWidth: "85px", // 👈 숫자가 이쁘게 들어가는 최적의 슬림 가이드라인 지정
   textAlign: "center",
-  padding: "4px",
-  border: "1px solid #ddd",
-  borderRadius: "4px",
+  padding: "6px 8px",
+  border: "1px solid #cbd5e1",
+  borderRadius: "8px", 
+  backgroundColor: "#ffffff",
+  color: "#334155",
+  fontWeight: "600",
+  fontSize: "0.85rem",
   boxSizing: "border-box",
+  transition: "all 0.2s",
+  outline: "none",
 };
 
 const FeesExtra = () => {
   const [loading, setLoading] = useState(false);
 
   return (
-    <Box flexGrow={1} p={{ xs: 2, md: 4 }}>
-      <Typography variant="h4" fontWeight="bold" gutterBottom
-        sx={{ fontSize: { xs: '1.5rem', md: '2.125rem' }, mb: 3 }}
-      >
-        추가요금
-      </Typography>
+    <Box flexGrow={1} p={{ xs: 2.5, md: 5 }} pb={{ xs: "120px", md: 5 }} sx={{ bgcolor: "#f8fafc", minHeight: "100vh" }}>
+      <Typography variant="h4" fontWeight="900" color="#0f172a" letterSpacing="-0.5px" mb={2} sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.25rem' }, textAlign: { xs: 'center', md: 'left' } }}>
+                              요금 정책 관리
+                          </Typography>
       {loading ? (
-        <Box display="flex" justifyContent="center" alignItems="center" height="300px">
-          <CircularProgress />
+        <Box display="flex" justifyContent="center" alignItems="center" height="300px" sx={{ color: "#2563eb" }}>
+          <CircularProgress color="inherit" />
         </Box>
       ) : (
         <FeesExtraTable setLoading={setLoading} />
@@ -58,7 +76,6 @@ const FeesExtraTable = ({ setLoading }) => {
       const res = await fetchFeesExtraFull();
       const data = res?.data || {};
       
-      // 🚨 [추가] 데이터 로드 전 기존 grid 메모리를 비워서 잔상 데이터 방지
       setGrid([]); 
       
       setRows(Array.isArray(data.rows) ? data.rows : []);
@@ -118,70 +135,94 @@ const FeesExtraTable = ({ setLoading }) => {
     if (!key) return;
     if (!window.confirm(`'${key}' 행을 삭제하시겠습니까?`)) return;
     
-    // 🚨 [추가] 삭제 시작 시 로딩 처리
     setLoading(true); 
 
     try {
       await deleteExtraRow(key);
-      
-      // 🚨 [추가] 삭제 후 메모리 상태 초기화 후 다시 서버 데이터 로드
       setGrid([]); 
       await fetchFull();
-      
     } catch (e) { 
       alert("행 삭제 실패"); 
     } finally {
-      // 🚨 [추가] 작업 완료 후 로딩 해제
       setLoading(false); 
     }
   };
 
+  const tableCardStyle = {
+    p: 0,
+    borderRadius: "20px",
+    backgroundColor: "#ffffff",
+    border: "1px solid #f1f5f9",
+    boxShadow: "0 8px 30px rgba(0, 0, 0, 0.02)",
+    overflow: "hidden", // 👈 가로 슬라이드 휠 자체를 완전히 제거!
+    maxWidth: "100%",
+    mb: 4
+  };
+
   return (
     <Box>
-      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+      {error && <Alert severity="error" sx={{ mb: 2, borderRadius: "12px" }}>{error}</Alert>}
 
       <Tabs
         value={activeTab}
         textColor="primary"
         indicatorColor="primary"
         variant="fullWidth"
-        sx={{ mb: 3 }}
+        sx={{ 
+          mb: 4,
+          "& .MuiTabs-indicator": { bgcolor: "#2563eb", height: "3px", borderRadius: "3px" }, 
+          "& .MuiTab-root": { fontWeight: "bold", color: "#64748b", fontSize: "0.95rem" },
+          "& .MuiTab-root.Mui-selected": { color: "#2563eb" }
+        }}
       >
-        <Tab value={0} label="기본요금" component={NavLink} to="/admin/feesBasic" />
-        <Tab value={1} label="추가요금" component={NavLink} to="/admin/feesExtra" />
+        <Tab value={0} label="기본요금 설정" component={NavLink} to="/admin/feesBasic" />
+        <Tab value={1} label="추가요금 설정" component={NavLink} to="/admin/feesExtra" />
       </Tabs>
 
       <Stack
         direction={{ xs: 'column', sm: 'row' }}
-        spacing={1}
+        spacing={2}
         alignItems={{ xs: 'stretch', sm: 'center' }}
-        mb={3}
+        mb={4}
       >
         <TextField
           size="small"
           placeholder="새 항목 (예: 파손주의)"
           value={newRow}
           onChange={(e) => setNewRow(e.target.value)}
-          sx={{ width: { xs: '100%', sm: 240 } }}
+          sx={{ 
+            width: { xs: '100%', sm: 240 },
+            "& .MuiOutlinedInput-root": {
+              borderRadius: "14px",
+              backgroundColor: "#ffffff",
+              "& fieldset": { borderColor: "#e2e8f0" },
+              "&:hover fieldset": { borderColor: "#cbd5e1" },
+              "&.Mui-focused fieldset": { borderColor: "#2563eb", borderWidth: "2px" },
+            }
+          }}
         />
-        <Button variant="contained" onClick={onAddRow} sx={{ width: { xs: '100%', sm: 'auto' } }}>
+        <Button variant="contained" disableElevation onClick={onAddRow} sx={{ py: 1, px: 3, borderRadius: "12px", fontWeight: "bold", bgcolor: "#2563eb", "&:hover": { bgcolor: "#1d4ed8" }, width: { xs: '100%', sm: 'auto' } }}>
           행 추가
         </Button>
       </Stack>
 
-      <Box sx={{ overflowX: 'auto', width: '100%' }}>
-        <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 300 }}>
+      {/* 팀장님의 원본 레이아웃 100% 보존 유지 구역 */}
+      <TableContainer component={Paper} elevation={0} sx={tableCardStyle}>
+        {/* 📱 minWidth 제한 장치를 걷어내어 스마트폰 디스플레이 너비에 맞춰 칼핏 압축 안착 */}
+        <table style={{ borderCollapse: "collapse", width: "100%" }}>
           <thead>
             <tr>
-              <th style={thStyle}>항목</th>
-              {columns.map((col, idx) => <th key={idx} style={thStyle}>{col}</th>)}
-              <th style={thStyle}>삭제</th>
+              <th style={{ ...thStyle, backgroundColor: "#f1f5f9", color: "#1e293b", fontWeight: "900", width: "45%" }}>항목</th>
+              {columns.map((col, idx) => <th key={idx} style={{ ...thStyle, width: "40%" }}>{col}</th>)}
+              <th style={{ ...thStyle, borderRight: "none", width: "15%" }}>제어</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((rowLabel, rowIdx) => (
-              <tr key={rowLabel}>
-                <th style={thStyle}>{rowLabel}</th>
+              <tr key={rowLabel} style={{ transition: "background-color 0.2s" }}>
+                <th style={{ ...thStyle, backgroundColor: "#f8fafc", color: "#334155", fontWeight: "800", textAlign: "left", paddingLeft: "12px" }}>
+                  {rowLabel}
+                </th>
                 {columns.map((_, colIdx) => (
                   <td key={`${rowLabel}-${colIdx}`} style={tdStyle}>
                     <input
@@ -192,24 +233,40 @@ const FeesExtraTable = ({ setLoading }) => {
                     />
                   </td>
                 ))}
-                <td style={tdStyle}>
-                  <IconButton color="error" onClick={() => onDeleteRow(rowLabel)}>
-                    <DeleteIcon />
+                <td style={{ ...tdStyle, borderRight: "none" }}>
+                  <IconButton 
+                    onClick={() => onDeleteRow(rowLabel)}
+                    sx={{ 
+                      color: "#94a3b8", 
+                      borderRadius: "10px",
+                      p: 1,
+                      "&:hover": { bgcolor: "#fff5f5", color: "#ef4444" } 
+                    }}
+                  >
+                    <DeleteIcon fontSize="small" />
                   </IconButton>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-      </Box>
+      </TableContainer>
 
       <Box sx={{ display: "flex", justifyContent: "center", mt: 4, mb: 4 }}>
         <Button
           variant="contained"
-          color="success"
+          disableElevation
           size="large"
           onClick={handleSaveAll}
-          sx={{ width: { xs: '100%', sm: 300 }, fontWeight: 700, fontSize: "1.1rem" }}
+          sx={{ 
+            width: { xs: '100%', sm: 320 }, 
+            py: 1.5,
+            borderRadius: "14px", 
+            fontWeight: "900", 
+            fontSize: "1.05rem",
+            bgcolor: "#2563eb", 
+            "&:hover": { bgcolor: "#1d4ed8" }
+          }}
         >
           전체 요금 변경사항 저장하기
         </Button>

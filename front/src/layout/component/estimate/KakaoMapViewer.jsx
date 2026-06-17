@@ -44,6 +44,19 @@ const KakaoMapViewer = forwardRef(({ startAddress, endAddress, onAddressSelect }
     });
     mapRef.current = map;
 
+    // 컨테이너 크기 변화(폼 높이 변동 등)에 맞춰 지도 영역을 다시 채운다
+    let resizeObserver;
+    if (typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver(() => {
+        const m = mapRef.current;
+        if (!m) return;
+        const center = m.getCenter();
+        m.relayout();
+        m.setCenter(center);
+      });
+      resizeObserver.observe(container);
+    }
+
     const geocoder = new window.kakao.maps.services.Geocoder();
 
     // ✅ 지도 클릭 이벤트 리스너 등록
@@ -71,7 +84,7 @@ const KakaoMapViewer = forwardRef(({ startAddress, endAddress, onAddressSelect }
     });
 
     return () => {
-
+      resizeObserver?.disconnect();
       // 컴포넌트가 사라질 때 마커와 선을 지웁니다.
       markersRef.current.forEach((m) => m.setMap(null));
       polylineRef.current?.setMap(null);
@@ -154,8 +167,8 @@ const KakaoMapViewer = forwardRef(({ startAddress, endAddress, onAddressSelect }
   }, [startAddress, endAddress]);
 
   return (
-    <div>
-      <div id="kakao-map" style={{ width: "100%", height: "400px", borderRadius: "10px" }} />
+    <div style={{ height: "100%" }}>
+      <div id="kakao-map" style={{ width: "100%", height: "100%", minHeight: "400px", borderRadius: "10px" }} />
     </div>
   );
 });

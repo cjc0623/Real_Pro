@@ -83,6 +83,11 @@ public interface EstimateService {
     }
     
     Long sendEstimate(EstimateDTO dto);
+    /**
+     * 직접요청용(방법 B): 견적 1개를 신규 생성하고, 지정 차주 N명에게 DirectRequest를 팬아웃 생성한다.
+     * Matching 행은 생성하지 않는다(수락 시 승격). 반환값은 생성된 requestId 목록.
+     */
+    List<Long> createDirectRequests(EstimateDTO dto, List<String> cargoIds);
     Long saveDraft(EstimateDTO dto);
     EstimateDTO exportEstimate(String memberId, Long eno);
     List<EstimateDTO> getSaveEstimate(String memberId);

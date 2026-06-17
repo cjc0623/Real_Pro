@@ -5,17 +5,16 @@ import AdminSidebar from "../common/AdminSidebar";
 import ResponsiveAppBar from "../common/ResponsiveAppBar";
 
 const AdminPage = () => (
-    <Box sx={{ height: "100vh", display: "flex", flexDirection: "column" }}>
-        <ResponsiveAppBar position="fixed" />
-        <Box sx={{ display: "flex", flex: 1, overflow: "hidden" }}>
+    <Box sx={{ minHeight: "100vh", display: "flex", flexDirection: "column", bgcolor: '#f8fafc' }}>
+        <ResponsiveAppBar />
+        <Box sx={{ display: "flex", flex: 1 }}>
             <AdminSidebar />
             <Box
                 component="main"
                 sx={{
                     flexGrow: 1,
-                    p: 3,
-                    backgroundColor: "#f3f4f6",
-                    overflow: "auto",
+                    p: { xs: 2, md: 5 },
+                    minWidth: 0,
                 }}
             >
                 <Outlet />

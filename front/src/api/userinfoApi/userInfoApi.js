@@ -1,7 +1,7 @@
 import axios from "axios";
 import { API_SERVER_HOST } from "../serverConfig";
 
-const prefix = `${API_SERVER_HOST}/g2i4`;
+const prefix = `${API_SERVER_HOST}/fr`;
 
 const authHeaders = () => ({
   Authorization: `Bearer ${sessionStorage.getItem("accessToken") || ""}`,
@@ -15,6 +15,15 @@ export const getUserInfo = async () => {
     withCredentials: true,
   });
   return res.data; // { userType, data }
+};
+
+// 화주 공개 프로필 카드 (이름/프로필이미지/가입일)
+export const getShipperProfileCard = async (memId) => {
+  const res = await axios.get(`${prefix}/user/shipper-profile/${encodeURIComponent(memId)}`, {
+    headers: authHeaders(),
+    withCredentials: true,
+  });
+  return res.data; // { memberId, memberName, memberProfileImage, createdAt }
 };
 
 // 주소 변경 (userType에 따라 엔드포인트 분기)

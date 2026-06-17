@@ -14,6 +14,8 @@ import { simplifyBatch } from "../../../api/addressApi/addressApi";
 import axios from 'axios';
 import ReportComponent from './ReportComponent';
 import { createReview, getReviewExistsByDeliveryNo } from '../../../api/reviewApi/reviewApi';
+import DriverProfileModal from '../common/DriverProfileModal';
+import ShipperProfileModal from '../common/ShipperProfileModal';
 
 
 // ===== 공통 API 베이스/인스턴스 =====
@@ -51,32 +53,32 @@ const asList = (data) => {
 
 // ===== 차주용 API =====
 const getOwnerUnpaidList = async ({ page, size }) => {
-  const { data } = await api.get('/g2i4/owner/deliveries/unpaid', { params: { page, size } });
+  const { data } = await api.get('/fr/owner/deliveries/unpaid', { params: { page, size } });
   return data ?? [];
 };
 const getOwnerPaidList = async ({ page, size }) => {
-  const { data } = await api.get('/g2i4/owner/deliveries/paid', { params: { page, size } });
+  const { data } = await api.get('/fr/owner/deliveries/paid', { params: { page, size } });
   return data ?? [];
 };
 const getOwnerCompletedList = async ({ page, size }) => {
-  const { data } = await api.get('/g2i4/owner/deliveries/completed', { params: { page, size } });
+  const { data } = await api.get('/fr/owner/deliveries/completed', { params: { page, size } });
   return data ?? [];
 };
 const startDelivery = async (matchingNo) => {
   try {
-    const { data } = await api.post(`/g2i4/owner/deliveries/${matchingNo}/in_transit`);
+    const { data } = await api.post(`/fr/owner/deliveries/${matchingNo}/in_transit`);
     return data;
   } catch (e) {
     const status = e?.response?.status;
     if (status === 404 || status === 405) {
-      const { data } = await api.post(`/g2i4/owner/deliveries/${matchingNo}/start`);
+      const { data } = await api.post(`/fr/owner/deliveries/${matchingNo}/start`);
       return data;
     }
     throw e;
   }
 };
 const completeDelivery = async (matchingNo) => {
-  const { data } = await api.post(`/g2i4/owner/deliveries/${matchingNo}/complete`);
+  const { data } = await api.post(`/fr/owner/deliveries/${matchingNo}/complete`);
   return data;
 };
 
@@ -157,6 +159,21 @@ const formatDateHour = (v) => {
 };
 const statusKo = (s) => s === 'IN_TRANSIT' ? '배송 중' : s === 'COMPLETED' ? '배송 완료' : '대기';
 
+// InfoRow 컴포넌트 정의 (오류 해결 및 줄바꿈 최적화)
+const InfoRow = ({ label, value }) => (
+  <Box sx={{ display: "flex", gap: 1, mb: 0.5 }}>
+    <Typography
+      component="span"
+      sx={{ width: 70, flexShrink: 0, color: "text.secondary", fontSize: 13 }}
+    >
+      {label}
+    </Typography>
+    <Typography component="span" sx={{ fontSize: 13, fontWeight: 600, wordBreak: "break-all" }}>
+      {value || "-"}
+    </Typography>
+  </Box>
+);
+
 // ===== 메인 컴포넌트 =====
 const DeliveryInfoPage = () => {
   const getRequesterId = (item) =>
@@ -193,6 +210,37 @@ const DeliveryInfoPage = () => {
   const [openStartModal, setOpenStartModal] = useState(false);
   const [selectedStartMatchingNo, setSelectedStartMatchingNo] = useState(null);
 
+  // 차주 프로필 모달 (화주가 승인 전 확인)
+  const [driverModalCargoId, setDriverModalCargoId] = useState(null);
+  const openDriverProfile = (cargoId) => {
+    if (cargoId) setDriverModalCargoId(cargoId);
+  };
+
+  // 화주(의뢰자) 프로필 모달 (차주가 의뢰자 확인)
+  const [shipperModalMemId, setShipperModalMemId] = useState(null);
+  const openShipperProfile = (memId) => {
+    if (memId) setShipperModalMemId(memId);
+  };
+
+  // 이름 셀: 차주 화면→의뢰자(화주) 클릭, 화주 화면→운전기사(차주) 클릭
+  const linkSx = { cursor: 'pointer', color: '#2563eb', fontWeight: 600, textDecoration: 'underline', '&:hover': { color: '#1d4ed8' } };
+  const renderPersonName = (item) => {
+    if (isOwner) {
+      // 차주가 보는 의뢰자(화주)
+      return item.memId ? (
+        <Box component="span" onClick={() => openShipperProfile(item.memId)} sx={linkSx}>
+          {item.memName || item.memId}
+        </Box>
+      ) : (item.memName || '-');
+    }
+    // 화주가 보는 운전기사(차주)
+    return item.cargoId ? (
+      <Box component="span" onClick={() => openDriverProfile(item.cargoId)} sx={linkSx}>
+        {item.driverName ?? '-'}
+      </Box>
+    ) : (item.driverName ?? '-');
+  };
+
   //Review Modal State
   const [openReviewModal, setOpenReviewModal] = useState(false);
   const [selectedDeliveryNoForReview, setselectedDeliveryNoForReview] = useState(null);
@@ -201,7 +249,6 @@ const DeliveryInfoPage = () => {
   const [reviewScore, setReviewScore] = useState(0);
   const [reviewedMap, setReviewedMap] = useState({});
   const [reviewImages, setReviewImages] = useState([]);
-
 
   //모달 열기 함수 추가
   const handleReviewClick = (item) => {
@@ -262,9 +309,6 @@ const DeliveryInfoPage = () => {
     const map = {};
 
     for (const item of completedList) {
-      console.log("review 체크 item:", item);
-      console.log("review 체크 deliveryNo:", item.deliveryNo);
-
       if (!item.deliveryNo) {
         map[item.deliveryNo] = false;
         continue;
@@ -272,18 +316,13 @@ const DeliveryInfoPage = () => {
 
       try {
         const exists = await getReviewExistsByDeliveryNo(item.deliveryNo);
-        console.log("리뷰 존재 여부:", item.deliveryNo, exists);
         map[item.deliveryNo] = exists;
       } catch (error) {
-        console.log("리뷰 존재 여부 조회 실패:", item.deliveryNo, error?.response?.status);
         map[item.deliveryNo] = false;
       }
     }
-
-    console.log("최종 reviewedMap:", map);
     setReviewedMap(map);
   };
-
 
   // Report Modal State
   const [showReportModal, setShowReportModal] = useState(false);
@@ -345,7 +384,7 @@ const DeliveryInfoPage = () => {
     let cancelled = false;
     (async () => {
       try {
-        const { data } = await api.get('/g2i4/user/info');
+        const { data } = await api.get('/fr/user/info');
         const t = parseUserType(data);
         if (!cancelled) setUserType(t || 'MEMBER');
       } catch {
@@ -414,7 +453,6 @@ const DeliveryInfoPage = () => {
           setCompletedData(paginate(completed, completedPage));
           await loadReviewedMap(completed);
         } else {
-          // CARGO_OWNER
           const paid = asList(await getOwnerPaidList(paidPage));
           const completed = asList(await getOwnerCompletedList(completedPage));
 
@@ -434,46 +472,170 @@ const DeliveryInfoPage = () => {
   const movePaidPage = (pageObj) => setPaidPage((prev) => ({ ...prev, ...pageObj }));
   const moveCompletedPage = (pageObj) => setCompletedPage((prev) => ({ ...prev, ...pageObj }));
   const unpaidColCount = isOwner ? 6 : 7;
+  
   // 공용 colgroup (미결제/결제됨)
   const tableColgroup = useMemo(() => (
     <colgroup>
-      <col style={{ width: '10%' }} /> {/* 화물명 */}
-      <col style={{ width: '5%' }} />  {/* 무게 */}
-      <col style={{ width: '15%' }} /> {/* 출발지 */}
-      <col style={{ width: '15%' }} /> {/* 도착지 */}
-      <col style={{ width: '12%' }} /> {/* 배송 시작일 */}
-      {!isOwner && <col style={{ width: '10%' }} />} {/* 운전 기사(회원 전용) */}
-      <col style={{ width: '10%' }} /> {/* 상태/승인 */}
+      <col style={{ width: '12%' }} /> {/* 화물명 */}
+      <col style={{ width: '8%' }} />  {/* 무게 */}
+      <col style={{ width: '20%' }} /> {/* 출발지 */}
+      <col style={{ width: '20%' }} /> {/* 도착지 */}
+      <col style={{ width: '15%' }} /> {/* 배송 시작일 */}
+      {!isOwner && <col style={{ width: '12%' }} />} {/* 운전 기사 */}
+      <col style={{ width: '13%' }} /> {/* 상태/승인 */}
     </colgroup>
   ), [isOwner]);
 
   const paidColgroup = useMemo(() => (
     <colgroup>
       <col style={{ width: '10%' }} />
-      <col style={{ width: '5%' }} />
-      <col style={{ width: '15%' }} />
-      <col style={{ width: '15%' }} />
-      <col style={{ width: '12%' }} />
       <col style={{ width: '8%' }} />
-      <col style={{ width: '9%' }} />
-      <col style={{ width: '9%' }} />
+      <col style={{ width: '18%' }} />
+      <col style={{ width: '18%' }} />
+      <col style={{ width: '14%' }} />
+      <col style={{ width: '10%' }} />
+      <col style={{ width: '11%' }} />
+      <col style={{ width: '11%' }} />
     </colgroup>
   ), []);
 
-  // 완료 전용 colgroup: 차주면 신고 컬럼 추가(8칸), 회원은 7칸
   const completedColgroup = useMemo(() => (
     <colgroup>
       <col style={{ width: '10%' }} />
-      <col style={{ width: '5%' }} />
-      <col style={{ width: '13%' }} />
-      <col style={{ width: '13%' }} />
-      <col style={{ width: '12%' }} />
-      <col style={{ width: '10%' }} /> {/* 운전 기사 */}
-      {isMember && <col style={{ width: '9%' }} />}  {/* 리뷰 */}
-      {isMember && <col style={{ width: '9%' }} />}  {/* 신고 */}
-      <col style={{ width: '10%' }} />               {/* 주문서 보기 */}
+      <col style={{ width: '8%' }} />
+      <col style={{ width: '16%' }} />
+      <col style={{ width: '16%' }} />
+      <col style={{ width: '14%' }} />
+      <col style={{ width: '10%' }} />
+      {isMember && <col style={{ width: '8%' }} />}
+      {isMember && <col style={{ width: '8%' }} />}
+      <col style={{ width: '10%' }} />
     </colgroup>
   ), [isMember]);
+
+  // 🟢 [공통 세련된 카드 & 라운딩 테이블 스킨 정의]
+  const cardPanelStyle = {
+    p: { xs: 2.5, md: 4 },
+    borderRadius: "24px",
+    backgroundColor: "#ffffff",
+    border: "1px solid #f1f5f9",
+    boxShadow: "0 8px 30px rgba(0, 0, 0, 0.02)",
+    mb: 6
+  };
+
+  // 📱 모바일 전용 카드 렌더러 (기존 로직 유지하며 UI만 카드화)
+  const renderMobileCards = (list, type) => {
+    if (!list || list.length === 0) {
+      return (
+        <Typography sx={{ py: 4, textAlign: 'center', color: '#94a3b8' }}>
+          내역이 존재하지 않습니다.
+        </Typography>
+      );
+    }
+    return (
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        {list.map((item) => {
+          const mNo = item.matchingNo ?? item.mno ?? item.matching_no ?? null;
+          const s = item.deliveryStatus ?? null;
+          const doneAt = item.deliveryCompletedAt ?? item.endTime ?? null;
+          const isAccepted = normalizeBoolean(item.isAccepted);
+
+          return (
+            <Paper key={item.eno} variant="outlined" sx={{ p: 2, borderRadius: "16px", border: "1px solid #e2e8f0" }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                <Typography fontWeight="bold" color="#2563eb">{item.cargoType}</Typography>
+                <Typography variant="body2" color="#64748b">{item.cargoWeight}</Typography>
+              </Box>
+              
+              <Box sx={{ mb: 1.5 }}>
+                <Typography variant="body2" sx={{ color: '#475569' }}><strong>출발:</strong> {item.startAddress}</Typography>
+                <Typography variant="body2" sx={{ color: '#475569' }}><strong>도착:</strong> {item.endAddress}</Typography>
+                <Typography variant="body2" sx={{ color: '#64748b', mt: 0.5 }}>
+                  <strong>{type === 'completed' ? '완료일' : '시작일'}:</strong> {formatDateHour(type === 'completed' ? doneAt : item.startTime)}
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#334155' }}>
+                  <strong>{isOwner ? '의뢰자' : '기사님'}:</strong>{' '}
+                  {isOwner ? (item.memName || '-') : (
+                    item.cargoId ? (
+                      <Box
+                        component="span"
+                        onClick={() => openDriverProfile(item.cargoId)}
+                        sx={{ cursor: 'pointer', color: '#2563eb', fontWeight: 600, textDecoration: 'underline' }}
+                      >
+                        {item.driverName ?? '-'}
+                      </Box>
+                    ) : (item.driverName ?? '-')
+                  )}
+                </Typography>
+              </Box>
+
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                {mNo && (
+                  <Button variant="outlined" size="small" fullWidth onClick={() => handleViewOrderSummary(mNo)} sx={{ borderRadius: "8px" }}>
+                    주문서 상세보기
+                  </Button>
+                )}
+
+                {type === 'unpaid' && !isOwner && isAccepted && (
+                  <Button variant="contained" fullWidth onClick={() => handleConfirmClick(item.matchingNo)} sx={{ borderRadius: "8px", bgcolor: "#2563eb" }}>
+                    승인 확인
+                  </Button>
+                )}
+
+                {type === 'paid' && isOwner && (
+                  <>
+                    {(s === 'PENDING' || !s) && (
+                      <Button variant="outlined" fullWidth onClick={() => handleOpenStartModal(mNo)} sx={{ borderRadius: "8px" }}>배송 시작</Button>
+                    )}
+                    {s === 'IN_TRANSIT' && (
+                      <Button variant="contained" fullWidth color="success" onClick={() => handleOpenCompleteModal(mNo)} sx={{ borderRadius: "8px" }}>배송 완료</Button>
+                    )}
+                  </>
+                )}
+                
+                {type === 'paid' && !isOwner && (
+                   <Box sx={{ width: '100%', textAlign: 'center', py: 0.5, bgcolor: '#f1f5f9', borderRadius: '8px' }}>
+                     <Typography variant="body2" fontWeight="bold" color="#64748b">{statusKo(s)}</Typography>
+                   </Box>
+                )}
+
+                {type === 'completed' && isMember && (
+                  <Box sx={{ display: 'flex', gap: 1, width: '100%' }}>
+                    <Button 
+                      variant="contained" 
+                      size="small" 
+                      fullWidth 
+                      disabled={reviewedMap[item.deliveryNo]}
+                      onClick={() => handleReviewClick(item)}
+                      sx={{ borderRadius: "8px" }}
+                    >
+                      {reviewedMap[item.deliveryNo] ? '작성완료' : '리뷰'}
+                    </Button>
+                    <Button 
+                      variant="outlined" 
+                      color="error" 
+                      size="small" 
+                      fullWidth 
+                      onClick={() => handleOpenReportModal(mNo)}
+                      sx={{ borderRadius: "8px" }}
+                    >
+                      신고
+                    </Button>
+                  </Box>
+                )}
+              </Box>
+            </Paper>
+          );
+        })}
+      </Box>
+    );
+  };
+
+  const tableContainerStyle = {
+    borderRadius: "16px",
+    border: "1px solid #e2e8f0",
+    display: { xs: 'none', md: 'block' } // 🖥️ 데스크톱에서만 테이블 표시
+  };
 
   // 렌더러: 미결제
   const renderUnpaidRows = (list) => {
@@ -481,7 +643,7 @@ const DeliveryInfoPage = () => {
     if (!list || list.length === 0) {
       return (
         <TableRow>
-          <TableCell colSpan={unpaidColCount} align="center">항목이 없습니다.</TableCell>
+          <TableCell colSpan={unpaidColCount} align="center" sx={{ py: 4, color: '#94a3b8' }}>진행 중인 의뢰 내역이 존재하지 않습니다.</TableCell>
         </TableRow>
       );
     }
@@ -493,42 +655,53 @@ const DeliveryInfoPage = () => {
 
       if (isOwner) {
         if (due && isAfterDay(now, due)) {
-          rightCell = <Typography sx={{ color: 'warning.main' }} variant="body2">결제 기한 경과</Typography>;
+          rightCell = <Box component="span" sx={{ px: 1.5, py: 0.5, borderRadius: '8px', fontSize: '0.8rem', fontWeight: 'bold', bgcolor: '#fef2f2', color: '#dc2626' }}>결제 기한 경과</Box>;
         } else {
-          rightCell = <Typography variant="body2" sx={{ color: 'text.secondary' }}>결제 대기</Typography>;
+          rightCell = <Box component="span" sx={{ px: 1.5, py: 0.5, borderRadius: '8px', fontSize: '0.8rem', fontWeight: 'bold', bgcolor: '#f8fafc', color: '#64748b' }}>결제 대기</Box>;
         }
       } else {
         if (due && isAfterDay(now, due) && isAccepted) {
-          rightCell = <Typography sx={{ color: 'warning.main' }} variant="body2">결제일 초과</Typography>;
+          rightCell = <Box component="span" sx={{ px: 1.5, py: 0.5, borderRadius: '8px', fontSize: '0.8rem', fontWeight: 'bold', bgcolor: '#fff7ed', color: '#ea580c' }}>결제일 초과</Box>;
         } else if (start && isAfterDay(now, start) && !isAccepted) {
-          rightCell = <Typography color="error" variant="body2">매칭취소</Typography>;
+          rightCell = <Box component="span" sx={{ px: 1.5, py: 0.5, borderRadius: '8px', fontSize: '0.8rem', fontWeight: 'bold', bgcolor: '#fef2f2', color: '#dc2626' }}>매칭 취소</Box>;
         } else if (isAccepted) {
           rightCell = (
             <Button
               variant="contained"
-              color="success"
+              disableElevation
               size="small"
               onClick={() => handleConfirmClick(item.matchingNo)}
+              sx={{ borderRadius: "10px", bgcolor: "#2563eb", fontWeight: "bold", "&:hover": { bgcolor: "#1d4ed8" } }}
             >
               승인 확인
             </Button>
           );
         } else {
-          rightCell = <Typography color="error" variant="body2">미승인</Typography>;
+          rightCell = <Box component="span" sx={{ px: 1.5, py: 0.5, borderRadius: '8px', fontSize: '0.8rem', fontWeight: 'bold', bgcolor: '#fef2f2', color: '#dc2626' }}>미승인</Box>;
         }
       }
 
       return (
-        <TableRow key={item.eno}>
-          <TableCell align="center">{item.cargoType}</TableCell>
-          <TableCell align="center">{item.cargoWeight}</TableCell>
-          <TableCell align="center">{item.startAddressShort ?? ""}</TableCell>
-          <TableCell align="center">{item.endAddressShort ?? ""}</TableCell>
-          <TableCell align="center">
+        <TableRow key={item.eno} sx={{ '&:hover': { bgcolor: '#f8fafc' } }}>
+          <TableCell align="center" sx={{ fontWeight: 600, color: '#334155' }}>{item.cargoType}</TableCell>
+          <TableCell align="center" sx={{ color: '#475569' }}>{item.cargoWeight}</TableCell>
+          <TableCell align="center" sx={{ color: '#475569' }}>{item.startAddressShort ?? ""}</TableCell>
+          <TableCell align="center" sx={{ color: '#475569' }}>{item.endAddressShort ?? ""}</TableCell>
+          <TableCell align="center" sx={{ color: '#475569' }}>
             <span style={{ whiteSpace: 'nowrap' }}>{formatDateHour(item.startTime)}</span>
           </TableCell>
           {!isOwner && (
-            <TableCell align="center">{item.driverName ?? '-'}</TableCell>
+            <TableCell align="center" sx={{ color: '#334155', fontWeight: 500 }}>
+              {item.cargoId ? (
+                <Box
+                  component="span"
+                  onClick={() => openDriverProfile(item.cargoId)}
+                  sx={{ cursor: 'pointer', color: '#2563eb', fontWeight: 600, textDecoration: 'underline', '&:hover': { color: '#1d4ed8' } }}
+                >
+                  {item.driverName ?? '-'}
+                </Box>
+              ) : (item.driverName ?? '-')}
+            </TableCell>
           )}
           <TableCell align="center">{rightCell}</TableCell>
         </TableRow>
@@ -536,12 +709,12 @@ const DeliveryInfoPage = () => {
     });
   };
 
-  // 렌더러: 결제됨 (원래대로 운전 기사 / 처리|상태)
+  // 렌더러: 결제됨
   const renderPaidRows = (list) => {
     if (!list || list.length === 0) {
       return (
         <TableRow>
-          <TableCell colSpan={8} align="center">항목이 없습니다.</TableCell>
+          <TableCell colSpan={8} align="center" sx={{ py: 4, color: '#94a3b8' }}>운송 진행 사항이 없습니다.</TableCell>
         </TableRow>
       );
     }
@@ -549,9 +722,13 @@ const DeliveryInfoPage = () => {
       const s = item.deliveryStatus ?? null;
       const mNo = item.matchingNo ?? item.mno ?? item.matching_no ?? null;
       let ownerAction = (
-        <Typography variant="body2" sx={{ color: s === 'IN_TRANSIT' ? 'info.main' : 'text.secondary' }}>
+        <Box component="span" sx={{ 
+          px: 1.5, py: 0.5, borderRadius: '8px', fontSize: '0.8rem', fontWeight: 'bold',
+          bgcolor: s === 'IN_TRANSIT' ? '#eff6ff' : '#f8fafc', 
+          color: s === 'IN_TRANSIT' ? '#2563eb' : '#64748b' 
+        }}>
           {statusKo(s)}
-        </Typography>
+        </Box>
       );
 
       if (isOwner) {
@@ -559,9 +736,9 @@ const DeliveryInfoPage = () => {
           ownerAction = (
             <Button
               variant="outlined"
-              color="primary"
               size="small"
               onClick={() => handleOpenStartModal(item.matchingNo ?? item.mno ?? item.matching_no)}
+              sx={{ borderRadius: "10px", fontWeight: "bold", color: "#2563eb", borderColor: "#2563eb", "&:hover": { bgcolor: "#eff6ff" } }}
             >
               배송 시작
             </Button>
@@ -570,41 +747,45 @@ const DeliveryInfoPage = () => {
           ownerAction = (
             <Button
               variant="contained"
-              color="success"
+              disableElevation
               size="small"
               onClick={() => handleOpenCompleteModal(item.matchingNo ?? item.mno ?? item.matching_no)}
+              sx={{ borderRadius: "10px", fontWeight: "bold", whiteSpace: "nowrap", bgcolor: "#10b981", "&:hover": { bgcolor: "#059669" } }}
             >
-              배송 완료 처리
+              배송 완료
             </Button>
           );
         }
       }
 
       return (
-        <TableRow key={item.eno}>
-          <TableCell align="center">{item.cargoType}</TableCell>
-          <TableCell align="center">{item.cargoWeight}</TableCell>
-          <TableCell align="center">{item.startAddress}</TableCell>
-          <TableCell align="center">{item.endAddress}</TableCell>
-          <TableCell align="center">
+        <TableRow key={item.eno} sx={{ '&:hover': { bgcolor: '#f8fafc' } }}>
+          <TableCell align="center" sx={{ fontWeight: 600, color: '#334155' }}>{item.cargoType}</TableCell>
+          <TableCell align="center" sx={{ color: '#475569' }}>{item.cargoWeight}</TableCell>
+          <TableCell align="center" sx={{ color: '#475569' }}>{item.startAddress}</TableCell>
+          <TableCell align="center" sx={{ color: '#475569' }}>{item.endAddress}</TableCell>
+          <TableCell align="center" sx={{ color: '#475569' }}>
             <span style={{ whiteSpace: 'nowrap' }}>{formatDateHour(item.startTime)}</span>
           </TableCell>
-          <TableCell align="center"> {isOwner ? (item.memName || '-') : (item.driverName ?? '-')}</TableCell>
+          <TableCell align="center" sx={{ color: '#334155', fontWeight: 500 }}> {renderPersonName(item)}</TableCell>
           <TableCell align="center">
             {mNo ? (
-              <Button variant="outlined" size="small" onClick={() => handleViewOrderSummary(mNo)}>
+              <Button variant="outlined" size="small" onClick={() => handleViewOrderSummary(mNo)} sx={{ borderRadius: "10px", whiteSpace: "nowrap", color: "#64748b", borderColor: "#cbd5e1", "&:hover": { bgcolor: "#f1f5f9" } }}>
                 주문서 보기
               </Button>
             ) : (
-              <Typography variant="body2" color="text.secondary">-</Typography>
+              <Typography variant="body2" color="#94a3b8">-</Typography>
             )}
           </TableCell>
           <TableCell align="center">
             {isOwner ? ownerAction : (
-
-              <Typography variant="body2" sx={{ color: s === 'IN_TRANSIT' ? 'info.main' : 'text.secondary' }}>
+              <Box component="span" sx={{ 
+                px: 1.5, py: 0.5, borderRadius: '8px', fontSize: '0.8rem', fontWeight: 'bold',
+                bgcolor: s === 'IN_TRANSIT' ? '#eff6ff' : '#f8fafc', 
+                color: s === 'IN_TRANSIT' ? '#2563eb' : '#64748b' 
+              }}>
                 {statusKo(s)}
-              </Typography>
+              </Box>
             )}
           </TableCell>
         </TableRow>
@@ -612,12 +793,12 @@ const DeliveryInfoPage = () => {
     });
   };
 
-  // 렌더러: 완료 (여기에 신고 버튼 추가)
+  // 렌더러: 완료
   const renderCompletedRows = (list) => {
     if (!list || list.length === 0) {
       return (
         <TableRow>
-          <TableCell colSpan={isMember ? 9 : 7} align="center">항목이 없습니다.</TableCell>
+          <TableCell colSpan={isMember ? 9 : 7} align="center" sx={{ py: 4, color: '#94a3b8' }}>완료된 운송 내역이 존재하지 않습니다.</TableCell>
         </TableRow>
       );
     }
@@ -626,23 +807,28 @@ const DeliveryInfoPage = () => {
       const matchingNo = item?.matchingNo ?? item?.mno ?? item?.matching_no ?? null;
 
       return (
-        <TableRow key={item.eno}>
-          <TableCell align="center">{item.cargoType}</TableCell>
-          <TableCell align="center">{item.cargoWeight}</TableCell>
-          <TableCell align="center">{item.startAddress}</TableCell>
-          <TableCell align="center">{item.endAddress}</TableCell>
-          <TableCell align="center" style={{ whiteSpace: 'nowrap' }}>{formatDateHour(doneAt)}</TableCell>
-          <TableCell align="center">{isOwner ? (item.memName || '-') : (item.driverName ?? '-')}</TableCell>
+        <TableRow key={item.eno} sx={{ '&:hover': { bgcolor: '#f8fafc' } }}>
+          <TableCell align="center" sx={{ fontWeight: 600, color: '#334155' }}>{item.cargoType}</TableCell>
+          <TableCell align="center" sx={{ color: '#475569' }}>{item.cargoWeight}</TableCell>
+          <TableCell align="center" sx={{ color: '#475569' }}>{item.startAddress}</TableCell>
+          <TableCell align="center" sx={{ color: '#475569' }}>{item.endAddress}</TableCell>
+          <TableCell align="center" sx={{ color: '#475569' }} style={{ whiteSpace: 'nowrap' }}>{formatDateHour(doneAt)}</TableCell>
+          <TableCell align="center" sx={{ color: '#334155', fontWeight: 500 }}>{renderPersonName(item)}</TableCell>
 
           {/* 리뷰 (회원 전용) */}
           {isMember && (
             <TableCell align="center">
               <Button
                 variant="contained"
+                disableElevation
                 size="small"
                 disabled={reviewedMap[item.deliveryNo]}
                 onClick={() => handleReviewClick(item)}
-                sx={{ minWidth: 80 }}
+                sx={{ 
+                  minWidth: 80, borderRadius: "10px", fontWeight: "bold",
+                  bgcolor: reviewedMap[item.deliveryNo] ? "#f1f5f9" : "#2563eb",
+                  "&:hover": { bgcolor: "#1d4ed8" }
+                }}
               >
                 {reviewedMap[item.deliveryNo] ? '작성완료' : '리뷰'}
               </Button>
@@ -658,11 +844,12 @@ const DeliveryInfoPage = () => {
                   color="error"
                   variant="outlined"
                   onClick={() => handleOpenReportModal(matchingNo)}
+                  sx={{ borderRadius: "10px", fontWeight: "bold", borderColor: "#fee2e2", bgcolor: "#fff5f5", "&:hover": { bgcolor: "#ffe4e4" } }}
                 >
                   신고
                 </Button>
               ) : (
-                <Typography variant="body2" color="text.secondary">-</Typography>
+                <Typography variant="body2" color="#94a3b8">-</Typography>
               )}
             </TableCell>
           )}
@@ -670,11 +857,11 @@ const DeliveryInfoPage = () => {
           {/* 주문서 보기 */}
           <TableCell align="center">
             {matchingNo ? (
-              <Button variant="outlined" size="small" onClick={() => handleViewOrderSummary(matchingNo)}>
+              <Button variant="outlined" size="small" onClick={() => handleViewOrderSummary(matchingNo)} sx={{ borderRadius: "10px", whiteSpace: "nowrap", color: "#64748b", borderColor: "#cbd5e1", "&:hover": { bgcolor: "#f1f5f9" } }}>
                 주문서 보기
               </Button>
             ) : (
-              <Typography variant="body2" color="text.secondary">-</Typography>
+              <Typography variant="body2" color="#94a3b8">-</Typography>
             )}
           </TableCell>
         </TableRow>
@@ -682,112 +869,124 @@ const DeliveryInfoPage = () => {
     });
   };
 
-  if (!userType) return <Box sx={{ p: 6 }}>사용자 타입 확인 중…</Box>;
+  if (!userType) return <Box sx={{ p: 6, color: '#2563eb', fontWeight: 'bold' }}>사용자 타입 확인 중…</Box>;
 
   return (
-    <Box sx={{ bgcolor: '#f7f9fc', minHeight: '100vh', py: 6, pb: { xs: '80px', md: 6 },overflow: 'hidden', }}>
-      <Container maxWidth="xl" disableGutters     sx={{
-      px: { xs: 1, sm: 2 },
-      maxWidth: '100vw',
-      boxSizing: 'border-box',
-    }}>
-        <Typography variant="h5" fontWeight="bold" gutterBottom textAlign="center">
+    <Box sx={{ bgcolor: '#f8fafc', minHeight: '100vh', pt: 6, pb: { xs: 15, md: 6 }, overflow: 'hidden' }}>
+      <Container maxWidth="xl" disableGutters sx={{ px: { xs: 2, sm: 3, md: 4 }, maxWidth: '100vw', boxSizing: 'border-box' }}>
+
+        <Typography variant="h4" fontWeight="900" color="#0f172a" letterSpacing="-0.5px" mb={6} sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.25rem' }, textAlign: { xs: 'center', md: 'left' } }}>
           {isMember ? '배송 정보 관리' : '차주 배송 관리'}
         </Typography>
 
-        {/* 미결제 (두 타입 모두 노출) */}
-        <Box mt={6}>
-          <Typography variant="h6" fontWeight="bold" gutterBottom>
+        {/* 1. 미결제 섹션 폼 */}
+        <Paper elevation={0} sx={cardPanelStyle}>
+          <Typography variant="h6" fontWeight="800" color="#1e293b" mb={2.5}>
             {isMember ? '견적 의뢰 진행 상황 (미결제)' : '미결제 배송 요청'}
           </Typography>
-          <TableContainer component={Paper} elevation={1} sx={{ height: 470, position: 'relative', pb: 0, overflowX: 'auto' }}>
-            <Table sx={{ '& .MuiTableCell-root': { height: 60, py: 0 }, minWidth: 650 }}>
+          
+          <TableContainer sx={tableContainerStyle}>
+            <Table sx={{ '& .MuiTableCell-root': { height: 56 } }}>
               {tableColgroup}
               <TableHead>
-                <TableRow>
-                  <TableCell align="center">화물명</TableCell>
-                  <TableCell align="center">무게</TableCell>
-                  <TableCell align="center">출발지</TableCell>
-                  <TableCell align="center">도착지</TableCell>
-                  <TableCell align="center">배송 시작일</TableCell>
-                  {!isOwner && (<TableCell align="center">운전 기사</TableCell>)}
-
-                  <TableCell align="center">{isOwner ? '상태' : '승인 여부'}</TableCell>
+                <TableRow sx={{ bgcolor: '#f8fafc' }}>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', color: '#475569' }}>화물명</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', color: '#475569' }}>무게</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', color: '#475569' }}>출발지</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', color: '#475569' }}>도착지</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', color: '#475569' }}>배송 시작일</TableCell>
+                  {!isOwner && (<TableCell align="center" sx={{ fontWeight: 'bold', color: '#475569' }}>운전 기사</TableCell>)}
+                  <TableCell align="center" sx={{ fontWeight: 'bold', color: '#475569' }}>{isOwner ? '상태' : '승인 여부'}</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>{renderUnpaidRows(serverData.dtoList)}</TableBody>
             </Table>
-            <Box sx={{ position: 'absolute', left: 0, right: 0, bottom: 0, py: 1.5, display: 'flex', justifyContent: 'center', bgcolor: 'background.paper' }}>
-              <PageComponent serverData={serverData} movePage={movePage} />
-            </Box>
           </TableContainer>
-        </Box>
 
-        {/* 결제됨 (대기/배송 중) */}
-        <Divider sx={{ my: 8 }} />
-        <Box mt={6}>
-          <Typography variant="h6" fontWeight="bold" gutterBottom>
+          {/* 📱 모바일 전용 뷰 (한눈에 보기) */}
+          <Box sx={{ display: { xs: 'block', md: 'none' }, mt: 2 }}>
+            {renderMobileCards(serverData.dtoList, 'unpaid')}
+          </Box>
+          <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
+            <PageComponent serverData={serverData} movePage={movePage} />
+          </Box>
+        </Paper>
+
+        {/* 2. 결제됨 섹션 폼 */}
+        <Paper elevation={0} sx={cardPanelStyle}>
+          <Typography variant="h6" fontWeight="800" color="#1e293b" mb={2.5}>
             {isMember ? '견적 의뢰 진행 상황 (결제됨)' : '진행 중 배송 (결제됨)'}
           </Typography>
-          <TableContainer component={Paper} elevation={1} sx={{ height: 470, position: 'relative', pb: 0, overflowX: 'auto' }}>
-            <Table sx={{ '& .MuiTableCell-root': { height: 60, py: 0 }, minWidth: 750 }}>
+
+          {/* 📱 모바일 전용 뷰 (한눈에 보기) */}
+          <Box sx={{ display: { xs: 'block', md: 'none' }, mt: 2 }}>
+            {renderMobileCards(paidData.dtoList, 'paid')}
+          </Box>
+
+          <TableContainer sx={tableContainerStyle}>
+            <Table sx={{ '& .MuiTableCell-root': { height: 56 } }}>
               {paidColgroup}
               <TableHead>
-                <TableRow>
-                  <TableCell align="center">화물명</TableCell>
-                  <TableCell align="center">무게</TableCell>
-                  <TableCell align="center">출발지</TableCell>
-                  <TableCell align="center">도착지</TableCell>
-                  <TableCell align="center">배송 시작일</TableCell>
-                  <TableCell align="center">{isOwner ? '의뢰자 이름' : '운전 기사'}</TableCell>
-                  <TableCell align="center">{isOwner ? '처리' : '상태'}</TableCell>
-                  <TableCell align="center">{isOwner ? '상태' : '승인 여부'}</TableCell>
+                <TableRow sx={{ bgcolor: '#f8fafc' }}>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', color: '#475569' }}>화물명</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', color: '#475569' }}>무게</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', color: '#475569' }}>출발지</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', color: '#475569' }}>도착지</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', color: '#475569' }}>배송 시작일</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', color: '#475569' }}>{isOwner ? '의뢰자 이름' : '운전 기사'}</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', color: '#475569' }}>주문서</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', color: '#475569' }}>상태 관리</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>{renderPaidRows(paidData.dtoList)}</TableBody>
             </Table>
-            <Box sx={{ position: 'absolute', left: 0, right: 0, bottom: 0, py: 1.5, display: 'flex', justifyContent: 'center', bgcolor: 'background.paper' }}>
-              <PageComponent serverData={paidData} movePage={movePaidPage} />
-            </Box>
           </TableContainer>
-        </Box>
+          <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
+            <PageComponent serverData={paidData} movePage={movePaidPage} />
+          </Box>
+        </Paper>
 
-        {/* 완료 */}
-        <Divider sx={{ my: 8 }} />
-        <Box mt={6}>
-          <Typography variant="h6" fontWeight="bold" gutterBottom>
+        {/* 3. 배송 완료 섹션 폼 */}
+        <Paper elevation={0} sx={cardPanelStyle}>
+          <Typography variant="h6" fontWeight="800" color="#1e293b" mb={2.5}>
             {isMember ? '배송 완료 된 화물' : '완료된 배송'}
           </Typography>
-          <TableContainer component={Paper} elevation={1} sx={{ overflowX: 'auto' }}>
-            <Table sx={{ '& .MuiTableCell-root': { height: 60, py: 0 }, minWidth: 750 }}>
+
+          {/* 📱 모바일 전용 뷰 (한눈에 보기) */}
+          <Box sx={{ display: { xs: 'block', md: 'none' }, mt: 2 }}>
+            {renderMobileCards(completedData.dtoList, 'completed')}
+          </Box>
+
+          <TableContainer sx={tableContainerStyle}>
+            <Table sx={{ '& .MuiTableCell-root': { height: 56 } }}>
               {completedColgroup}
               <TableHead>
-                <TableRow>
-                  <TableCell align="center">화물명</TableCell>
-                  <TableCell align="center">무게</TableCell>
-                  <TableCell align="center">출발지</TableCell>
-                  <TableCell align="center">도착지</TableCell>
-                  <TableCell align="center">{isMember ? '배송 완료일' : '완료일'}</TableCell>
-                  <TableCell align="center">{isOwner ? '의뢰자 이름' : '운전 기사'}</TableCell>
-                  {isMember && <TableCell align="center">리뷰</TableCell>}
-                  {isMember && <TableCell align="center">신고</TableCell>}
-                  <TableCell align="center">주문서 보기</TableCell>
+                <TableRow sx={{ bgcolor: '#f8fafc' }}>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', color: '#475569' }}>화물명</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', color: '#475569' }}>무게</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', color: '#475569' }}>출발지</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', color: '#475569' }}>도착지</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', color: '#475569' }}>{isMember ? '배송 완료일' : '완료일'}</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', color: '#475569' }}>{isOwner ? '의뢰자 이름' : '운전 기사'}</TableCell>
+                  {isMember && <TableCell align="center" sx={{ fontWeight: 'bold', color: '#475569' }}>리뷰</TableCell>}
+                  {isMember && <TableCell align="center" sx={{ fontWeight: 'bold', color: '#475569' }}>신고</TableCell>}
+                  <TableCell align="center" sx={{ fontWeight: 'bold', color: '#475569' }}>주문서</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>{renderCompletedRows(completedData.dtoList)}</TableBody>
             </Table>
-            <Box mt={2} display="flex" justifyContent="center" gap={1} sx={{ paddingBottom: 5 }}>
-              <PageComponent serverData={completedData} movePage={moveCompletedPage} />
-            </Box>
           </TableContainer>
-        </Box>
+          <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
+            <PageComponent serverData={completedData} movePage={moveCompletedPage} />
+          </Box>
+        </Paper>
       </Container>
 
-      {/* 배송 완료 확인 모달 */}
-      <Dialog open={openCompleteModal} onClose={handleCloseCompleteModal}>
-        <DialogTitle>배송 완료 처리</DialogTitle>
+      {/* 배송 완료 확인 모달 다듬기 */}
+      <Dialog open={openCompleteModal} onClose={handleCloseCompleteModal} PaperProps={{ sx: { borderRadius: "16px", p: 1, width: { xs: '95%', sm: 'auto' } } }}>
+        <DialogTitle sx={{ fontWeight: "bold" }}>배송 완료 처리</DialogTitle>
         <DialogContent>
-          <Typography gutterBottom>
+          <Typography gutterBottom color="#475569">
             정말 완료 처리 하시겠습니까? <br />
             확인을 위해 아래 입력란에 <b>배송완료</b>라고 입력해주세요.
           </Typography>
@@ -798,56 +997,55 @@ const DeliveryInfoPage = () => {
             onChange={(e) => setConfirmText(e.target.value)}
             placeholder="배송완료"
             autoFocus
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "12px",
+                "& fieldset": { borderColor: "#cbd5e1" },
+                "&.Mui-focused fieldset": { borderColor: "#2563eb" }
+              }
+            }}
           />
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseCompleteModal}>취소</Button>
+        <DialogActions sx={{ p: 2.5 }}>
+          <Button onClick={handleCloseCompleteModal} sx={{ color: "#64748b", fontWeight: "bold" }}>취소</Button>
           <Button
             onClick={handleConfirmComplete}
             color="success"
             variant="contained"
+            disableElevation
             disabled={confirmText !== "배송완료"}
+            sx={{ borderRadius: "10px", fontWeight: "bold" }}
           >
             확인
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* 배송 시작 확인 모달 */}
-      <Dialog open={openStartModal} onClose={handleCloseStartModal}>
-        <DialogTitle>배송 시작</DialogTitle>
+      {/* 배송 시작 확인 모달 다듬기 */}
+      <Dialog open={openStartModal} onClose={handleCloseStartModal} PaperProps={{ sx: { borderRadius: "16px", p: 1, width: { xs: '95%', sm: 'auto' } } }}>
+        <DialogTitle sx={{ fontWeight: "bold" }}>배송 시작</DialogTitle>
         <DialogContent>
-          <Typography gutterBottom>
+          <Typography gutterBottom color="#475569">
             해당 건을 <b>배송 중</b>으로 변경합니다. 진행하시겠습니까?
           </Typography>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseStartModal}>취소</Button>
-          <Button onClick={handleConfirmStart} variant="contained">
+        <DialogActions sx={{ p: 2.5 }}>
+          <Button onClick={handleCloseStartModal} sx={{ color: "#64748b", fontWeight: "bold" }}>취소</Button>
+          <Button onClick={handleConfirmStart} variant="contained" disableElevation sx={{ borderRadius: "10px", bgcolor: "#2563eb", fontWeight: "bold", "&:hover": { bgcolor: "#1d4ed8" } }}>
             확인
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Report Modal */}
-      <Modal
-        open={showReportModal}
-        onClose={() => setShowReportModal(false)}
-        aria-labelledby="report-modal-title"
-      >
+      {/* Report Modal 다듬기 */}
+      <Modal open={showReportModal} onClose={() => setShowReportModal(false)}>
         <Box sx={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: 600,
-          bgcolor: 'background.paper',
-          border: '2px solid #000',
-          boxShadow: 24,
-          p: 4,
+          position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+          width: { xs: '95%', sm: 550 }, bgcolor: 'background.paper', borderRadius: "20px",
+          boxShadow: "0 20px 50px rgba(0,0,0,0.15)", p: 4, overflow: 'hidden'
         }}>
-          <Typography id="report-modal-title" variant="h6" component="h2">
-            신고하기
+          <Typography variant="h6" component="h2" fontWeight="bold" mb={2}>
+            🚨 신고 사유 작성
           </Typography>
           <ReportComponent
             matchingNo={selectedMatchingNoForReport}
@@ -855,114 +1053,89 @@ const DeliveryInfoPage = () => {
           />
         </Box>
       </Modal>
-      {/* Review Modal */}
-      <Dialog
-        open={openReviewModal}
-        onClose={handleCloseReviewModal}
-        maxWidth="sm"
-        fullWidth
+
+      <Dialog 
+        open={openReviewModal} 
+        onClose={handleCloseReviewModal} 
+        maxWidth="sm" 
+        fullWidth 
+        PaperProps={{ sx: { borderRadius: "20px", p: 1, maxHeight: { xs: "82vh", sm: "85vh" }, display: "flex", flexDirection: "column" } }}
       >
-        <DialogTitle>리뷰 작성</DialogTitle>
+        <DialogTitle sx={{ fontWeight: "bold", flexShrink: 0 }}>✍️ 리뷰 작성</DialogTitle>
+        <DialogContent sx={{ overflowY: "auto", overflowX: "hidden", flex: "1 1 auto" }}>
+          <Box sx={{ bgcolor: "#f8fafc", p: 2, borderRadius: "12px", mb: 2, display: 'flex', flexDirection: 'column', gap: 0.2, border: "1px solid #e2e8f0" }}>
+            <InfoRow label="화물명" value={selectedReviewItem?.cargoType} />
+            <InfoRow label="배송완료" value={formatDateHour(selectedReviewItem?.deliveryCompletedAt)} />
+            <InfoRow label="운전기사" value={selectedReviewItem?.driverName} />
+          </Box>
 
-        <DialogContent>
-          <Typography variant="body2" sx={{ mb: 1 }}>
-            <strong>화물명:</strong> {selectedReviewItem?.cargoType || '-'}
-          </Typography>
-
-          <Typography variant="body2" sx={{ mb: 1 }}>
-            <strong>배송 완료일:</strong> {formatDateHour(selectedReviewItem?.deliveryCompletedAt)}
-          </Typography>
-
-          <Typography variant="body2" sx={{ mb: 2 }}>
-            <strong>운전 기사:</strong> {selectedReviewItem?.driverName || '-'}
-          </Typography>
-
-          <Typography gutterBottom sx={{ mt: 1 }}>
-            별점
-          </Typography>
-
-          <Rating
-            value={reviewScore}
-            precision={0.5}
-            onChange={(event, newValue) => setReviewScore(newValue || 0)}
-          />
+          <Typography gutterBottom fontWeight="bold" color="#1e293b" sx={{ mt: 1 }}>별점 선택</Typography>
+          <Rating value={reviewScore} precision={0.5} onChange={(event, newValue) => setReviewScore(newValue || 0)} sx={{ color: "#ffb700" }} />
 
           <TextField
-            fullWidth
-            multiline
-            rows={4}
-            label="리뷰 내용"
-            value={reviewContent}
-            onChange={(e) => setReviewContent(e.target.value)}
-            sx={{ mt: 2 }}
+            fullWidth multiline rows={4} label="기사님과 운송 서비스는 어떠셨나요? 솔직한 리뷰를 남겨주세요."
+            value={reviewContent} onChange={(e) => setReviewContent(e.target.value)}
+            sx={{
+              mt: 3,
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "14px",
+                "& fieldset": { borderColor: "#cbd5e1" },
+                "&.Mui-focused fieldset": { borderColor: "#2563eb" }
+              }
+            }}
           />
-          <Box sx={{ mt: 2 }}>
-            <Typography gutterBottom>리뷰 사진 첨부</Typography>
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handleReviewImageChange}
-            />
-            <Typography variant="caption" color="text.secondary">
-              최대 3장까지 업로드(각 이미지는 10MB이하)
+          
+          <Box sx={{ mt: 3, p: 2, border: "1px dashed #cbd5e1", borderRadius: "14px", bgcolor: "#fafafa" }}>
+            <Typography gutterBottom fontSize="0.95rem" fontWeight="bold">📸 리뷰 사진 첨부</Typography>
+            <input type="file" accept="image/*" multiple onChange={handleReviewImageChange} style={{ marginTop: '4px' }} />
+            <Typography variant="caption" color="#94a3b8" display="block" sx={{ mt: 1 }}>
+              최대 3장까지 업로드 가능 (각 이미지 10MB 이하 규칙 엄수)
             </Typography>
           </Box>
         </DialogContent>
 
-        <DialogActions>
-          <Button onClick={handleCloseReviewModal}>닫기</Button>
-
+        <DialogActions sx={{ p: 2.5, flexShrink: 0 }}>
+          <Button onClick={handleCloseReviewModal} sx={{ color: "#64748b", fontWeight: "bold" }}>닫기</Button>
           <Button
             onClick={async () => {
-              if (reviewScore === 0) {
-                alert("별점을 선택해야 합니다.");
-                return;
-              }
-
-              if (!reviewContent.trim()) {
-                alert("리뷰 내용을 입력해야 합니다.");
-                return;
-              }
+              if (reviewScore === 0) { alert("별점을 선택해야 합니다."); return; }
+              if (!reviewContent.trim()) { alert("리뷰 내용을 입력해야 합니다."); return; }
 
               const formData = new FormData();
               formData.append("deliveryNo", selectedDeliveryNoForReview);
               formData.append("rating", reviewScore);
               formData.append("comment", reviewContent.trim());
-
-              reviewImages.forEach((file) => {
-                formData.append("images", file);
-              });
+              reviewImages.forEach((file) => { formData.append("images", file); });
 
               try {
-                console.log("리뷰 전송 데이터:", {
-                  deliveryNo: selectedDeliveryNoForReview,
-                  rating: reviewScore,
-                  comment: reviewContent.trim(),
-                  imageCount: reviewImages.length,
-                });
-
-                const result = await createReview(formData);
-
-                setReviewedMap(prev => ({
-                  ...prev,
-                  [selectedDeliveryNoForReview]: true
-                }));
-
+                await createReview(formData);
+                setReviewedMap(prev => ({ ...prev, [selectedDeliveryNoForReview]: true }));
                 alert("리뷰가 등록되었습니다.");
                 handleCloseReviewModal();
               } catch (error) {
-                console.error("리뷰 등록 실패:", error);
                 alert("리뷰 등록에 실패했습니다.");
               }
             }}
             variant="contained"
+            disableElevation
+            sx={{ borderRadius: "12px", px: 3, fontWeight: "bold", bgcolor: "#2563eb", "&:hover": { bgcolor: "#1d4ed8" } }}
           >
-            등록
+            등록하기
           </Button>
         </DialogActions>
       </Dialog>
 
+      <DriverProfileModal
+        open={!!driverModalCargoId}
+        cargoId={driverModalCargoId}
+        onClose={() => setDriverModalCargoId(null)}
+      />
+
+      <ShipperProfileModal
+        open={!!shipperModalMemId}
+        memId={shipperModalMemId}
+        onClose={() => setShipperModalMemId(null)}
+      />
     </Box>
   );
 };

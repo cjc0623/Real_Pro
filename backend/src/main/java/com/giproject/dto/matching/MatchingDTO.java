@@ -20,6 +20,7 @@ public class MatchingDTO {
 	private Long matchNo;
 	private Long eno;
 	private String cargoId;
+	private String memId;          // 견적 작성 화주 아이디 (프로필 조회용)
 	@JsonProperty("isAccepted")
 	private boolean isAccepted;
 	private LocalDateTime acceptedTime;

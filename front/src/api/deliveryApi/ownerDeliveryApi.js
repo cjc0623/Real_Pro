@@ -16,27 +16,27 @@ api.interceptors.request.use((config) => {
 
 // 차주용
 export const getOwnerUnpaid = async ({ page, size }) => {
-  const res = await api.get("/g2i4/owner/deliveries/unpaid", {
+  const res = await api.get("/fr/owner/deliveries/unpaid", {
     params: { page, size },
   });
   return res.data;
 };
 
 export const getOwnerPaid = async ({ page, size }) => {
-  const res = await api.get("/g2i4/owner/deliveries/paid", {
+  const res = await api.get("/fr/owner/deliveries/paid", {
     params: { page, size },
   });
   return res.data;
 };
 
 export const getOwnerCompleted = async ({ page, size }) => {
-  const res = await api.get("/g2i4/owner/deliveries/completed", {
+  const res = await api.get("/fr/owner/deliveries/completed", {
     params: { page, size },
   });
   return res.data;
 };
 
 export const completeDelivery = async (matchingNo) => {
-  await api.post(`/g2i4/owner/deliveries/${matchingNo}/complete`);
+  await api.post(`/fr/owner/deliveries/${matchingNo}/complete`);
 };
 

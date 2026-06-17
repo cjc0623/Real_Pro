@@ -247,7 +247,7 @@ const DriverDeliveryPage = () => {
         {/* 3. 배송 완료 */}
         {renderTable('배송 완료', row => row.deliveryStatus === 2)}
 
-        <Box mt={4} display="flex" justifyContent="center" gap={1} sx={{ paddingBottom: 5 }}>
+        <Box mt={6} display="flex" justifyContent="center" gap={1} sx={{ pb: { xs: 15, md: 5 } }}>
           <PageComponent serverData={serverData} movePage={movePage} />
         </Box>
       </Container>

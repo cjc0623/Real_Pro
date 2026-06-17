@@ -2,7 +2,7 @@ import axios from "axios";
 import { API_SERVER_HOST } from "../serverConfig";
 
 
-const prefix = `${API_SERVER_HOST}/g2i4/subpath/order`
+const prefix = `${API_SERVER_HOST}/fr/subpath/order`
 
 export const postOrderPome = async (matchingNo) =>{
     const res = await axios.post(`${prefix}/`,{mcNo:matchingNo})
