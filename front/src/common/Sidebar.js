@@ -90,7 +90,7 @@ const Sidebar = () => {
     let cancelled = false;
     (async () => {
       try {
-        const { data } = await api.get('/g2i4/user/info');
+        const { data } = await api.get('/fr/user/info');
         const t = data?.userType || data?.data?.userType || data?.type || null;
         let cid = pickCargoId(data) || pickCargoId(data?.data) || pickCargoId(data?.user) || null;
 

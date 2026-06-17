@@ -69,11 +69,11 @@ const extractEstimateDate = (it) => {
 
 // ===== 차주용 API =====
 const getOwnerPaidList = async () => {
-  const { data } = await api.get('/g2i4/owner/deliveries/paid');
+  const { data } = await api.get('/fr/owner/deliveries/paid');
   return asList(data);
 };
 const getOwnerCompletedList = async () => {
-  const { data } = await api.get('/g2i4/owner/deliveries/completed');
+  const { data } = await api.get('/fr/owner/deliveries/completed');
   return asList(data);
 };
 
@@ -103,7 +103,7 @@ const MyInform = () => {
     let cancelled = false;
     (async () => {
       try {
-        const { data } = await api.get('/g2i4/user/info');
+        const { data } = await api.get('/fr/user/info');
         const t = parseUserType(data) || 'MEMBER';
         if (!cancelled) setUserType(t);
       } catch {

@@ -27,6 +27,12 @@ public class WebConfig implements WebMvcConfigurer {
     }
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/fr/uploads/**")
+                .addResourceLocations("classpath:/static/uploads/")
+                .addResourceLocations("file:../uploads/")
+                .setCacheControl(CacheControl.maxAge(30, TimeUnit.DAYS));
+
+        // 하위호환: 기존 DB에 저장된 구경로(/g2i4/uploads/...) 이미지도 계속 서빙
         registry.addResourceHandler("/g2i4/uploads/**")
                 .addResourceLocations("classpath:/static/uploads/")
                 .addResourceLocations("file:../uploads/")

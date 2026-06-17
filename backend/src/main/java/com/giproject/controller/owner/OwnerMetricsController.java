@@ -11,7 +11,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 
 @RestController
-@RequestMapping("/g2i4/owner")
+@RequestMapping("/fr/owner")
 @RequiredArgsConstructor
 public class OwnerMetricsController {
 

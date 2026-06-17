@@ -86,9 +86,9 @@ const HomePage = () => {
     const s = String(p).trim().replace(/\\/g, "/");
     if (s.startsWith('http')) return s;
     const base = API_SERVER_HOST.replace(/\/+$/, "");
-    if (s.startsWith('/g2i4/uploads/')) return `${base}${s}`;
-    if (s.startsWith('/uploads/')) return `${base}/g2i4${s}`; 
-    return `${base}/g2i4/uploads/cargo/${encodeURIComponent(s)}`;
+    if (s.startsWith('/fr/uploads/')) return `${base}${s}`;
+    if (s.startsWith('/uploads/')) return `${base}/fr${s}`; 
+    return `${base}/fr/uploads/cargo/${encodeURIComponent(s)}`;
   };
 
   // 🚨 [핵심 로직] 요금표(껍데기) 기준이 아니라, "실제 등록된 차량" 기준으로 화면을 그립니다.
@@ -103,12 +103,12 @@ const HomePage = () => {
       let cargoList = [];
       try {
         // 우선 전체 승인 차량 API 호출 시도
-        const res = await axios.get(`${API_SERVER_HOST}/g2i4/cargo/all/approved`);
+        const res = await axios.get(`${API_SERVER_HOST}/fr/cargo/all/approved`);
         // 🚨 [필터링 강화] 서버에서 내려온 데이터 중 status가 'APPROVED'인 것만 추출
         cargoList = (res.data || []).filter(c => c.status === 'APPROVED');
       } catch (e) {
         // 만약 위 API가 백엔드에 없어서 에러가 나면, 기존 API에서 APPROVED만 직접 걸러냄
-        const res = await axios.get(`${API_SERVER_HOST}/g2i4/cargo/list/test2`);
+        const res = await axios.get(`${API_SERVER_HOST}/fr/cargo/list/test2`);
         cargoList = (res.data || []).filter(c => c.status === 'APPROVED');
       }
 

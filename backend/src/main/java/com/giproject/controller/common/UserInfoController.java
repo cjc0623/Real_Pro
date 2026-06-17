@@ -22,7 +22,7 @@ import com.giproject.repository.member.MemberRepository;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/g2i4/user")
+@RequestMapping("/fr/user")
 @RequiredArgsConstructor
 public class UserInfoController {
 
@@ -60,7 +60,7 @@ public class UserInfoController {
         if (m != null) {
             String fileName = m.getProfileImage();
             String webPath  = (fileName == null || fileName.isBlank()) ? null
-                    : "/g2i4/uploads/user_profile/" + fileName;
+                    : "/fr/uploads/user_profile/" + fileName;
 
             Map<String,Object> data = new LinkedHashMap<>();
             data.put("mem_id", m.getMemId());
@@ -84,7 +84,7 @@ public class UserInfoController {
         if (c != null) {
             String fileName = c.getProfileImage();
             String webPath  = (fileName == null || fileName.isBlank()) ? null
-                    : "/g2i4/uploads/user_profile/" + fileName;
+                    : "/fr/uploads/user_profile/" + fileName;
 
             Map<String,Object> data = new LinkedHashMap<>();
             data.put("cargo_id", c.getCargoId());
@@ -115,7 +115,7 @@ public class UserInfoController {
 
         String fileName = m.getProfileImage();
         String webPath = (fileName == null || fileName.isBlank()) ? null
-                : "/g2i4/uploads/user_profile/" + fileName;
+                : "/fr/uploads/user_profile/" + fileName;
 
         ShipperProfileCardDTO dto = ShipperProfileCardDTO.builder()
                 .memberId(m.getMemId())
@@ -161,7 +161,7 @@ public class UserInfoController {
             }
 
             // 프론트 미리보기용 웹경로 (정적 매핑과 일치)
-            String webPath = "/g2i4/uploads/user_profile/" + savedFilename;
+            String webPath = "/fr/uploads/user_profile/" + savedFilename;
             return ResponseEntity.ok(Map.of("filename", savedFilename, "webPath", webPath));
 
         } catch (IOException e) {

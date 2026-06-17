@@ -54,8 +54,8 @@ const getFirst = (...candidates) =>
 const normalizeProfileUrl = (v) => {
   if (!v) return null;
   if (v.startsWith("http")) return v;
-  if (v.startsWith("/g2i4/uploads/")) return `${API_BASE}${v}`;
-  return `${API_BASE}/g2i4/uploads/user_profile/${encodeURIComponent(v)}`;
+  if (v.startsWith("/fr/uploads/")) return `${API_BASE}${v}`;
+  return `${API_BASE}/fr/uploads/user_profile/${encodeURIComponent(v)}`;
 };
 
 const initState = {
@@ -346,7 +346,7 @@ const ReceivedReviewInform = () => {
       try {
         const token = sessionStorage.getItem("accessToken");
 
-        const res = await fetch(`${API_BASE}/g2i4/user/info`, {
+        const res = await fetch(`${API_BASE}/fr/user/info`, {
           headers: {
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },

@@ -62,7 +62,7 @@ const useCustomMove = () => {
 
     const moveToLogin = () =>{
         console.log("로그인페이지")
-        navigate({pathname:`../g2i4/login`})
+        navigate({pathname:`../fr/login`})
     }
     const moveToHome = () =>{
         navigate({pathname:`../`})

@@ -18,7 +18,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/g2i4/payment")
+@RequestMapping("/fr/payment")
 public class PaymentController {
 	private final PaymentService paymentService;
 	private final MailService mailService;

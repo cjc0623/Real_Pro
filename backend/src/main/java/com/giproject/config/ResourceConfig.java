@@ -36,6 +36,16 @@ public class ResourceConfig implements WebMvcConfigurer {
         System.out.println(">>> STATIC user_profile= " + profileUri);
         System.out.println(">>> STATIC cargo       = " + cargoUri);
 
+        registry.addResourceHandler("/fr/uploads/**")
+                .addResourceLocations(rootUri);
+
+        registry.addResourceHandler("/fr/uploads/user_profile/**")
+                .addResourceLocations(profileUri);
+
+        registry.addResourceHandler("/fr/uploads/cargo/**")
+                .addResourceLocations(cargoUri);
+
+        // 하위호환: 기존 DB에 저장된 구경로(/g2i4/uploads/...) 이미지도 계속 서빙
         registry.addResourceHandler("/g2i4/uploads/**")
                 .addResourceLocations(rootUri);
 

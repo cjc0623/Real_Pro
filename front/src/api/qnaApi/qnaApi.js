@@ -17,7 +17,7 @@ api.interceptors.request.use((config) => {
 });
 
 export const getMyInquiries = async (limit = 10) => {
-  const { data } = await api.get('/g2i4/qna/my', { params: { limit } });
+  const { data } = await api.get('/fr/qna/my', { params: { limit } });
   // [{ postId, title, createdAt, answered }]
   return Array.isArray(data) ? data : [];
 };

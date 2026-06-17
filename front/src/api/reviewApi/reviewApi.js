@@ -1,7 +1,7 @@
 import axios from "axios";
 import { API_SERVER_HOST } from "../serverConfig";
 
-const prefix = `${API_SERVER_HOST}/g2i4/review`;
+const prefix = `${API_SERVER_HOST}/fr/review`;
 
 export const getDriverTrustScore = async (cargoId) => {
   const token = sessionStorage.getItem("accessToken");

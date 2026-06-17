@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export const API_SERVER_HOST = "http://localhost:8080";
-const prefix = `${API_SERVER_HOST}/g2i4/coupons`;
+const prefix = `${API_SERVER_HOST}/fr/coupons`;
 
 export const getMyCouponList = async () => {
 

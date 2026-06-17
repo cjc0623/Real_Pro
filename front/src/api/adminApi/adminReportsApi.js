@@ -1,8 +1,8 @@
 import axios from "axios";
 import { API_SERVER_HOST } from "../serverConfig";
 
-const PREFIX = `${API_SERVER_HOST}/g2i4/admin/reports`;
-const SANCTION_PREFIX = `${API_SERVER_HOST}/g2i4/admin/sanctions`;
+const PREFIX = `${API_SERVER_HOST}/fr/admin/reports`;
+const SANCTION_PREFIX = `${API_SERVER_HOST}/fr/admin/sanctions`;
 
 export async function fetchReports({ status, keyword, searchType, page = 0, size = 10, sort = "createdAt,desc" }) {
   const { data } = await axios.get(PREFIX, {

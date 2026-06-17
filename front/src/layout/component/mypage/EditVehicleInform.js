@@ -24,9 +24,9 @@ const toPreviewUrl = (p) => {
   if (!p) return null;
   const s = String(p);
   if (s.startsWith('http')) return s;
-  if (s.startsWith('/g2i4/uploads/')) return `${API_BASE}${s}`;
-  if (s.startsWith('/uploads/')) return `${API_BASE}/g2i4${s}`;
-  return `${API_BASE}/g2i4/uploads/cargo/${encodeURIComponent(s)}`;
+  if (s.startsWith('/fr/uploads/')) return `${API_BASE}${s}`;
+  if (s.startsWith('/uploads/')) return `${API_BASE}/fr${s}`;
+  return `${API_BASE}/fr/uploads/cargo/${encodeURIComponent(s)}`;
 };
 
 const EditVehicleInform = () => {
@@ -68,7 +68,7 @@ const EditVehicleInform = () => {
   const fetchVehicles = async () => {
     if (!cargoId) return;
     try {
-      const cargoRes = await api.get(`/g2i4/cargo/list/${cargoId}`);
+      const cargoRes = await api.get(`/fr/cargo/list/${cargoId}`);
       const cargoList = cargoRes.data || [];
 
       const myVehicles = cargoList.map(c => ({
@@ -89,7 +89,7 @@ const EditVehicleInform = () => {
 
   const fetchWeightOptions = async () => {
     try {
-      const res = await api.get(`/g2i4/admin/fees/basic/rows`);
+      const res = await api.get(`/fr/admin/fees/basic/rows`);
       const uniq = Array.from(new Set(res.data || [])).filter(Boolean);
       if (uniq.length) setWeightOptions(uniq);
     } catch (err) {
@@ -166,12 +166,12 @@ const EditVehicleInform = () => {
       if (no != null) {
         // [수정] 기존 데이터 수정
         const payload = { name, address: weight, weight, cargoNumber };
-        await api.put(`/g2i4/cargo/update/${no}`, payload);
+        await api.put(`/fr/cargo/update/${no}`, payload);
 
         if (image) {
           const fd = new FormData();
           fd.append('image', image);
-          await api.post(`/g2i4/cargo/upload/${no}`, fd, {
+          await api.post(`/fr/cargo/upload/${no}`, fd, {
             headers: { 'Content-Type': 'multipart/form-data' }
           });
         }
@@ -194,7 +194,7 @@ const EditVehicleInform = () => {
         formDataPayload.append('image', image);
 
         // 🚨 headers에 Content-Type을 명시적으로 적지 않아도 브라우저가 boundary를 자동으로 잡아줍니다.
-        await api.post(`/g2i4/cargo/add/${cargoId}`, formDataPayload);
+        await api.post(`/fr/cargo/add/${cargoId}`, formDataPayload);
       }
 
       alert('차량 정보가 성공적으로 저장되었습니다. 관리자 승인을 기다려주세요.');
@@ -213,7 +213,7 @@ const EditVehicleInform = () => {
     if (!target?.no) return;
     if (!window.confirm('정말 삭제하시겠습니까?')) return;
     try {
-      await api.delete(`/g2i4/cargo/delete/${target.no}`);
+      await api.delete(`/fr/cargo/delete/${target.no}`);
       await fetchVehicles();
     } catch (err) {
       console.error('차량 삭제 실패:', err);

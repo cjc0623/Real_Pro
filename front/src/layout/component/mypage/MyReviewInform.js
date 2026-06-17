@@ -43,8 +43,8 @@ const DEFAULT_AVATAR = "/image/placeholders/avatar.svg";
 const normalizeProfileUrl = (v) => {
   if (!v) return null;
   if (v.startsWith("http")) return v;
-  if (v.startsWith("/g2i4/uploads/")) return `${API_SERVER_HOST}${v}`;
-  return `${API_SERVER_HOST}/g2i4/uploads/user_profile/${encodeURIComponent(v)}`;
+  if (v.startsWith("/fr/uploads/")) return `${API_SERVER_HOST}${v}`;
+  return `${API_SERVER_HOST}/fr/uploads/user_profile/${encodeURIComponent(v)}`;
 };
 
 const initState = {

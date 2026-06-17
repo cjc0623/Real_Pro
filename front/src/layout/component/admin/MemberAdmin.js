@@ -23,7 +23,7 @@ import axios from "axios";
 import { useNavigate, useLocation, NavLink } from "react-router-dom";
 import { API_SERVER_HOST } from "../../../api/serverConfig";
 
-const PREFIX = `${API_SERVER_HOST}/g2i4/admin/members`;
+const PREFIX = `${API_SERVER_HOST}/fr/admin/members`;
 
 const MemberAdmin = () => {
   const theme = useTheme();

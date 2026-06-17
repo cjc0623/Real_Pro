@@ -33,7 +33,7 @@ import lombok.extern.log4j.Log4j2;
 @RestController
 @RequiredArgsConstructor
 @Log4j2
-@RequestMapping("/g2i4/estimate")
+@RequestMapping("/fr/estimate")
 public class EstimateController {
 
 	private final EstimateService estimateService;

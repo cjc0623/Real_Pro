@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/g2i4/coupons") 
+@RequestMapping("/fr/coupons") 
 @RequiredArgsConstructor
 @Slf4j
 public class MemberCouponController {

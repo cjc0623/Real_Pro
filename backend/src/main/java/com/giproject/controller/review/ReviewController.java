@@ -27,7 +27,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
 @RestController
-@RequestMapping("/g2i4/review")
+@RequestMapping("/fr/review")
 @RequiredArgsConstructor
 @Log4j2
 public class ReviewController {

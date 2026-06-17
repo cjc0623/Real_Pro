@@ -1,7 +1,7 @@
     import axios from "axios"
     import { API_SERVER_HOST } from "../serverConfig"
 
-    const prefix = `${API_SERVER_HOST}/g2i4/payment`
+    const prefix = `${API_SERVER_HOST}/fr/payment`
 
     export const acceptedPayment = async(paymentDTO) =>{
         const res = await axios.post(`${prefix}/accepted`,paymentDTO,{

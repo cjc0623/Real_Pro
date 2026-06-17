@@ -126,8 +126,8 @@ public class FeesBasicServiceImpl implements FeesBasicService {
 			    Path savePath = base.resolve(fileName);
 			    file.transferTo(savePath.toFile());
 
-			    // DB에는 현재 컨벤션 유지: /g2i4/uploads/{fileName}
-			    basic.setCargoImage("/g2i4/uploads/" + fileName);
+			    // DB에는 현재 컨벤션 유지: /fr/uploads/{fileName}
+			    basic.setCargoImage("/fr/uploads/" + fileName);
 			    feesBasicRepository.save(basic);
 
 			    return Map.of("이미지 업로드 성공", "success");

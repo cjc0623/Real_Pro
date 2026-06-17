@@ -30,13 +30,13 @@ import lombok.extern.log4j.Log4j2;
  * - 화주: 차주 탐색 / 직접요청 생성(다중 차주 팬아웃) / 보낸 요청 조회
  * - 차주: 받은 요청 조회 / 수락(Matching 승격) / 거절
  *
- * 보안: /g2i4/estimate/** 중 subpath 외 경로라 SecurityConfig의 anyRequest().authenticated() 적용.
+ * 보안: /fr/estimate/** 중 subpath 외 경로라 SecurityConfig의 anyRequest().authenticated() 적용.
  *       권한/소유권 세부 검증은 서비스 계층에서 수행.
  */
 @RestController
 @RequiredArgsConstructor
 @Log4j2
-@RequestMapping("/g2i4/estimate")
+@RequestMapping("/fr/estimate")
 public class DirectRequestController {
 
 	private final ReviewService reviewService;

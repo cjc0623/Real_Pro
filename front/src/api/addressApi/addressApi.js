@@ -1,7 +1,7 @@
 import axios from "axios";
 import { API_SERVER_HOST } from "../serverConfig";
 
-const prefix = `${API_SERVER_HOST}/g2i4/address`;
+const prefix = `${API_SERVER_HOST}/fr/address`;
 
 /** 단일 주소 단순화 */
 export const simplifyOne = async (address) => {

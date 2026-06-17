@@ -53,32 +53,32 @@ const asList = (data) => {
 
 // ===== 차주용 API =====
 const getOwnerUnpaidList = async ({ page, size }) => {
-  const { data } = await api.get('/g2i4/owner/deliveries/unpaid', { params: { page, size } });
+  const { data } = await api.get('/fr/owner/deliveries/unpaid', { params: { page, size } });
   return data ?? [];
 };
 const getOwnerPaidList = async ({ page, size }) => {
-  const { data } = await api.get('/g2i4/owner/deliveries/paid', { params: { page, size } });
+  const { data } = await api.get('/fr/owner/deliveries/paid', { params: { page, size } });
   return data ?? [];
 };
 const getOwnerCompletedList = async ({ page, size }) => {
-  const { data } = await api.get('/g2i4/owner/deliveries/completed', { params: { page, size } });
+  const { data } = await api.get('/fr/owner/deliveries/completed', { params: { page, size } });
   return data ?? [];
 };
 const startDelivery = async (matchingNo) => {
   try {
-    const { data } = await api.post(`/g2i4/owner/deliveries/${matchingNo}/in_transit`);
+    const { data } = await api.post(`/fr/owner/deliveries/${matchingNo}/in_transit`);
     return data;
   } catch (e) {
     const status = e?.response?.status;
     if (status === 404 || status === 405) {
-      const { data } = await api.post(`/g2i4/owner/deliveries/${matchingNo}/start`);
+      const { data } = await api.post(`/fr/owner/deliveries/${matchingNo}/start`);
       return data;
     }
     throw e;
   }
 };
 const completeDelivery = async (matchingNo) => {
-  const { data } = await api.post(`/g2i4/owner/deliveries/${matchingNo}/complete`);
+  const { data } = await api.post(`/fr/owner/deliveries/${matchingNo}/complete`);
   return data;
 };
 
@@ -384,7 +384,7 @@ const DeliveryInfoPage = () => {
     let cancelled = false;
     (async () => {
       try {
-        const { data } = await api.get('/g2i4/user/info');
+        const { data } = await api.get('/fr/user/info');
         const t = parseUserType(data);
         if (!cancelled) setUserType(t || 'MEMBER');
       } catch {

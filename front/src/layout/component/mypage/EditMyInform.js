@@ -22,8 +22,8 @@ const getFirst = (...candidates) =>
 const normalizeProfileUrl = (v) => {
   if (!v) return null;
   if (v.startsWith('http')) return v;
-  if (v.startsWith('/g2i4/uploads/')) return `${API_BASE}${v}`;
-  return `${API_BASE}/g2i4/uploads/user_profile/${encodeURIComponent(v)}`;
+  if (v.startsWith('/fr/uploads/')) return `${API_BASE}${v}`;
+  return `${API_BASE}/fr/uploads/user_profile/${encodeURIComponent(v)}`;
 };
 
 const api = axios.create({ baseURL: API_BASE });
@@ -72,7 +72,7 @@ const EditMyInform = () => {
 
   const fetchMyCoupons = useCallback(async () => {
     try {
-      const res = await api.get(`/g2i4/coupons/my-list`);
+      const res = await api.get(`/fr/coupons/my-list`);
       setCoupons(res.data);
     } catch (err) {
       if (err.message === "Network Error" || err.code === "ERR_CONNECTION_REFUSED") {
@@ -85,7 +85,7 @@ const EditMyInform = () => {
     if (!user.id || userType !== 'MEMBER') return;
     setCouponLoading(true);
     try {
-      await api.post('/g2i4/coupons/issue-test', { memId: user.id });
+      await api.post('/fr/coupons/issue-test', { memId: user.id });
       alert("테스트 쿠폰이 발급되었습니다!");
       fetchMyCoupons(); 
     } catch (err) {
@@ -104,7 +104,7 @@ const EditMyInform = () => {
     if (!window.confirm('프로필 이미지를 삭제할까요?')) return;
     try {
       setUploading(true);
-      await api.delete('/g2i4/user/profile-image');
+      await api.delete('/fr/user/profile-image');
       setAvatarUrl(null);
       alert('프로필 이미지가 삭제되었습니다.');
     } catch (err) {
@@ -145,7 +145,7 @@ const EditMyInform = () => {
     let canceled = false;
     (async () => {
       try {
-        const res = await api.get('/g2i4/user/info');
+        const res = await api.get('/fr/user/info');
         const raw = res?.data ?? {};
         const type = raw.userType || raw.type || raw.role || raw.loginType || null;
         const data = raw.data || raw.user || raw.payload || raw.profile || raw.account || raw.result || {};
@@ -198,8 +198,8 @@ const EditMyInform = () => {
   const handleSaveAddress = async () => {
     try {
       const url = userType === 'MEMBER'
-        ? `/g2i4/member/${encodeURIComponent(user.id)}/address`
-        : `/g2i4/cargo/${encodeURIComponent(user.id)}/address`;
+        ? `/fr/member/${encodeURIComponent(user.id)}/address`
+        : `/fr/cargo/${encodeURIComponent(user.id)}/address`;
 
       await api.put(url, { address: user.address, postcode: user.postcode || null });
       alert('주소가 변경되었습니다.');
@@ -211,8 +211,8 @@ const EditMyInform = () => {
   const handleChangePassword = async () => {
     try {
       const url = userType === 'MEMBER'
-        ? `/g2i4/member/${encodeURIComponent(user.id)}/password`
-        : `/g2i4/cargo/${encodeURIComponent(user.id)}/password`;
+        ? `/fr/member/${encodeURIComponent(user.id)}/password`
+        : `/fr/cargo/${encodeURIComponent(user.id)}/password`;
 
       await api.put(url, { currentPassword: pwd.current, newPassword: pwd.next });
       alert('비밀번호가 변경되었습니다.');
@@ -232,7 +232,7 @@ const EditMyInform = () => {
 
     try {
       setUploading(true);
-      const { data } = await api.post('/g2i4/user/upload-image', fd);
+      const { data } = await api.post('/fr/user/upload-image', fd);
       const url = normalizeProfileUrl(data?.webPath ?? data?.filename);
       if (url) {
         setAvatarUrl(`${url}?v=${Date.now()}`);

@@ -16,7 +16,7 @@ api.interceptors.request.use((config) => {
 });
 
 export const getOwnerMonthlyRevenue = async () => {
-  const { data } = await api.get('/g2i4/owner/revenue/monthly');
+  const { data } = await api.get('/fr/owner/revenue/monthly');
   // data: [{year:2025, month:8, revenue:1234567}, ...]
   return data;
 };

@@ -11,7 +11,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 
 @RestController
-@RequestMapping("/g2i4/qna")
+@RequestMapping("/fr/qna")
 @RequiredArgsConstructor
 public class MyInquiryController {
 

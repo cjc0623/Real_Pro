@@ -18,9 +18,9 @@ const toPreviewUrl = (p) => {
   if (!p) return '/image/placeholders/truck.svg';
   const s = String(p).replace(/\\/g, "/");
   if (s.startsWith('http')) return s;
-  if (s.startsWith('/g2i4/uploads/')) return `${API_BASE}${s}`;
-  if (s.startsWith('/uploads/')) return `${API_BASE}/g2i4${s}`;
-  return `${API_BASE}/g2i4/uploads/cargo/${encodeURIComponent(s.replace(/^\/+/, ""))}`;
+  if (s.startsWith('/fr/uploads/')) return `${API_BASE}${s}`;
+  if (s.startsWith('/uploads/')) return `${API_BASE}/fr${s}`;
+  return `${API_BASE}/fr/uploads/cargo/${encodeURIComponent(s.replace(/^\/+/, ""))}`;
 };
 
 const AdminCargoApproval = () => {
@@ -52,7 +52,7 @@ const AdminCargoApproval = () => {
 
   const fetchPendingCargos = async () => {
     try {
-      const res = await api.get('/g2i4/admin/cargo/pending');
+      const res = await api.get('/fr/admin/cargo/pending');
       setPendingList(res.data || []);
     } catch (error) {
       console.error('대기 목록을 불러오는 데 실패했습니다.', error);
@@ -66,7 +66,7 @@ const AdminCargoApproval = () => {
   const handleApprove = async (cargoNo) => {
     if (!window.confirm('이 차량을 승인하시겠습니까?')) return;
     try {
-      await api.put(`/g2i4/admin/cargo/approve/${cargoNo}`);
+      await api.put(`/fr/admin/cargo/approve/${cargoNo}`);
       alert('승인 완료되었습니다.');
       fetchPendingCargos();
     } catch (error) {
@@ -77,7 +77,7 @@ const AdminCargoApproval = () => {
   const handleReject = async (cargoNo) => {
     if (!window.confirm('이 차량 등록을 거절하시겠습니까?')) return;
     try {
-      await api.put(`/g2i4/admin/cargo/reject/${cargoNo}`);
+      await api.put(`/fr/admin/cargo/reject/${cargoNo}`);
       alert('거절 처리되었습니다.');
       fetchPendingCargos();
     } catch (error) {
