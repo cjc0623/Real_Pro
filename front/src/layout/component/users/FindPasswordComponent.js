@@ -14,6 +14,36 @@ const API_BASE =
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// 다른 페이지(로그인/아이디 찾기)와 통일된 브랜드 레드 버튼 스타일
+const brandButtonSx = {
+    backgroundColor: '#DC2626',
+    '&:hover': { backgroundColor: '#B91C1C' },
+    '&:disabled': { backgroundColor: '#e5e7eb', color: '#9ca3af' },
+    borderRadius: '10px',
+    textTransform: 'none',
+    fontSize: '15px',
+    fontWeight: 700,
+    py: 1.5,
+    boxShadow: 'none',
+    '&:hover:not(:disabled)': {
+        boxShadow: '0 4px 14px rgba(220,38,38,0.35)',
+        backgroundColor: '#B91C1C',
+    },
+};
+
+// 보조(재전송) 버튼 — 브랜드 컬러 아웃라인
+const brandOutlinedSx = {
+    color: '#DC2626',
+    borderColor: '#DC2626',
+    '&:hover': { borderColor: '#B91C1C', backgroundColor: 'rgba(220,38,38,0.04)' },
+    '&:disabled': { borderColor: '#e5e7eb', color: '#9ca3af' },
+    borderRadius: '10px',
+    textTransform: 'none',
+    fontSize: '15px',
+    fontWeight: 700,
+    py: 1.5,
+};
+
 /**
  * 흐름:
  * 1) (아이디+이메일) 입력 → "인증코드 보내기"
@@ -51,6 +81,13 @@ const FindPasswordComponent = () => {
         const t = setInterval(() => setCooldown((s) => s - 1), 1000);
         return () => clearInterval(t);
     }, [cooldown]);
+
+    // 코드 유효 시간 카운트다운(1초마다 감소, 0에서 멈춤)
+    React.useEffect(() => {
+        if (step !== 'verify' || ttl <= 0) return;
+        const t = setInterval(() => setTtl((s) => (s > 0 ? s - 1 : 0)), 1000);
+        return () => clearInterval(t);
+    }, [step, ttl]);
 
     // 비밀번호 폼 (기존 훅 재사용)
     const {
@@ -171,12 +208,12 @@ const FindPasswordComponent = () => {
     return (
         <AppProvider theme={theme}>
             <Container maxWidth="sm" sx={{ mt: 6, mb: 8 }}>
-                <Box sx={{ width: '100%', maxWidth: 400, mb: 2 }}>
-                    <img src="/image/logo/main_logo.png" alt="로고" style={{ height: 60 }} />
+                <Box sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}>
+                    <img src="/image/logo/main_logo.png" alt="로고" style={{ height: 56 }} />
                 </Box>
                 {/* STEP 1: 아이디 + 이메일 */}
                 {step === 'request' && (
-                    <Box sx={{ p: 3, border: '1px solid #ddd', borderRadius: 2, bgcolor: 'white' }}>
+                    <Box sx={{ p: 3, borderRadius: '12px', bgcolor: 'white', border: '1px solid #f0f0f0', boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
                         <Typography variant="h5" sx={{ mb: 2, fontWeight: 700 }}>
                             비밀번호 찾기
                         </Typography>
@@ -213,7 +250,7 @@ const FindPasswordComponent = () => {
                             variant="contained"
                             onClick={handleSendCode}
                             disabled={loading || !canRequest}
-                            sx={{ mt: 2 }}
+                            sx={{ mt: 2, ...brandButtonSx }}
                         >
                             {loading ? '요청 중…' : '인증코드 보내기'}
                         </Button>
@@ -222,7 +259,7 @@ const FindPasswordComponent = () => {
 
                 {/* STEP 2: 코드 확인 */}
                 {step === 'verify' && (
-                    <Box sx={{ p: 3, border: '1px solid #ddd', borderRadius: 2, bgcolor: 'white' }}>
+                    <Box sx={{ p: 3, borderRadius: '12px', bgcolor: 'white', border: '1px solid #f0f0f0', boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
                         <Typography sx={{ mb: 0.5 }}>
                             인증 메일이 발송되었습니다.
                         </Typography>
@@ -245,8 +282,8 @@ const FindPasswordComponent = () => {
                             <Button
                                 variant="contained"
                                 onClick={handleVerify}
-                                disabled={loading || code.length < 6}
-                                sx={{ flex: 1 }}
+                                disabled={loading || code.length < 6 || ttl <= 0}
+                                sx={{ flex: 1, ...brandButtonSx }}
                             >
                                 {loading ? '확인 중…' : '코드 확인'}
                             </Button>
@@ -255,22 +292,24 @@ const FindPasswordComponent = () => {
                                 variant="outlined"
                                 onClick={handleResend}
                                 disabled={loading || cooldown > 0}
-                                sx={{ width: 160, whiteSpace: 'nowrap' }}
+                                sx={{ width: 160, whiteSpace: 'nowrap', ...brandOutlinedSx }}
                             >
                                 {cooldown > 0 ? `재전송(${cooldown}s)` : '재전송'}
                             </Button>
                         </Box>
 
                         <Divider sx={{ my: 2 }} />
-                        <Typography variant="caption" color="text.secondary">
-                            코드 유효 시간: 약 {ttl || 180}초
+                        <Typography variant="caption" color={ttl > 0 ? 'text.secondary' : 'error'}>
+                            {ttl > 0
+                                ? `코드 유효 시간: 약 ${ttl}초`
+                                : '코드가 만료되었습니다. 재전송해 주세요.'}
                         </Typography>
                     </Box>
                 )}
 
                 {/* STEP 3: 새 비밀번호 설정 */}
                 {step === 'reset' && (
-                    <Box sx={{ p: 3, border: '1px solid #ddd', borderRadius: 2, bgcolor: 'white' }}>
+                    <Box sx={{ p: 3, borderRadius: '12px', bgcolor: 'white', border: '1px solid #f0f0f0', boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
                         <Typography sx={{ mb: 2 }}>
                             새 비밀번호를 설정해 주세요.
                         </Typography>
@@ -318,7 +357,7 @@ const FindPasswordComponent = () => {
                         <Button
                             fullWidth
                             variant="contained"
-                            sx={{ mt: 2 }}
+                            sx={{ mt: 2, ...brandButtonSx }}
                             onClick={handleChangePassword}
                             disabled={loading || !isPwValid || !isPwMatch}
                         >
