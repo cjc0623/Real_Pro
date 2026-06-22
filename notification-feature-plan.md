@@ -258,9 +258,12 @@
 
 ---
 
-## 9. 추가 예정 작업 (TODO)
+## 9. 추가 작업 — **[구현완료] 2026-06-22**
 
-### 9.1 로그인 연속 전환을 위한 Redux 초기화 (토큰/Redux 불일치 해결)
+> C → B → A 순으로 구현 완료. 실제 구현·디버깅 상세 기록은 **§10** 참조.
+> 최종 근본 원인은 알림 API의 `withCredentials: true`(쿠키 세션이 Bearer 토큰을 덮어씀)였음 → §10.3.
+
+### 9.1 [구현완료] 로그인 연속 전환을 위한 Redux 초기화 (토큰/Redux 불일치 해결)
 - **문제**: 화주→차주→관리자처럼 **연달아 로그인**하면, 실제 인증 토큰(sessionStorage)과 화면용
   Redux 로그인 상태가 **다른 계정을 가리키는** 일이 생김. (알림이 이걸 드러냈을 뿐, 알림 자체 버그 아님.)
 - **원인 3가지**:
@@ -276,7 +279,7 @@
 - 영향 범위: `useAuth` / `loginSlice` / `ResponsiveAppBar`(인증 effect). **적용 전 변경 파일·동작 먼저 공유.**
 - 참고: **하드 새로고침 시엔 Redux가 토큰에서 재생성**되어 자동 정상화 → 막으려는 건 *새로고침 없이* SPA 내 전환.
 
-### 9.2 read-state — "확인하면 알림(점)이 사라지게"
+### 9.2 [구현완료] read-state — "확인하면 알림(점)이 사라지게"
 - **목표**: 점 규칙을 **"건수 > 0" → "마지막으로 확인한 뒤 새로 생긴 게 있으면"** 으로 변경.
   해당 페이지(또는 마이페이지 대시보드)에서 **확인하면 그 항목 점이 즉시 사라짐**, 새 건 오면 다시 ON.
 - **방식 (클라이언트 전용, 백엔드 0)**:
@@ -291,7 +294,75 @@
   - [ ] 확인 지점(타깃 페이지/대시보드)에서 `markSeen` 호출 + 커스텀 이벤트로 즉시 반영.
 - 한계: localStorage라 **기기별**. 기기 동기화·진짜 이력은 §8-B(백엔드 알림 테이블) 필요.
 
-### 9.3 (연관) 실시간 갱신
-- 세션 중 새 알림 즉시 반영: **폴링(30~60초) + 탭 포커스 재조회**가 가성비 최선(백엔드 0).
-  - 참고: 관리자 신고 뱃지는 이미 [AdminSidebar](front/src/common/AdminSidebar.js#L97)에서 60초 폴링 사용 중.
-- 진짜 실시간이 필요하면 SSE/WebSocket(백엔드 신설).
+### 9.3 [구현완료] (연관) 실시간 갱신
+- 세션 중 새 알림 즉시 반영: **60초 폴링 + 탭 포커스/가시성 복귀 재조회** 구현(백엔드 0).
+  - 관리자 신고 뱃지([AdminSidebar](front/src/common/AdminSidebar.js#L97), 60초 폴링)와 주기 통일.
+- 진짜 실시간이 필요하면 SSE/WebSocket(백엔드 신설) — 추후 과제.
+
+---
+
+## 10. 구현 완료 & 트러블슈팅 기록 (2026-06-22)
+
+> C(실시간) → B(read-state) → A(계정 전환) 순으로 구현. 테스트 중 "연속 로그인 시 알림이 첫 계정에 고정"
+> 버그를 추적했고, 최종 근본 원인은 **알림 API의 `withCredentials: true`** 였다.
+
+### 10.1 변경 파일 (전부 프론트, 백엔드/DB 추가 0)
+| 파일 | 변경 내용 |
+|---|---|
+| [front/src/api/notificationApi.js](front/src/api/notificationApi.js) | **`withCredentials: true` 제거** (★근본 원인). 쿠키 미전송 → Bearer 토큰(JWT)만으로 인증 |
+| [front/src/hooks/useNotificationSummary.js](front/src/hooks/useNotificationSummary.js) | 60초 폴링 + 포커스/가시성 재조회(C). `hasNew`/`markSeen` + seen watermark 하향 보정(B). seen 네임스페이스를 **토큰 `sub` 기준**으로. `refresh`를 호출 시점 토큰 기준으로 안정화. `authChanged` 이벤트 수신 시 무조건 재조회 |
+| [front/src/hooks/useAuth.js](front/src/hooks/useAuth.js) | login 시작 시 Redux 리셋, 성공 후 `getUserInfoAsync` 직접 dispatch + `authChanged` 발사. logout 시 Redux `logout` + `authChanged` 발사 |
+| [front/src/slice/loginSlice.js](front/src/slice/loginSlice.js) | `login` 리듀서의 이전 값 폴백(`?? state.roles/memberId/email`) 제거 → 항상 새 payload로 덮어쓰기 |
+| [front/src/common/ResponsiveAppBar.js](front/src/common/ResponsiveAppBar.js) | 헤더 로그아웃 경로에서도 `authChanged` 발사 |
+| [front/src/common/Sidebar.js](front/src/common/Sidebar.js) | 점 판단 `num()>0` → `hasNew()`, 메뉴 클릭 시 `markSeen` |
+| [front/src/common/AdminSidebar.js](front/src/common/AdminSidebar.js) | 동일하게 `hasNew()` + 메뉴 클릭 시 `markSeen` |
+
+### 10.2 디버깅 과정에서 드러난 문제점들
+1. **재조회 트리거가 redux `memberId`에 묶여 있었음** → 계정 전환 시 갱신이 늦거나 안 됨.
+   → 토큰/이벤트(`authChanged`) 기반으로 변경.
+2. **seen 네임스페이스가 stale redux `memberId`를 따라가 계정이 섞임** (예: 차주 세션에 화주 키
+   `acceptedAwaitingPayment`가 박힘) → seen 네임스페이스를 **토큰 `sub`** 기준으로 변경.
+3. **watermark가 내려가지 않는 버그**: 처리되어 건수가 줄어도 seen이 높게 남아, 이후 새 건이 와도
+   점이 안 켜짐 → 현재 건수가 seen보다 작으면 watermark도 낮추도록 보정.
+4. **모바일 레이아웃(BottomNav)엔 메뉴 점이 없음**(+ "직접요청 수신함" 탭 자체가 없음) → §11 TODO.
+
+### 10.3 ★ 근본 원인 — 알림 API의 `withCredentials: true`
+- 증상: 같은 브라우저에서 **연달아 로그인하면 알림이 "맨 처음 로그인한 계정"에 고정**됨.
+- 원인: 첫 로그인이 만든 **세션 쿠키**가 남아 있는데, `withCredentials: true`가 그 쿠키를 함께 전송 →
+  백엔드가 **Bearer 토큰(현재 계정) 대신 쿠키 세션(직전 계정)으로 인증** → 직전 계정 데이터 반환.
+- 증거(콘솔 로그): 훅 fetch는 `{acceptedAwaitingPayment, deliveryCompleted}`(화주)를 받는데,
+  쿠키 미전송 수동 fetch는 `{pendingDirectRequests:7}`(차주)를 받음 → 같은 토큰·엔드포인트, **쿠키 유무만 차이.**
+- 해결: `withCredentials: true` 제거 → 토큰만으로 인증 → 현재 로그인 계정 데이터 정상 반환.
+- ⚠️ 주의: 다른 기능에서도 `withCredentials`로 호출하는 곳이 있으면 계정 전환 시 동일 증상 가능 → 점검 대상.
+
+---
+
+## 11. [구현완료] 모바일 알림 점 (2026-06-22)
+
+> 목표: 데스크탑 알림 기능을 모바일 하단 탭바에서도. 헤더 아바타 통합점은 [ResponsiveAppBar](front/src/common/ResponsiveAppBar.js)가
+> 모바일 공유라 이미 작동했고, 이번엔 **하단 탭의 메뉴별 점 + read-state**를 추가.
+
+### 결정 사항 (2026-06-22)
+- 사용자: 하단에 **'직접요청' 탭 추가** + 점. 차주=받은 직접요청(점/markSeen O), **화주=보낸 직접요청(점 없음)** — 데스크탑 사이드바와 동일 파리티.
+  (차주 탭: 내 정보·배송관리·직접요청·리뷰·정보수정·차량관리 / 화주 탭: 내 정보·배송관리·직접요청·리뷰·정보수정)
+- 관리자: 그룹 탭도 **데스크탑과 동일한 read-state(hasNew)로 통일** (2026-06-22 재결정).
+  - 처음엔 "건수 기반(markSeen 없음)"으로 했으나, **모바일에서 봐도 점이 안 꺼지고 데스크탑과 불일치**하는 문제 발생.
+  - 해결: **route 기반 markSeen** — 어느 경로(데스크탑 클릭/모바일 페이지 진입)로 들어오든 해당 페이지
+    (`/admin/AdminCargoApproval`, `/admin/inquirie`)에 도달하면 확인 처리 → 데스크탑·모바일 점이 함께 꺼짐.
+  - 신고내역(`unread`)은 기존 카운트 시스템 유지(별도).
+
+### 구현 패턴
+훅을 이미 가진 Sidebar/AdminSidebar가 **점 플래그 + markSeen을 계산해 BottomNav에 props로 전달**(훅 중복 호출 없음).
+점 렌더는 `BottomNavigationAction`의 `icon`을 MUI `Badge variant="dot"`로 감싼다.
+
+### 변경 파일
+| 파일 | 변경 |
+|---|---|
+| [front/src/common/BottomNav.jsx](front/src/common/BottomNav.jsx) | 배송관리 탭 점(deliveryDot) + **'직접요청' 탭 신설**(차주=받은 `/direct-requests/received` 점+markSeen, 화주=보낸 `/direct-requests/sent` 점 없음). props: `deliveryDot/directReqDot/markSeen` |
+| [front/src/common/Sidebar.js](front/src/common/Sidebar.js) | `BottomNav`에 `deliveryDot/directReqDot/markSeen` 전달 |
+| [front/src/common/AdminBottomNav.jsx](front/src/common/AdminBottomNav.jsx) | 탭 `dot`이면 icon에 Badge 점 렌더 |
+| [front/src/common/AdminSidebar.js](front/src/common/AdminSidebar.js) | 그룹 탭 점(**read-state hasNew**) → `회원관리`(차량승인+신고 `unread`), `공지/문의`(미답변 문의). **route 기반 markSeen**(해당 페이지 진입 시 확인 처리)로 데스크탑·모바일 일관성. `mobileTabsWithDots`로 `AdminBottomNav`에 전달 |
+
+### 남은 TODO
+- (선택) seen 네임스페이스에 남은 과거 흔적(다른 계정 키) 정리 — 동작엔 영향 없음.
+- (선택) 진짜 실시간(SSE/WebSocket) — 현재는 60초 폴링 + 포커스/이벤트 재조회.

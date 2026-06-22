@@ -94,12 +94,25 @@ const AdminSidebar = () => {
     setOpenGroups((prev) => ({ ...prev, [groupTitle]: !prev[groupTitle] }));
   };
 
-  // 알림(행동필요형) — 차량 승인 대기 / 미답변 문의 빨간점
-  const { items: notifItems } = useNotificationSummary();
-  const dotByPath = {
-    '/admin/AdminCargoApproval': Number(notifItems?.pendingVehicleApprovals) > 0,
-    '/admin/inquirie': Number(notifItems?.unansweredInquiries) > 0,
+  // 알림(행동필요형) — 차량 승인 대기 / 미답변 문의 빨간점.
+  // read-state: 마지막 확인 이후 새로 생긴 게 있을 때만 ON, 메뉴 진입 시 markSeen으로 OFF(§9.2, 항목별)
+  const { items: notifItems, hasNew, markSeen } = useNotificationSummary();
+  const seenKeysByPath = {
+    '/admin/AdminCargoApproval': ['pendingVehicleApprovals'],
+    '/admin/inquirie': ['unansweredInquiries'],
   };
+  const dotByPath = {
+    '/admin/AdminCargoApproval': hasNew('pendingVehicleApprovals'),
+    '/admin/inquirie': hasNew('unansweredInquiries'),
+  };
+
+  // 어느 경로(데스크탑 클릭/모바일 페이지 진입)로 들어오든, 해당 페이지에 도달하면 확인 처리 → 점 OFF.
+  // notifItems 의존: 진입 직후 items가 늦게 로드돼도 로드 시점에 다시 seen 처리.
+  useEffect(() => {
+    const entry = Object.entries(seenKeysByPath).find(([p]) => location.pathname.startsWith(p));
+    if (entry) markSeen(entry[1]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname, notifItems, markSeen]);
 
   const [unread, setUnread] = useState(0);
   useEffect(() => {
@@ -128,6 +141,19 @@ const AdminSidebar = () => {
     { label: "공지/문의", icon: <NotificationsIcon />, path: "/admin/notice" },
     { label: "운송료", icon: <MoneyIcon />, path: "/admin/feesBasic" },
   ]), []);
+
+  // 모바일 그룹 탭 알림 점: 데스크탑과 동일한 read-state(hasNew)로 통일 → 해당 페이지를 보면 꺼짐.
+  //  - 회원관리: 차량 승인 대기(read-state) + 미확인 신고(unread, 별도 카운트)
+  //  - 공지/문의: 미답변 문의(read-state)
+  const mobileTabsWithDots = mobileTabs.map((t) => ({
+    ...t,
+    dot:
+      t.path === '/admin/memberAll'
+        ? (hasNew('pendingVehicleApprovals') || unread > 0)
+        : t.path === '/admin/notice'
+          ? hasNew('unansweredInquiries')
+          : false,
+  }));
 
   // 🟢 [변경] 기존 12px에서 대시보드 메뉴들을 더 동글동글한 알약(Pill) 형태로 전면 가공 (16px)
   const listItemStyle = {
@@ -220,6 +246,7 @@ const AdminSidebar = () => {
                               key={item.label}
                               component={Link}
                               to={item.path}
+                              onClick={() => { if (seenKeysByPath[item.path]) markSeen(seenKeysByPath[item.path]); }}
                               selected={active}
                               sx={{ 
                                 ...listItemStyle,
@@ -282,7 +309,7 @@ const AdminSidebar = () => {
       )}
 
       {isMobile && (
-        <AdminBottomNav tabs={mobileTabs} unread={unread} />
+        <AdminBottomNav tabs={mobileTabsWithDots} unread={unread} />
       )}
     </>
   );

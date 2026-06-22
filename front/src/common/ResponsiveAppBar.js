@@ -159,6 +159,7 @@ export default function ResponsiveAppBar() {
         await fetch(`${API_BASE}/api/auth/logout`, { method: 'POST' });
       } catch { /* ignore */ }
       dispatch(logoutAction());
+      if (typeof window !== 'undefined') window.dispatchEvent(new Event('authChanged'));
     } finally {
       navigate('/login', { replace: true });
     }

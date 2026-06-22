@@ -127,13 +127,12 @@ const Sidebar = () => {
 
   const cargoId = loginState?.cargoId ?? loginState?.user?.cargoId ?? payload?.cargoId ?? fetchedCargoId ?? payload?.loginId ?? null;
 
-  // 알림(행동필요형) — 메뉴 우측 빨간점
-  const { items: notifItems } = useNotificationSummary();
-  const num = (k) => Number(notifItems?.[k]) || 0;
+  // 알림(행동필요형) — 메뉴 우측 빨간점. read-state: 마지막 확인 이후 새로 생긴 게 있을 때만 ON
+  const { hasNew, markSeen } = useNotificationSummary();
   // 배송 정보 관리: 차주(배송 시작 대기) | 화주(견적의뢰 진행·결제 전)
-  const deliveryDot = num('deliveryToStart') + num('acceptedAwaitingPayment') > 0;
+  const deliveryDot = hasNew('deliveryToStart') || hasNew('acceptedAwaitingPayment');
   // 직접요청 수신함(차주만): 받은 직접요청
-  const directReqDot = isOwner && num('pendingDirectRequests') > 0;
+  const directReqDot = isOwner && hasNew('pendingDirectRequests');
 
   const navStyle = { textDecoration: 'none', color: 'inherit' };
   
@@ -210,7 +209,7 @@ const Sidebar = () => {
               )}
             </NavLink>
             
-            <NavLink to="/mypage/delivery" style={navStyle}>
+            <NavLink to="/mypage/delivery" style={navStyle} onClick={() => markSeen(['deliveryToStart', 'acceptedAwaitingPayment'])}>
               {({ isActive }) => (
                 <ListItemButton sx={isActive ? activeStyle : listItemStyle}>
                   <ListItemIcon sx={{ minWidth: 40, color: '#64748b' }}><DescriptionIcon /></ListItemIcon>
@@ -229,7 +228,7 @@ const Sidebar = () => {
               )}
             </NavLink>
             
-            <NavLink to={isOwner ? "/mypage/direct-requests/received" : "/mypage/direct-requests/sent"} style={navStyle}>
+            <NavLink to={isOwner ? "/mypage/direct-requests/received" : "/mypage/direct-requests/sent"} style={navStyle} onClick={() => markSeen(['pendingDirectRequests'])}>
               {({ isActive }) => (
                 <ListItemButton sx={isActive ? activeStyle : listItemStyle}>
                   <ListItemIcon sx={{ minWidth: 40, color: '#64748b' }}>
@@ -265,7 +264,13 @@ const Sidebar = () => {
       )}
 
       {isMobile && (
-        <BottomNav isOwner={isOwner} cargoId={cargoId} />
+        <BottomNav
+          isOwner={isOwner}
+          cargoId={cargoId}
+          deliveryDot={deliveryDot}
+          directReqDot={directReqDot}
+          markSeen={markSeen}
+        />
       )}
     </>
   );
