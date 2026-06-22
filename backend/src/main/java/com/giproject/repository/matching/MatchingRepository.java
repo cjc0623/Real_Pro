@@ -64,4 +64,22 @@ public interface MatchingRepository extends JpaRepository<Matching, Long> {
 
     @Query("SELECT m.matchingNo FROM Matching m WHERE m.estimate.eno = :estimateNo")
     Optional<Long> findMatchingNoByEstimateNo(@Param("estimateNo") Long estimateNo);
+
+    /**
+     * 알림 뱃지(화주): 내 견적이 차주에게 수락(isAccepted=true)됐지만
+     * 아직 결제(배송 생성) 전인 건수 = "확인/결제 필요" 신호.
+     * 배송은 결제 시점에 생성되므로, 해당 매칭에 연결된 Delivery가 없으면 결제 전으로 본다.
+     */
+    @Query("""
+            SELECT COUNT(m) FROM Matching m
+            WHERE m.isAccepted = true
+              AND m.estimate.member.memId = :memId
+              AND NOT EXISTS (
+                  SELECT 1 FROM Delivery d
+                  JOIN d.payment p
+                  JOIN p.orderSheet os
+                  WHERE os.matching = m
+              )
+            """)
+    long countAcceptedAwaitingPaymentByMember(@Param("memId") String memId);
 }

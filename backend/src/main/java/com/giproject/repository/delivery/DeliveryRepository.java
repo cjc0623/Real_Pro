@@ -15,7 +15,11 @@ import java.util.Optional;
 public interface DeliveryRepository extends JpaRepository<Delivery, Long> {
 
 	long countByCargoOwner_CargoIdAndStatus(String cargoId, DeliveryStatus status);
-	
+
+	/** 알림(화주 정보형): 내 화물 중 특정 상태(예: COMPLETED) 개수 */
+	@Query("SELECT COUNT(d) FROM Delivery d JOIN d.payment p JOIN p.orderSheet os JOIN os.matching mt JOIN mt.estimate e JOIN e.member m WHERE m.memId = :memId AND d.status = :status")
+	long countByMemberAndStatus(@Param("memId") String memId, @Param("status") DeliveryStatus status);
+
     @Query("SELECT FUNCTION('DATE_FORMAT', d.completTime, '%Y-%m'), COUNT(d) FROM Delivery d GROUP BY FUNCTION('DATE_FORMAT', d.completTime, '%Y-%m')")
     List<Object[]> findMonthlyDeliveries();
 

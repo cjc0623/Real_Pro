@@ -23,6 +23,7 @@ import {
 } from "@mui/icons-material";
 import PersonIcon from '@mui/icons-material/Person';
 import { fetchUnreadCount } from "../api/adminApi/adminReportsApi";
+import useNotificationSummary from '../hooks/useNotificationSummary';
 import { useTheme, useMediaQuery } from "@mui/material";
 import AdminBottomNav from '../common/AdminBottomNav';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
@@ -91,6 +92,13 @@ const AdminSidebar = () => {
 
   const handleToggle = (groupTitle) => {
     setOpenGroups((prev) => ({ ...prev, [groupTitle]: !prev[groupTitle] }));
+  };
+
+  // 알림(행동필요형) — 차량 승인 대기 / 미답변 문의 빨간점
+  const { items: notifItems } = useNotificationSummary();
+  const dotByPath = {
+    '/admin/AdminCargoApproval': Number(notifItems?.pendingVehicleApprovals) > 0,
+    '/admin/inquirie': Number(notifItems?.unansweredInquiries) > 0,
   };
 
   const [unread, setUnread] = useState(0);
@@ -192,10 +200,16 @@ const AdminSidebar = () => {
                         {group.items.map((item) => {
                           const active = location.pathname === item.path;
                           const isReports = item.id === "reports";
+                          const showDot = dotByPath[item.path];
                           const primaryNode = isReports ? (
                             <Box display="flex" alignItems="center" justifyContent="space-between" gap={1}>
                               <span>신고내역</span>
                               <Badge color="error" badgeContent={unread} max={99} overlap="circular" />
+                            </Box>
+                          ) : showDot ? (
+                            <Box display="flex" alignItems="center" justifyContent="space-between" gap={1}>
+                              <span>{item.label}</span>
+                              <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#DC2626', flexShrink: 0 }} />
                             </Box>
                           ) : (
                             item.label
