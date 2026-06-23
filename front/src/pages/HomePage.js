@@ -78,7 +78,7 @@ const HomePage = () => {
   const isDriver = roles.includes("ROLE_DRIVER");
   const navigate = useNavigate();
 
-  const DEFAULT_TRUCK_IMG = "/image/placeholders/truck.svg";
+  const DEFAULT_TRUCK_IMG = ton25Img; // 존재하지 않던 경로 대신 번들된 실제 트럭 이미지 사용
 
   // ✅ 이미지 경로 보정 함수
   const normalizeUrl = (p) => {
@@ -224,7 +224,10 @@ const HomePage = () => {
                     <img
                       src={displayVehicles[selectedVehicleIndex].img}
                       alt={displayVehicles[selectedVehicleIndex].name}
-                      onError={(e) => { e.target.src = DEFAULT_TRUCK_IMG; }}
+                      onError={(e) => {
+                        e.target.onerror = null; // 무한 재요청 방지: fallback도 실패할 경우 재호출 차단
+                        if (e.target.src !== DEFAULT_TRUCK_IMG) e.target.src = DEFAULT_TRUCK_IMG;
+                      }}
                       className="w-full max-w-[560px] h-auto object-contain drop-shadow-2xl"
                     />
                   </div>
