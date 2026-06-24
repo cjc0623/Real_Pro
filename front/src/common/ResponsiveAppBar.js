@@ -1,3 +1,4 @@
+import { API_BASE } from '../config';
 import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
@@ -5,10 +6,6 @@ import { login as loginAction, logout as logoutAction, getUserInfoAsync } from '
 import logo from '../assets/logo.png'; // 기현님 로고 경로 확인!
 
 // ✅ 백엔드 베이스 URL
-const API_BASE =
-  process.env.REACT_APP_API_BASE ||
-  process.env.REACT_APP_API_BASE ||
-  'http://localhost:8080';
 
 const pages = [
   { label: '견적서 작성', path: '/estimatepage' },
@@ -79,8 +76,6 @@ export default function ResponsiveAppBar() {
   const myPageLabel = isAdmin ? '관리자페이지' : '마이페이지';
   const displayUserName = loginState?.memberId || loginState?.nickname || loginState?.email || '회원';
 
-
-
   // ✅ 1) 앱 로드 시: 토큰 리프레시 로직 (기존 엔진 유지)
   useEffect(() => {
     if (hasReduxLogin || accessToken) return;
@@ -100,9 +95,12 @@ export default function ResponsiveAppBar() {
         if (!res.ok) return;
         const data = await res.json().catch(() => ({}));
         const newAccess = data.accessToken || data.access || data.token || null;
+        const newRefresh = data.refreshToken || data.refresh || null;
         if (!newAccess || aborted) return;
 
         sessionStorage.setItem('accessToken', newAccess);
+        // 🔒 회전(rotation): 새 refresh 토큰을 반드시 저장 (옛 토큰은 서버에서 폐기됨)
+        if (newRefresh) sessionStorage.setItem('refreshToken', newRefresh);
 
         const payload = decodeJwt(newAccess) || {};
         dispatch(loginAction(payload));
@@ -145,11 +143,17 @@ export default function ResponsiveAppBar() {
   // ✅ 4) 로그아웃
   const handleLogout = async () => {
     try {
+      // 🔒 제거 전에 refresh 토큰 확보 → 서버측 폐기(blacklist)
+      const refreshToken = sessionStorage.getItem('refreshToken');
       sessionStorage.removeItem('accessToken');
       sessionStorage.removeItem('refreshToken');
 
       try {
-        await fetch(`${API_BASE}/api/auth/logout`, { method: 'POST' });
+        await fetch(`${API_BASE}/api/auth/logout`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reason: 'user_logout', refreshToken }),
+        });
       } catch { /* ignore */ }
       dispatch(logoutAction());
     } finally {
@@ -161,8 +165,6 @@ export default function ResponsiveAppBar() {
     <header className="relative z-50 bg-white text-gray-800 font-sans w-full">
       <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="flex flex-row justify-between items-center h-16 lg:h-20 relative">
-
-
 
           <Link to="/" className="flex-shrink-0">
             <img

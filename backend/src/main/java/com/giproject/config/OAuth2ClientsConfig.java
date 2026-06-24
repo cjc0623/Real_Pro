@@ -1,5 +1,6 @@
 package com.giproject.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.oauth2.client.CommonOAuth2Provider;
@@ -10,19 +11,27 @@ import org.springframework.security.oauth2.client.registration.*;
 @Configuration
 public class OAuth2ClientsConfig {
 
+    // 시크릿은 application-secret.properties 로 외부화 (하드코딩 제거)
+    @Value("${oauth.google.client-id}")     private String googleClientId;
+    @Value("${oauth.google.client-secret}")  private String googleClientSecret;
+    @Value("${oauth.naver.client-id}")       private String naverClientId;
+    @Value("${oauth.naver.client-secret}")   private String naverClientSecret;
+    @Value("${oauth.kakao.client-id}")       private String kakaoClientId;
+    @Value("${oauth.kakao.client-secret}")   private String kakaoClientSecret;
+
     @Bean
     public ClientRegistrationRepository clientRegistrationRepository() {
         ClientRegistration google =
             CommonOAuth2Provider.GOOGLE.getBuilder("google")
-                .clientId("1056453451424-4ib32lo1sro5f83oj3dlovcrs42a2ple.apps.googleusercontent.com")
-                .clientSecret("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")
+                .clientId(googleClientId)
+                .clientSecret(googleClientSecret)
                 .redirectUri("{baseUrl}/login/oauth2/code/google")
                 .scope("openid","profile","email")
                 .build();
-        
+
         ClientRegistration naver = ClientRegistration.withRegistrationId("naver")
-                .clientId("ownQqvKZV5WZ9ZNbEKIS")
-                .clientSecret("bph6p9Eo_4")
+                .clientId(naverClientId)
+                .clientSecret(naverClientSecret)
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .redirectUri("{baseUrl}/login/oauth2/code/naver")
@@ -35,9 +44,8 @@ public class OAuth2ClientsConfig {
                 .build();
 
             ClientRegistration kakao = ClientRegistration.withRegistrationId("kakao")
-                .clientId("498202a9ce854810564a953136cf57b2")
-                // client secret을 쓰지 않으면 아래 두 줄은 제거
-                .clientSecret("h9h1fBNuzWDjXLAbuhtBIEpXxUC8mhae")
+                .clientId(kakaoClientId)
+                .clientSecret(kakaoClientSecret)
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .redirectUri("{baseUrl}/login/oauth2/code/kakao")

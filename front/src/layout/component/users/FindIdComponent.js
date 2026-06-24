@@ -1,3 +1,4 @@
+import { API_BASE } from '../../../config';
 // src/layout/component/users/FindIdComponent.jsx
 import * as React from 'react';
 import {
@@ -12,10 +13,6 @@ import EmailVerifyDialog from '../auth/EmailVerifyDialog';
 import { useNavigate } from 'react-router-dom';
 
 // 환경별 API 베이스
-const API_BASE =
-    process.env.REACT_APP_API_BASE ||
-    process.env.REACT_APP_API_BASE ||
-    'http://localhost:8080';
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

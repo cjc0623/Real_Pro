@@ -1,3 +1,4 @@
+import { API_BASE } from '../../../config';
 import React from "react";
 import {
   Box,
@@ -11,9 +12,6 @@ import {
   Avatar,
   LinearProgress,
 } from "@mui/material";
-
-const API_BASE =
-  process.env.REACT_APP_API_BASE || "http://localhost:8080";
 
 const DEFAULT_AVATAR = "/image/placeholders/avatar.svg";
 

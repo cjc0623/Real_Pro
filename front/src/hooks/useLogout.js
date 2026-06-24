@@ -1,3 +1,4 @@
+import { API_BASE } from '../config';
 // src/hooks/useLogout.js
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -6,16 +7,13 @@ export default function useLogout() {
     const navigate = useNavigate();
 
     const logout = useCallback(async (redirectTo = '/login') => {
-        const API_BASE =
-            process.env.REACT_APP_API_BASE ||
-
-            process.env.REACT_APP_API_BASE ||
-            'http://localhost:8080';
+        
 
         try {
-            // 1) 로컬/세션 저장소 토큰 제거 (프로젝트 키에 맞게 추가/수정)
-            sessionStorage.removeItem('accessToken');
-            sessionStorage.removeItem('refreshToken');
+            // 0) 서버측 폐기(blacklist)용으로 제거 전에 refresh 토큰을 확보
+            const refreshToken = sessionStorage.getItem('refreshToken');
+
+            // 1) 로컬/세션 저장소 토큰 제거
             sessionStorage.removeItem('accessToken');
             sessionStorage.removeItem('refreshToken');
 
@@ -24,14 +22,13 @@ export default function useLogout() {
                 delete window.axios.defaults.headers.common['Authorization'];
             }
 
-            // 2) 서버에 로그아웃 알림 (쿠키/세션/블랙리스트용) – 있으면 성공/없어도 무시
-            //   - HttpOnly 쿠키(리프레시 토큰)는 JS로 못 지우므로 서버 호출 권장
+            // 2) 서버에 로그아웃 알림 → refresh 토큰을 서버측에서 폐기(재사용 차단)
             try {
                 await fetch(`${API_BASE}/api/auth/logout`, {
                     method: 'POST',
-                    credentials: 'include', // 쿠키 전송
+                    credentials: 'include',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ reason: 'user_logout' }),
+                    body: JSON.stringify({ reason: 'user_logout', refreshToken }),
                 });
             } catch (_) {
                 /* 서버 엔드포인트 없거나 실패해도 무시 */

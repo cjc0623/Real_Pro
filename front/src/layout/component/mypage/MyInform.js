@@ -1,3 +1,4 @@
+import { API_BASE } from '../../../config';
 // MyInform.jsx
 import React, { useEffect, useRef, useState } from 'react';
 import { getMyInquiries } from '../../../api/qnaApi/qnaApi';
@@ -12,10 +13,6 @@ import axios from 'axios';
 import { getMyAllEstimateList, getMyPaidEstimateList } from '../../../api/estimateApi/estimateApi';
 
 // ===== 공통 API 베이스/인스턴스 =====
-const API_BASE =
-  process.env.REACT_APP_API_BASE ||
-  process.env.REACT_APP_API_BASE ||
-  'http://localhost:8080';
 
 const api = axios.create({ baseURL: API_BASE });
 api.interceptors.request.use((config) => {

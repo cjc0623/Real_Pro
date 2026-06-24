@@ -1,4 +1,5 @@
 package com.giproject.controller.admin;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import com.giproject.dto.admin.UserSuspendDTO;
 import com.giproject.service.admin.AdminSanctionService;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/fr/admin/sanctions")
 @RequiredArgsConstructor
+@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 public class AdminSanctionController {
 
     private final AdminSanctionService adminSanctionService;

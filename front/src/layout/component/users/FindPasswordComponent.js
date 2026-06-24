@@ -1,3 +1,4 @@
+import { API_BASE } from '../../../config';
 import * as React from 'react';
 import {
     Box, Button, Container, TextField, Typography, Divider,
@@ -6,11 +7,6 @@ import { AppProvider } from '@toolpad/core/AppProvider';
 import { useTheme } from '@mui/material/styles';
 import usePasswordForm from '../../../hooks/usePasswordForm';
 import { useSearchParams } from 'react-router-dom';
-
-const API_BASE =
-    process.env.REACT_APP_API_BASE ||
-    process.env.REACT_APP_API_BASE ||
-    'http://localhost:8080';
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

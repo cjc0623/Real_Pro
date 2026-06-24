@@ -1,4 +1,5 @@
 package com.giproject.controller.fees;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import com.giproject.dto.fees.FeesBasicDTO;
 import com.giproject.dto.fees.FeesExtraDTO;
@@ -26,6 +27,7 @@ import java.util.*;
 @RequiredArgsConstructor
 @RequestMapping("/fr/admin/fees")
 @Slf4j
+@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 public class FeesAdminController {
 
     private final FeesBasicRepository feesBasicRepository;

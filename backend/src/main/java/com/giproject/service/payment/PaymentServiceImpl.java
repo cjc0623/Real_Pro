@@ -24,6 +24,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentRepository paymentRepository;
     private final OrderRepository orderRepository;
     private final MemberCouponRepository memberCouponRepository;
+    private final PortOneVerificationService portOneVerification;
 
     @Override
     public Long acceptedPayment(PaymentDTO.CreateRequest dto) {
@@ -49,6 +50,9 @@ public class PaymentServiceImpl implements PaymentService {
 
         // 2. 최종 결제 금액 산출 (음수 방지 안전장치)
         long finalPrice = Math.max(0, totalPrice - discountAmt);
+
+        // 2.5 🔒 [보안] PortOne 서버측 결제 검증 — 실제 결제 상태/금액이 서버 산출액과 일치하는지 확인
+        portOneVerification.verify(dto.getPaymentId(), finalPrice);
 
         // 3. 결제 내역 DB 저장
         Payment payment = Payment.builder()

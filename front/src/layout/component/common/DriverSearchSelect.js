@@ -1,3 +1,4 @@
+import { API_BASE } from '../../../config';
 import React, { useEffect, useState, useMemo } from "react";
 import {
   Avatar, Box, Chip, InputAdornment, Rating, TextField,
@@ -9,7 +10,6 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { getDrivers } from "../../../api/directRequestApi/directRequestApi";
 import DriverProfileModal from "./DriverProfileModal";
 
-const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8080";
 const DEFAULT_AVATAR = "/image/placeholders/avatar.svg";
 
 const normalizeProfileUrl = (v) => {

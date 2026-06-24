@@ -1,4 +1,5 @@
 package com.giproject.controller.admin;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import com.giproject.dto.admin.AdminMemberDTO;
 import com.giproject.service.admin.AdminMemberService;
@@ -15,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 @RequiredArgsConstructor
 @Log4j2
 @RequestMapping("/fr/admin/members")
+@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 public class AdminMemberController {
 
 	private final AdminMemberService adminMemberService;

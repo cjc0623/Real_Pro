@@ -1,3 +1,4 @@
+import { API_BASE } from '../../../config';
 import React, { useEffect, useMemo, useState } from "react";
 import {
   Box,
@@ -41,10 +42,6 @@ import {
 } from "../../../api/reviewApi/reviewApi";
 import { getMyVerificationStatus, startVerification, confirmVerification } from "../../../api/verificationApi/verificationApi";
 import DriverProfileCard from "../common/DriverProfileCard.js";
-
-const API_BASE =
-  process.env.REACT_APP_API_BASE ||
-  "http://localhost:8080";
 
 const DEFAULT_AVATAR = "/image/placeholders/avatar.svg";
 
@@ -101,7 +98,6 @@ const InfoRow = ({ label, value }) => (
     </Typography>
   </Box>
 );
-
 
 const paginate = (data, { page, size }) => {
   const totalCount = data.length;
@@ -465,7 +461,6 @@ const ReceivedReviewInform = () => {
       });
     }
   };
-
 
   const refreshReceivedReviews = async () => {
     const data = await getReceivedReviews();

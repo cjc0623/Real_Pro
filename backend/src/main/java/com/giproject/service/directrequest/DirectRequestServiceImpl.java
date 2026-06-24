@@ -1,4 +1,6 @@
 package com.giproject.service.directrequest;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -50,18 +52,18 @@ public class DirectRequestServiceImpl implements DirectRequestService {
 
 		// 소유권 검증
 		if (request.getCargoOwner() == null || !request.getCargoOwner().getCargoId().equals(cargoId)) {
-			throw new RuntimeException("본인에게 온 직접요청만 수락할 수 있습니다");
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "본인에게 온 직접요청만 수락할 수 있습니다");
 		}
 		// 상태 검증
 		if (request.getStatus() != RequestStatus.REQUESTED) {
-			throw new RuntimeException("이미 처리된 직접요청입니다");
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이미 처리된 직접요청입니다");
 		}
 
 		Estimate estimate = request.getEstimate();
 
 		// 상호배제: 이미 매칭 완료(공개/직접 어느 경로든)된 견적이면 차단
 		if (estimate.isMatched()) {
-			throw new RuntimeException("이미 매칭이 완료된 건입니다");
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이미 매칭이 완료된 건입니다");
 		}
 
 		// 승인 차량/톤수 검증 (공개모집 수락과 동일 로직 공유)
@@ -109,10 +111,10 @@ public class DirectRequestServiceImpl implements DirectRequestService {
 				.orElseThrow(() -> new RuntimeException("해당 직접요청이 존재하지 않습니다"));
 
 		if (request.getCargoOwner() == null || !request.getCargoOwner().getCargoId().equals(cargoId)) {
-			throw new RuntimeException("본인에게 온 직접요청만 거절할 수 있습니다");
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "본인에게 온 직접요청만 거절할 수 있습니다");
 		}
 		if (request.getStatus() != RequestStatus.REQUESTED) {
-			throw new RuntimeException("이미 처리된 직접요청입니다");
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이미 처리된 직접요청입니다");
 		}
 
 		request.changeStatus(RequestStatus.REJECTED);
@@ -128,11 +130,11 @@ public class DirectRequestServiceImpl implements DirectRequestService {
 		Estimate e = request.getEstimate();
 		// 소유권: 견적의 화주만 취소 가능
 		if (e.getMember() == null || !e.getMember().getMemId().equals(memId)) {
-			throw new RuntimeException("본인이 보낸 직접요청만 취소할 수 있습니다");
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "본인이 보낸 직접요청만 취소할 수 있습니다");
 		}
 		// 수락/거절/취소된 건은 취소 불가
 		if (request.getStatus() != RequestStatus.REQUESTED) {
-			throw new RuntimeException("응답 대기 중인 요청만 취소할 수 있습니다");
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "응답 대기 중인 요청만 취소할 수 있습니다");
 		}
 
 		request.changeStatus(RequestStatus.CANCELED);
@@ -158,7 +160,7 @@ public class DirectRequestServiceImpl implements DirectRequestService {
 			count++;
 		}
 		if (count == 0) {
-			throw new RuntimeException("취소할 대기 중인 요청이 없습니다");
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "취소할 대기 중인 요청이 없습니다");
 		}
 		return count;
 	}

@@ -1,10 +1,6 @@
+import { API_BASE } from '../config';
 // src/pages/NaverRedirectPage.jsx
 import { useEffect } from "react";
-
-const API_BASE =
-    process.env.REACT_APP_API_BASE ||
-    process.env.REACT_APP_API_BASE ||
-    "http://localhost:8080";
 
 /**
  * 네이버 OAuth 콜백 프런트 엔드포인트

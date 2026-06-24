@@ -1,13 +1,9 @@
+import { API_BASE } from '../config';
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { tokenStore } from '../lib/tokenStore';
 import { useDispatch } from 'react-redux';
 import { login as loginAction } from '../slice/loginSlice';
-
-const API_BASE =
-    process.env.REACT_APP_API_BASE ||
-    process.env.REACT_APP_API_BASE ||
-    'http://localhost:8080';
 
 export default function useAuth() {
     const navigate = useNavigate();

@@ -1,14 +1,10 @@
+import { API_BASE } from '../../../config';
 // src/components/auth/EmailVerifyDialog.jsx
 import React from "react";
 import {
     Dialog, DialogTitle, DialogContent, DialogActions,
     TextField, Button, Stack, Typography, LinearProgress
 } from "@mui/material";
-
-const API_BASE =
-    process.env.REACT_APP_API_BASE ||
-    process.env.REACT_APP_API_BASE ||
-    "http://localhost:8080";
 
 export default function EmailVerifyDialog({ open, email, onClose, onVerified }) {
     const [phase, setPhase] = React.useState("idle"); // idle | sending | code | verifying | verified | error

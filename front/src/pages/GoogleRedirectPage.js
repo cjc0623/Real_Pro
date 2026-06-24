@@ -1,9 +1,5 @@
+import { API_BASE } from '../config';
 import { useEffect } from "react";
-
-const API_BASE =
-    process.env.REACT_APP_API_BASE ||
-    process.env.REACT_APP_API_BASE ||
-    "http://localhost:8080";
 
 /**
  * 구글 OAuth 콜백 (프론트)

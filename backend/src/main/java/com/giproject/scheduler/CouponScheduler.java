@@ -20,7 +20,7 @@ public class CouponScheduler {
     /**
      * 10초마다 만료된 쿠폰을 체크하여 상태를 EXPIRED로 변경합니다. (폴링 방식)
      */
-    @Scheduled(fixedRate = 10000) // 10초 주기
+    @Scheduled(fixedRate = 600000) // 10분 주기
     @Transactional
     public void expireCoupons() {
         log.info("--- [배치] 만료 쿠폰 상태 업데이트 가동 ---");
