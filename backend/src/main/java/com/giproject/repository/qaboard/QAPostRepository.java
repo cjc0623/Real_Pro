@@ -219,4 +219,12 @@ public interface QAPostRepository extends JpaRepository<QAPost, Long> {
            "WHERE (p.isPrivate = false OR p.authorId = :userId) " +
            "ORDER BY p.createdAt DESC")
     Page<QAPost> findAccessiblePosts(@Param("userId") String userId, Pageable pageable);
+
+    /**
+     * 알림 뱃지: 관리자 답변이 아직 없는(미답변) 문의 개수.
+     * adminResponse가 역방향(mappedBy) 매핑이라 파생쿼리(IsNull) 대신
+     * LEFT JOIN으로 명시해 런타임 정확성을 보장한다.
+     */
+    @Query("SELECT COUNT(p) FROM QAPost p LEFT JOIN p.adminResponse a WHERE a IS NULL")
+    long countUnansweredInquiries();
 }

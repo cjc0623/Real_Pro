@@ -177,6 +177,8 @@ List<DirectRequestDTO> getReceived(String cargoId);   // findReceived → DTO
 List<DirectRequestDTO> getSent(String memId);         // findSent → DTO
 Long accept(Long requestId, String cargoId);          // 승격
 void reject(Long requestId, String cargoId);
+void cancel(Long requestId, String memId);            // 화주: 1건 취소(REQUESTED만) — §8.1 구현됨
+int cancelGroup(Long eno, String memId);              // 화주: 한 견적의 대기 중 요청 일괄 취소 → 취소 건수
 ```
 
 **accept(승격) 로직** (트랜잭션):
@@ -194,7 +196,8 @@ void reject(Long requestId, String cargoId);
 
 ### 4.4 API 엔드포인트 (경로 유지, 대상 서비스만 교체)
 
-기준 prefix: `/g2i4/estimate` (보안: `anyRequest().authenticated()`, 소유권 검증은 서비스)
+기준 prefix: `/fr/estimate` (보안: `anyRequest().authenticated()`, 소유권 검증은 서비스)
+> 구현 메모: 프로젝트 전역 prefix가 `/g2i4` → `/fr` 로 리네임되어 본 컨트롤러도 `@RequestMapping("/fr/estimate")` 사용.
 
 | HTTP | 경로 | 사용자 | 변경점 |
 |---|---|---|---|
@@ -204,6 +207,8 @@ void reject(Long requestId, String cargoId);
 | GET | `/direct-requests/received` | 차주 | DirectRequestService로 |
 | POST | `/direct-request/{requestId}/accept` | 차주 | `matchingNo`→`requestId` |
 | POST | `/direct-request/{requestId}/reject` | 차주 | `matchingNo`→`requestId` |
+| POST | `/direct-request/{requestId}/cancel` | 화주 | **신규** — 직접요청 1건 취소(대기 상태만), §8.1 후속과제 구현됨 |
+| POST | `/direct-requests/group/{eno}/cancel` | 화주 | **신규** — 한 견적의 대기 중 직접요청 일괄 취소, 취소 건수 반환 |
 
 ---
 
@@ -211,6 +216,7 @@ void reject(Long requestId, String cargoId);
 
 - `directRequestApi.js`: `postDirectRequest(estimateDTO, cargoIds)` — body에 `cargoIds` 배열 포함.
   accept/reject 인자 `matchingNo`→`requestId`(값 의미만 변경, 호출부 동일).
+  취소 API `cancelDirectRequest(requestId)` / `cancelDirectRequestGroup(eno)` 추가(구현됨).
 - `DriverSearchSelect.js`: 단일 선택 → **다중 선택(체크/칩)**. 선택된 차주 ID 배열을 부모로 전달.
 - `EstimateComponentCombined.js`: "직접 요청하기" 체크 시 다중 차주 선택 → 제출 시 `cargoIds` 배열 전송.
   성공 다이얼로그: "N명에게 직접요청을 보냈습니다".
@@ -263,4 +269,4 @@ void reject(Long requestId, String cargoId);
 
 - **다중 차주 팬아웃 UX 상세**(차주 복수 선택 UI/동시 발송 문구/보낸함 그룹핑) — 구현 완료 후 다시 논의.
 - 동시 수락 경합의 락 전략(비관적 락 vs 버전 컬럼) 확정.
-- 화주의 요청 취소(CANCELED) 기능 노출 여부.
+- ~~화주의 요청 취소(CANCELED) 기능 노출 여부.~~ → **구현 완료**: 개별(`/direct-request/{requestId}/cancel`) + 그룹 일괄(`/direct-requests/group/{eno}/cancel`) 취소 제공(§4.3/§4.4).

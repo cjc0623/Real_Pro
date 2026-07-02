@@ -25,4 +25,7 @@ public interface DirectRequestRepository extends JpaRepository<DirectRequest, Lo
 
     /** 같은 견적을 같은 차주에게 중복 요청했는지 확인 */
     boolean existsByEstimate_EnoAndCargoOwner_CargoId(Long eno, String cargoId);
+
+    /** 알림 뱃지: 차주의 응답 대기(REQUESTED) 직접요청 개수 */
+    long countByCargoOwner_CargoIdAndStatus(String cargoId, RequestStatus status);
 }

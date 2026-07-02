@@ -3,6 +3,10 @@ import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { login as loginAction, logout as logoutAction, getUserInfoAsync } from '../slice/loginSlice';
+import Avatar from '@mui/material/Avatar';
+import Badge from '@mui/material/Badge';
+import PersonIcon from '@mui/icons-material/Person';
+import useNotificationSummary from '../hooks/useNotificationSummary';
 import logo from '../assets/logo.png'; // 기현님 로고 경로 확인!
 
 // ✅ 백엔드 베이스 URL
@@ -135,6 +139,9 @@ export default function ResponsiveAppBar() {
   const [anchorElUser, setAnchorElUser] = React.useState(null);
   const [menuOpen, setMenuOpen] = React.useState(false);
 
+  // ✅ 알림: 행동필요형이 있으면 아바타에 통합 빨간점(구체 항목은 사이드바 메뉴 점으로 안내)
+  const { hasAlert } = useNotificationSummary();
+
   const handleOpenNavMenu = (e) => setAnchorElNav(e.currentTarget);
   const handleOpenUserMenu = (e) => setAnchorElUser(e.currentTarget);
   const handleCloseNavMenu = () => setAnchorElNav(null);
@@ -156,13 +163,14 @@ export default function ResponsiveAppBar() {
         });
       } catch { /* ignore */ }
       dispatch(logoutAction());
+      if (typeof window !== 'undefined') window.dispatchEvent(new Event('authChanged'));
     } finally {
       navigate('/login', { replace: true });
     }
   };
 
   return (
-    <header className="relative z-50 bg-white text-gray-800 font-sans w-full">
+    <header className="relative z-50 bg-white text-gray-800 font-sans w-full border-b border-gray-200">
       <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="flex flex-row justify-between items-center h-16 lg:h-20 relative">
 
@@ -188,9 +196,40 @@ export default function ResponsiveAppBar() {
               <>
                 <Link
                   to={myPagePath}
-                  className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                  title={displayUserName}
+                  aria-label={`${displayUserName} ${myPageLabel}${hasAlert ? ' (확인 필요)' : ''}`}
+                  className="flex-shrink-0"
                 >
-                  {displayUserName}
+                  {/* 프로필 미등록/로드 실패 시 마이페이지와 동일한 플레이스홀더(연한 파란 원 + 사람 아이콘) */}
+                  {/* 행동 필요한 항목이 있으면 우상단에 통합 빨간점 → 클릭 시 마이페이지로 이동(구체 항목은 사이드바 점으로 안내) */}
+                  <Badge
+                    color="error"
+                    variant="dot"
+                    invisible={!hasAlert}
+                    overlap="circular"
+                    anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+                    sx={{ '& .MuiBadge-badge': { bgcolor: '#DC2626', boxShadow: '0 0 0 2px #fff' } }}
+                  >
+                    <Avatar
+                      src={loginState?.profileImage || DEFAULT_AVATAR}
+                      alt={displayUserName}
+                      sx={{
+                        width: { xs: 36, lg: 40 },
+                        height: { xs: 36, lg: 40 },
+                        bgcolor: '#eff6ff',
+                        border: '1px solid #e5e7eb',
+                        transition: 'border-color 0.2s',
+                        '&:hover': { borderColor: '#DC2626' },
+                      }}
+                      imgProps={{
+                        referrerPolicy: 'no-referrer',
+                        crossOrigin: 'anonymous',
+                        onError: (e) => { e.currentTarget.src = DEFAULT_AVATAR; },
+                      }}
+                    >
+                      <PersonIcon sx={{ color: '#2563eb', fontSize: { xs: 20, lg: 22 } }} />
+                    </Avatar>
+                  </Badge>
                 </Link>
                 <button
                   onClick={handleLogout}

@@ -12,9 +12,15 @@ import BuildIcon from '@mui/icons-material/Build';
 import SendIcon from '@mui/icons-material/Send';
 import MoveToInboxIcon from '@mui/icons-material/MoveToInbox';
 import { useSelector } from 'react-redux';
+import useNotificationSummary from '../hooks/useNotificationSummary';
 import axios from 'axios';
 import { useMediaQuery, useTheme } from '@mui/material';
 import BottomNav from './BottomNav';
+
+// 메뉴 우측 행동필요 빨간점
+const MenuDot = () => (
+  <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#DC2626', ml: 1, flexShrink: 0 }} />
+);
 
 const drawerWidth = 240;
 const APPBAR_HEIGHT_MOBILE = 56;
@@ -121,6 +127,13 @@ const Sidebar = () => {
 
   const cargoId = loginState?.cargoId ?? loginState?.user?.cargoId ?? payload?.cargoId ?? fetchedCargoId ?? payload?.loginId ?? null;
 
+  // 알림(행동필요형) — 메뉴 우측 빨간점. read-state: 마지막 확인 이후 새로 생긴 게 있을 때만 ON
+  const { hasNew, markSeen } = useNotificationSummary();
+  // 배송 정보 관리: 차주(배송 시작 대기) | 화주(견적의뢰 진행·결제 전)
+  const deliveryDot = hasNew('deliveryToStart') || hasNew('acceptedAwaitingPayment');
+  // 직접요청 수신함(차주만): 받은 직접요청
+  const directReqDot = isOwner && hasNew('pendingDirectRequests');
+
   const navStyle = { textDecoration: 'none', color: 'inherit' };
   
   // 🟢 [변경] 기존 12px에서 메뉴 버튼들을 더 둥글글하게 필(Pill) 형태로 가공 (16px)
@@ -196,11 +209,12 @@ const Sidebar = () => {
               )}
             </NavLink>
             
-            <NavLink to="/mypage/delivery" style={navStyle}>
+            <NavLink to="/mypage/delivery" style={navStyle} onClick={() => markSeen(['deliveryToStart', 'acceptedAwaitingPayment'])}>
               {({ isActive }) => (
                 <ListItemButton sx={isActive ? activeStyle : listItemStyle}>
                   <ListItemIcon sx={{ minWidth: 40, color: '#64748b' }}><DescriptionIcon /></ListItemIcon>
                   <ListItemText primary="배송 정보 관리" primaryTypographyProps={{ fontWeight: 600, fontSize: '0.95rem' }} />
+                  {deliveryDot && <MenuDot />}
                 </ListItemButton>
               )}
             </NavLink>
@@ -214,13 +228,14 @@ const Sidebar = () => {
               )}
             </NavLink>
             
-            <NavLink to={isOwner ? "/mypage/direct-requests/received" : "/mypage/direct-requests/sent"} style={navStyle}>
+            <NavLink to={isOwner ? "/mypage/direct-requests/received" : "/mypage/direct-requests/sent"} style={navStyle} onClick={() => markSeen(['pendingDirectRequests'])}>
               {({ isActive }) => (
                 <ListItemButton sx={isActive ? activeStyle : listItemStyle}>
                   <ListItemIcon sx={{ minWidth: 40, color: '#64748b' }}>
                     {isOwner ? <MoveToInboxIcon /> : <SendIcon />}
                   </ListItemIcon>
                   <ListItemText primary={isOwner ? "직접요청 수신함" : "보낸 직접요청"} primaryTypographyProps={{ fontWeight: 600, fontSize: '0.95rem' }} />
+                  {directReqDot && <MenuDot />}
                 </ListItemButton>
               )}
             </NavLink>
@@ -249,7 +264,13 @@ const Sidebar = () => {
       )}
 
       {isMobile && (
-        <BottomNav isOwner={isOwner} cargoId={cargoId} />
+        <BottomNav
+          isOwner={isOwner}
+          cargoId={cargoId}
+          deliveryDot={deliveryDot}
+          directReqDot={directReqDot}
+          markSeen={markSeen}
+        />
       )}
     </>
   );

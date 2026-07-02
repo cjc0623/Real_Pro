@@ -34,7 +34,16 @@ export default function AdminBottomNav({ tabs, unread = 0 }) {
                     <BottomNavigationAction
                         key={tab.path}
                         label={tab.label}
-                        icon={tab.icon}
+                        icon={tab.dot ? (
+                            <Badge
+                                variant="dot"
+                                color="error"
+                                overlap="circular"
+                                sx={{ '& .MuiBadge-badge': { bgcolor: '#DC2626', boxShadow: '0 0 0 2px #f9fafb' } }}
+                            >
+                                {tab.icon}
+                            </Badge>
+                        ) : tab.icon}
                         // 🟢 오직 sx 내부의 CSS 수식만 추가하여 한 화면에 단단하게 홀딩 완료
                         sx={{
                             '&.Mui-selected': { 
