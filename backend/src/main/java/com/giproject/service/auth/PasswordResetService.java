@@ -114,7 +114,7 @@ public class PasswordResetService {
                 m.setFrom(from);
             }
 
-            m.setSubject("[g2i4] 비밀번호 재설정 인증코드");
+            m.setSubject("[FR] 비밀번호 재설정 인증코드");
             m.setText("인증코드: " + code + "\n유효 시간: " + CHALLENGE_TTL_SEC + "초");
 
             mailSender.send(m);

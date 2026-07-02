@@ -2,9 +2,28 @@ import { API_BASE } from '../../../config';
 // src/components/auth/EmailVerifyDialog.jsx
 import React from "react";
 import {
-    Dialog, DialogTitle, DialogContent, DialogActions,
-    TextField, Button, Stack, Typography, LinearProgress
+    Dialog, DialogContent,
+    TextField, Button, Stack, Typography, LinearProgress,
+    Box, IconButton, Divider
 } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
+
+// 앱 전체(로그인/비밀번호 찾기)와 통일된 브랜드 레드 버튼 스타일
+const brandButtonSx = {
+    backgroundColor: "#DC2626",
+    "&:hover": { backgroundColor: "#B91C1C" },
+    "&:disabled": { backgroundColor: "#e5e7eb", color: "#9ca3af" },
+    borderRadius: "10px",
+    textTransform: "none",
+    fontSize: "15px",
+    fontWeight: 700,
+    py: 1.3,
+    boxShadow: "none",
+    "&:hover:not(:disabled)": {
+        boxShadow: "0 4px 14px rgba(220,38,38,0.35)",
+        backgroundColor: "#B91C1C",
+    },
+};
 
 export default function EmailVerifyDialog({ open, email, onClose, onVerified }) {
     const [phase, setPhase] = React.useState("idle"); // idle | sending | code | verifying | verified | error
@@ -81,62 +100,112 @@ export default function EmailVerifyDialog({ open, email, onClose, onVerified }) 
         }
     };
 
+    const showCodeArea =
+        phase === "code" || phase === "verifying" || phase === "error" || phase === "verified";
+
     return (
-        <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
-            <DialogTitle>이메일 인증</DialogTitle>
-            <DialogContent>
-                <Stack spacing={2} sx={{ mt: 1 }}>
-                    <Typography variant="body2" color="text.secondary">{email}</Typography>
+        <Dialog
+            open={open}
+            onClose={onClose}
+            fullWidth
+            maxWidth="xs"
+            PaperProps={{ sx: { borderRadius: "20px" } }}
+        >
+            <DialogContent sx={{ p: 0 }}>
+                {/* 헤더 */}
+                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", px: 3, pt: 2.5, pb: 1 }}>
+                    <Typography variant="h6" fontWeight={700} color="#0f172a">
+                        이메일 인증
+                    </Typography>
+                    <IconButton onClick={onClose} size="small"><CloseIcon /></IconButton>
+                </Box>
 
-                    {(phase === "sending" || phase === "verifying") && <LinearProgress />}
-
-                    {phase === "idle" && (
-                        <Typography variant="body2">아래 버튼을 눌러 인증코드를 이메일로 받으세요.</Typography>
-                    )}
-
-                    {(phase === "code" || phase === "verifying" || phase === "error" || phase === "verified") && (
-                        <>
-                            <TextField
-                                label="인증코드"
-                                value={code}
-                                onChange={(e) => setCode(e.target.value.replace(/\s/g, ""))}
-                                placeholder="6자리 코드"
-                                inputProps={{ maxLength: 10, inputMode: "numeric" }}
-                                disabled={phase === "verifying" || phase === "verified"}
-                            />
-                            <Stack direction="row" justifyContent="space-between">
-                                <Typography variant="caption" color="text.secondary">
-                                    남은 시간: {Math.floor(expiresIn / 60)}:{String(expiresIn % 60).padStart(2, "0")}
-                                </Typography>
-                                <Button
-                                    size="small"
-                                    onClick={sendCode}
-                                    disabled={cooldown > 0 || phase === "verifying" || phase === "sending"}
-                                >
-                                    재전송{cooldown > 0 ? ` (${cooldown}s)` : ""}
-                                </Button>
-                            </Stack>
-                        </>
-                    )}
-
-                    {!!msg && (
-                        <Typography variant="body2" color={phase === "verified" ? "success.main" : phase === "error" ? "error.main" : "text.primary"}>
-                            {msg}
+                <Box sx={{ px: 3, pb: 3 }}>
+                    {/* 대상 이메일 */}
+                    <Box sx={{ bgcolor: "#f8fafc", border: "1px solid #f0f0f0", borderRadius: "12px", px: 2, py: 1.2, mb: 2 }}>
+                        <Typography variant="body2" color="#475569" fontWeight={600}>
+                            {email}
                         </Typography>
-                    )}
-                </Stack>
+                    </Box>
+
+                    <Stack spacing={2}>
+                        {(phase === "sending" || phase === "verifying") && (
+                            <LinearProgress sx={{ borderRadius: 999, "& .MuiLinearProgress-bar": { bgcolor: "#DC2626" } }} />
+                        )}
+
+                        {phase === "idle" && (
+                            <Typography variant="body2" color="#64748b">
+                                아래 버튼을 눌러 인증코드를 이메일로 받으세요.
+                            </Typography>
+                        )}
+
+                        {showCodeArea && (
+                            <>
+                                <TextField
+                                    label="인증코드"
+                                    value={code}
+                                    onChange={(e) => setCode(e.target.value.replace(/\s/g, ""))}
+                                    placeholder="6자리 코드"
+                                    fullWidth
+                                    inputProps={{ maxLength: 10, inputMode: "numeric" }}
+                                    disabled={phase === "verifying" || phase === "verified"}
+                                />
+                                <Stack direction="row" justifyContent="space-between" alignItems="center">
+                                    <Typography variant="caption" color={expiresIn > 0 ? "#64748b" : "error"}>
+                                        남은 시간 {Math.floor(expiresIn / 60)}:{String(expiresIn % 60).padStart(2, "0")}
+                                    </Typography>
+                                    <Button
+                                        size="small"
+                                        onClick={sendCode}
+                                        disabled={cooldown > 0 || phase === "verifying" || phase === "sending"}
+                                        sx={{ color: "#DC2626", textTransform: "none", fontWeight: 700, "&:disabled": { color: "#9ca3af" } }}
+                                    >
+                                        재전송{cooldown > 0 ? ` (${cooldown}s)` : ""}
+                                    </Button>
+                                </Stack>
+                            </>
+                        )}
+
+                        {!!msg && (
+                            <Typography
+                                variant="body2"
+                                color={phase === "verified" ? "success.main" : phase === "error" ? "error.main" : "#475569"}
+                            >
+                                {msg}
+                            </Typography>
+                        )}
+                    </Stack>
+
+                    <Divider sx={{ my: 2.5 }} />
+
+                    {/* 액션 버튼 */}
+                    <Stack spacing={1}>
+                        {phase === "idle" && (
+                            <Button fullWidth variant="contained" onClick={sendCode} sx={brandButtonSx}>
+                                코드 보내기
+                            </Button>
+                        )}
+                        {(phase === "code" || phase === "verifying") && (
+                            <Button
+                                fullWidth
+                                variant="contained"
+                                onClick={verifyCode}
+                                disabled={phase === "verifying" || expiresIn === 0}
+                                sx={brandButtonSx}
+                            >
+                                확인
+                            </Button>
+                        )}
+                        <Button
+                            fullWidth
+                            onClick={onClose}
+                            sx={{ color: "#64748b", textTransform: "none", fontWeight: 600, borderRadius: "10px", py: 1.1 }}
+                        >
+                            닫기
+                        </Button>
+                    </Stack>
+                </Box>
             </DialogContent>
-            <DialogActions>
-                {phase === "idle" && (
-                    <Button variant="contained" onClick={sendCode}>코드 보내기</Button>
-                )}
-                {(phase === "code" || phase === "verifying") && (
-                    <Button variant="contained" onClick={verifyCode} disabled={phase === "verifying" || expiresIn === 0}>
-                        확인
-                    </Button>
-                )}
-                <Button onClick={onClose}>닫기</Button>
-            </DialogActions>
         </Dialog>
     );
 }

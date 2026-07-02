@@ -78,7 +78,7 @@ const HomePage = () => {
   const isDriver = roles.includes("ROLE_DRIVER");
   const navigate = useNavigate();
 
-  const DEFAULT_TRUCK_IMG = "/image/placeholders/truck.svg";
+  const DEFAULT_TRUCK_IMG = ton25Img; // 존재하지 않던 경로 대신 번들된 실제 트럭 이미지 사용
 
   // ✅ 이미지 경로 보정 함수
   const normalizeUrl = (p) => {
@@ -224,7 +224,10 @@ const HomePage = () => {
                     <img
                       src={displayVehicles[selectedVehicleIndex].img}
                       alt={displayVehicles[selectedVehicleIndex].name}
-                      onError={(e) => { e.target.src = DEFAULT_TRUCK_IMG; }}
+                      onError={(e) => {
+                        e.target.onerror = null; // 무한 재요청 방지: fallback도 실패할 경우 재호출 차단
+                        if (e.target.src !== DEFAULT_TRUCK_IMG) e.target.src = DEFAULT_TRUCK_IMG;
+                      }}
                       className="w-full max-w-[560px] h-auto object-contain drop-shadow-2xl"
                     />
                   </div>
@@ -247,19 +250,19 @@ const HomePage = () => {
           </div>
 
           {/* 캐러셀 */}
-          <div className="flex items-end justify-center gap-4 md:gap-10">
+          <div className="flex items-center justify-center gap-4 md:gap-10">
 
             {/* 이전 버튼 */}
             <button
               onClick={handlePrevSpecial}
-              className="flex-shrink-0 w-12 h-12 md:w-14 md:h-14 rounded-full border-2 border-gray-200 flex items-center justify-center text-2xl text-gray-400 hover:border-red-600 hover:text-red-600 bg-white shadow-sm transition-all duration-300 mb-16"
+              className="flex-shrink-0 w-12 h-12 md:w-14 md:h-14 rounded-full border-2 border-gray-200 flex items-center justify-center text-2xl text-gray-400 hover:border-red-600 hover:text-red-600 bg-white shadow-sm transition-all duration-300"
               aria-label="이전 차량"
             >
               ‹
             </button>
 
-        {/* 차량 목록 영역 */}
-        <div className="flex items-end justify-center gap-4 md:gap-8 flex-1">
+        {/* 차량 목록 영역 — 고정 높이로 전환 중에도 행 높이가 변하지 않게 해서 버튼 고정 */}
+        <div className="flex items-center justify-center gap-4 md:gap-8 flex-1 h-44 md:h-64">
               {specialVehicleList.map((vehicle, idx) => {
                 const isActive = idx === selectedSpecialIndex;
                 return (
@@ -276,7 +279,7 @@ const HomePage = () => {
                       src={vehicle.img}
                       alt={vehicle.name}
                       className={`object-contain transition-all duration-500 ${
-                        isActive ? 'w-40 md:w-56 h-auto' : 'w-24 md:w-36 h-auto'
+                        isActive ? 'w-40 h-40 md:w-56 md:h-56' : 'w-24 h-24 md:w-36 md:h-36'
                       }`}
                     />
                   </button>
@@ -287,7 +290,7 @@ const HomePage = () => {
             {/* 다음 버튼 */}
             <button
               onClick={handleNextSpecial}
-              className="flex-shrink-0 w-12 h-12 md:w-14 md:h-14 rounded-full border-2 border-gray-200 flex items-center justify-center text-2xl text-gray-400 hover:border-red-600 hover:text-red-600 bg-white shadow-sm transition-all duration-300 mb-16"
+              className="flex-shrink-0 w-12 h-12 md:w-14 md:h-14 rounded-full border-2 border-gray-200 flex items-center justify-center text-2xl text-gray-400 hover:border-red-600 hover:text-red-600 bg-white shadow-sm transition-all duration-300"
               aria-label="다음 차량"
             >
               ›
