@@ -184,10 +184,10 @@ const QuotationRequestPage = () => {
 
       try {
         // Redux 및 브라우저 저장소에서 토큰을 모두 탐색하여 가져옵니다.
-        const activeToken = token || 
-                            sessionStorage.getItem('accessToken') || 
-                            sessionStorage.getItem('token') || 
-                            localStorage.getItem('accessToken');
+        // 토큰은 sessionStorage 에 저장됨 (localStorage 폴백은 항상 null 이라 제거)
+        const activeToken = token ||
+                            sessionStorage.getItem('accessToken') ||
+                            sessionStorage.getItem('token');
 
         // 토큰이 존재하지 않을 경우에만 차단합니다.
         if (!activeToken) {

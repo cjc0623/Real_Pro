@@ -1,4 +1,6 @@
 package com.giproject.controller.qaboard;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 import java.util.List;
 import java.util.Map;
@@ -187,7 +189,7 @@ public class QABoardController {
         // JWT 토큰에서 사용자 정보 추출
         JwtTokenUtils.UserInfo userInfo = jwtTokenUtils.getUserInfoFromRequest(request);
         if (userInfo == null) {
-            throw new RuntimeException("로그인이 필요합니다.");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
         }
         
         String userId = userInfo.getAuthorId();
@@ -215,7 +217,7 @@ public class QABoardController {
         // JWT 토큰에서 사용자 정보 추출
         JwtTokenUtils.UserInfo userInfo = jwtTokenUtils.getUserInfoFromRequest(request);
         if (userInfo == null) {
-            throw new RuntimeException("로그인이 필요합니다.");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
         }
         
         String userId = userInfo.getAuthorId();
@@ -247,7 +249,7 @@ public class QABoardController {
         // JWT 토큰에서 사용자 정보 추출
         JwtTokenUtils.UserInfo userInfo = jwtTokenUtils.getUserInfoFromRequest(request);
         if (userInfo == null) {
-            throw new RuntimeException("로그인이 필요합니다.");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
         }
         
         String userId = userInfo.getAuthorId();
@@ -323,11 +325,11 @@ public class QABoardController {
         // JWT 토큰에서 사용자 정보 추출 및 관리자 권한 확인
         JwtTokenUtils.UserInfo userInfo = jwtTokenUtils.getUserInfoFromRequest(request);
         if (userInfo == null) {
-            throw new RuntimeException("로그인이 필요합니다.");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
         }
         
         if (!userInfo.isAdmin()) {
-            throw new RuntimeException("관리자 권한이 필요합니다.");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "관리자 권한이 필요합니다.");
         }
         
         String userId = userInfo.getAuthorId();
@@ -354,11 +356,11 @@ public class QABoardController {
         // JWT 토큰에서 사용자 정보 추출 및 관리자 권한 확인
         JwtTokenUtils.UserInfo userInfo = jwtTokenUtils.getUserInfoFromRequest(request);
         if (userInfo == null) {
-            throw new RuntimeException("로그인이 필요합니다.");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
         }
         
         if (!userInfo.isAdmin()) {
-            throw new RuntimeException("관리자 권한이 필요합니다.");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "관리자 권한이 필요합니다.");
         }
         
         String userId = userInfo.getAuthorId();

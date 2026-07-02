@@ -1,6 +1,10 @@
 HELP.md
 .gradle
 build/
+
+### Secrets (절대 커밋 금지) ###
+src/main/resources/application-secret.properties
+application-secret.properties
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
@@ -35,3 +39,6 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Understand-Anything (자동 생성 분석 캐시) ###
+.understand-anything/

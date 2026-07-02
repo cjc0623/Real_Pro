@@ -250,4 +250,7 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 		List<DriverProfileCardDTO> findDriverProfileCards(
 			@Param("keyword") String keyword,
 			@Param("requireVehicle") boolean requireVehicle);
+
+		/** 알림(차주 정보형): 나에게 작성된 리뷰 총 개수 */
+		long countByTargetCargoId(String targetCargoId);
 }

@@ -44,6 +44,10 @@ public class SecurityConfig {
     @Value("${frontend.base-url:http://localhost:3000}")
     private String frontendBaseUrl;
 
+    // CORS 허용 오리진 — application.properties 의 cors.allowed-origins 로 일원화 관리
+    @Value("${cors.allowed-origins}")
+    private List<String> allowedOrigins;
+
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter(JwtService jwtService,
                                                            UserDetailsService userDetailsService) {
@@ -79,10 +83,9 @@ public class SecurityConfig {
                 .redirectionEndpoint(r -> r.baseUri("/login/oauth2/code/*"))
                 .successHandler(customOAuth2SuccessHandler)
                 .failureHandler((req, res, ex) -> {
-                    String base = req.getHeader("Origin");
-                    if (base == null || base.isBlank()) base = frontendBaseUrl;
+                    // 🔒 [보안 수정] Origin 헤더(공격자 조작 가능) 대신 신뢰된 frontend.base-url 로 고정 → 오픈 리다이렉트 차단
                     String msg = ex.getMessage() == null ? "oauth2_failed" : ex.getMessage();
-                    String target = base + "/login?error=" +
+                    String target = frontendBaseUrl + "/login?error=" +
                         java.net.URLEncoder.encode(msg, java.nio.charset.StandardCharsets.UTF_8);
                     res.sendRedirect(target);
                 })
@@ -101,14 +104,22 @@ public class SecurityConfig {
 
                 .requestMatchers("/uploads/**", "/review/**", "/h2-console/**").permitAll()
 
-                // ✅ [수정] "/fr/coupons/**" 경로를 추가하여 401 에러 해결
-                .requestMatchers("/fr/subpath/order/**","/fr/payment/**","/fr/delivery/**","/fr/address/**",
-                                 "/fr/estimate/subpath/**","/fr/cargo/**","/fr/admin/**","/fr/main/**",
-                                 "/fr/uploads/**","/fr/mypage/**","/fr/user/**","/fr/cargo/**","/fr/member/**",
-                                 "/fr/qna/**","/fr/coupons/**","/api/**",
-                                 "/g2i4/uploads/**").permitAll() // 하위호환: 구경로 이미지 허용
+                // 🔒 [보안 수정] 관리자 API 는 ROLE_ADMIN 권한 필수 (기존 permitAll → 인가 우회 취약점 제거)
+                .requestMatchers("/fr/admin/**").hasAuthority("ROLE_ADMIN")
+
+                // 🔒 [보안 수정] 로그인 필요 영역 — 인증된 사용자만 (결제/마이페이지/회원/사용자/차주)
+                .requestMatchers("/fr/payment/**","/fr/mypage/**","/fr/user/**",
+                                 "/fr/member/**","/fr/owner/**","/fr/subpath/order/**").authenticated()
 
                 .requestMatchers("/fr/estimate/list").hasAnyAuthority("ROLE_DRIVER","ROLE_SHIPPER")
+
+                // 공개 영역(이미지/공개 조회 등) — 기능 호환을 위해 유지. ⚠️ 후속으로 개별 인가 점검 권장
+                .requestMatchers("/fr/uploads/**","/g2i4/uploads/**","/fr/address/**","/fr/cargo/**",
+                                 "/fr/main/**","/fr/estimate/subpath/**","/fr/delivery/**",
+                                 "/fr/qna/**","/fr/coupons/**","/fr/maps/**").permitAll()
+                // 🔒 [보안] 채팅 API 는 인증 필요 — GET /api/chat/history 가 전체 메시지를 노출하던 문제 차단
+                .requestMatchers("/api/chat/**").authenticated()
+                .requestMatchers("/api/**").permitAll() // ⚠️ 후속: 나머지 /api/** 도 엔드포인트별 인가 점검 필요
 
                 .anyRequest().authenticated()
             )
@@ -118,11 +129,14 @@ public class SecurityConfig {
         return http.build();
     }
 
+    /**
+     * 프로젝트 전체 CORS 단일 진입점.
+     * (기존 CorsConfig.corsFilter / WebConfig.addCorsMappings 중복 제거 → 이 빈으로 일원화)
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        // 🟢 안드로이드 에뮬레이터용 주소(http://10.0.2.2:3000)를 허용 목록에 확실하게 추가했습니다.
-        config.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:3002", "http://10.0.2.2:3000"));
+        config.setAllowedOrigins(allowedOrigins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

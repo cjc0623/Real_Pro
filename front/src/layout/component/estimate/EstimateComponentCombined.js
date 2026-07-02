@@ -206,6 +206,54 @@ const EstimateComponentCombined = () => {
             .catch(() => {}); // 자동 계산 실패는 조용히 무시
     }, [estimate.startAddress, estimate.endAddress]);
 
+    // 하단 버튼(제출/취소) — 데스크탑은 좌측 폼 안에, 모바일은 금액 아래 맨 끝에 렌더(가격 확인 후 제출 유도)
+    const actionButtons = (
+        <div className="flex gap-2 pt-2">
+            {/* 견적서 제출 / 직접요청 — 빨간 */}
+            <Button
+                variant="contained"
+                onClick={() => setOpenEstimateSend(true)}
+                disabled={isAdmin === true}
+                sx={{
+                    flex: 1,
+                    height: 48,
+                    borderRadius: "10px",
+                    backgroundColor: "#DC2626",
+                    textTransform: "none",
+                    fontWeight: 700,
+                    fontSize: "14px",
+                    boxShadow: "none",
+                    "&:hover:not(:disabled)": {
+                        backgroundColor: "#B91C1C",
+                        boxShadow: "0 4px 14px rgba(220,38,38,0.3)",
+                    },
+                    "&:disabled": { backgroundColor: "#e5e7eb", color: "#9ca3af" },
+                }}
+            >
+                {directMode ? "직접 요청 보내기" : "견적서 제출"}
+            </Button>
+
+            {/* 취소 — 아웃라인 */}
+            <Button
+                variant="outlined"
+                onClick={() => setOpenCancelDialog(true)}
+                sx={{
+                    flex: 1,
+                    height: 48,
+                    borderRadius: "10px",
+                    borderColor: "#d1d5db",
+                    color: "#6b7280",
+                    textTransform: "none",
+                    fontWeight: 600,
+                    fontSize: "14px",
+                    "&:hover": { borderColor: "#9ca3af", backgroundColor: "#f9fafb" },
+                }}
+            >
+                취소
+            </Button>
+        </div>
+    );
+
     return (
         <Box sx={{ py: 3 }}>
             <Box sx={{
@@ -437,51 +485,8 @@ const EstimateComponentCombined = () => {
                             )}
                         </Box>
 
-                        {/* ── 하단 버튼 ── */}
-                        <div className="flex gap-2 pt-2">
-                            {/* 견적서 제출 / 직접요청 — 빨간 */}
-                            <Button
-                                variant="contained"
-                                onClick={() => setOpenEstimateSend(true)}
-                                disabled={isAdmin === true}
-                                sx={{
-                                    flex: 1,
-                                    height: 48,
-                                    borderRadius: "10px",
-                                    backgroundColor: "#DC2626",
-                                    textTransform: "none",
-                                    fontWeight: 700,
-                                    fontSize: "14px",
-                                    boxShadow: "none",
-                                    "&:hover:not(:disabled)": {
-                                        backgroundColor: "#B91C1C",
-                                        boxShadow: "0 4px 14px rgba(220,38,38,0.3)",
-                                    },
-                                    "&:disabled": { backgroundColor: "#e5e7eb", color: "#9ca3af" },
-                                }}
-                            >
-                                {directMode ? "직접 요청 보내기" : "견적서 제출"}
-                            </Button>
-
-                            {/* 취소 — 아웃라인 */}
-                            <Button
-                                variant="outlined"
-                                onClick={() => setOpenCancelDialog(true)}
-                                sx={{
-                                    flex: 1,
-                                    height: 48,
-                                    borderRadius: "10px",
-                                    borderColor: "#d1d5db",
-                                    color: "#6b7280",
-                                    textTransform: "none",
-                                    fontWeight: 600,
-                                    fontSize: "14px",
-                                    "&:hover": { borderColor: "#9ca3af", backgroundColor: "#f9fafb" },
-                                }}
-                            >
-                                취소
-                            </Button>
-                        </div>
+                        {/* ── 하단 버튼 (데스크탑만 좌측 폼 안에 표시) ── */}
+                        {!isMobile && actionButtons}
                     </Stack>
                 </Box>
 
@@ -605,6 +610,13 @@ const EstimateComponentCombined = () => {
 
                     </Stack>
                 </Box>
+
+                {/* ── 하단 버튼 (모바일: 금액 확인 후 맨 아래에 표시) ── */}
+                {isMobile && (
+                    <Box sx={{ width: "100%" }}>
+                        {actionButtons}
+                    </Box>
+                )}
             </Box>
 
             {/* ── 취소 다이얼로그 ── */}

@@ -1,7 +1,5 @@
 import axios from "axios";
-
-// Backend API Server Host
-export const API_SERVER_HOST = "http://localhost:8080";
+import { API_SERVER_HOST } from "./serverConfig";
 
 const qaHost = `${API_SERVER_HOST}/api/qaboard`;
 

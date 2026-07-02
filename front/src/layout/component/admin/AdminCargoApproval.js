@@ -1,11 +1,10 @@
+import { API_BASE } from '../../../config';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Box, Typography, Button, Chip, Divider, Paper, Stack, Pagination, TextField, InputAdornment } from '@mui/material';
 import SearchIcon from "@mui/icons-material/Search";
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
-
-const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:8080';
 
 const api = axios.create({ baseURL: API_BASE });
 api.interceptors.request.use((config) => {

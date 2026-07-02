@@ -142,7 +142,7 @@ public class MatchingServiceImpl implements MatchingService {
                 cargoRepository.findByCargoOwner_CargoIdAndStatus(cargoOwner.getCargoId(), "APPROVED");
 
         if (approvedCargos.isEmpty()) {
-            throw new RuntimeException("관리자 승인이 완료된 차량이 등록되어 있어야 견적을 수락할 수 있습니다.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "관리자 승인이 완료된 차량이 등록되어 있어야 견적을 수락할 수 있습니다.");
         }
 
         boolean hasRightVehicle = approvedCargos.stream()
@@ -160,7 +160,7 @@ public class MatchingServiceImpl implements MatchingService {
                 });
 
         if (!hasRightVehicle) {
-            throw new RuntimeException(
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "수락 불가: 해당 견적(" + estimate.getCargoWeight() + ")을 운송할 수 있는 승인된 차량(요청 톤수 이상)을 보유하고 있지 않습니다."
             );
         }
@@ -179,7 +179,7 @@ public class MatchingServiceImpl implements MatchingService {
                 .orElseThrow(() -> new RuntimeException("해당 매칭이 없습니다"));
 
         if (matchingRepository.checkMached(estimateNo)) {
-            throw new RuntimeException("이미 다른 기사님이 수락하셨습니다");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이미 다른 기사님이 수락하셨습니다");
         }
 
         estimate.changeMatched(true);

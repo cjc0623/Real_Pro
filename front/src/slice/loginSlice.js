@@ -1,11 +1,8 @@
+import { API_BASE } from '../config';
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 
 // 백엔드 베이스 URL
-const API_BASE =
-    process.env.REACT_APP_API_BASE ||
-    process.env.REACT_APP_API_BASE ||
-    "http://localhost:8080";
 
 // 토큰 픽업 유틸
 const pickToken = () =>
@@ -96,13 +93,13 @@ const loginSlice = createSlice({
         // (선택) 수동 로그인 상태 세팅 - 기존 호환 유지
         login: (state, action) => {
             const d = action.payload || {};
-            // roles가 배열인지 확인하고, 아니면 배열로 만듭니다.
-            const newRoles = Array.isArray(d.roles) ? d.roles : (d.role ? [d.role] : state.roles);
+            // 계정 전환 시 이전 계정 값을 물려받지 않도록, 새 payload로 항상 덮어쓴다(폴백 제거).
+            const newRoles = Array.isArray(d.roles) ? d.roles : (d.role ? [d.role] : []);
             return {
                 ...state,
-                email: d.email ?? state.email ?? "",
+                email: d.email ?? "",
                 roles: newRoles,
-                memberId: d.memberId ?? d.id ?? state.memberId ?? null,
+                memberId: d.memberId ?? d.id ?? null,
             };
         },
         logout: () => {

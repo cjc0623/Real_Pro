@@ -1,10 +1,10 @@
+import { API_BASE } from '../../../config';
 import React, { useEffect, useRef } from 'react';
 
 // 기현님이 만들어두신 좌표 변환 함수 불러오기
 import { fetchCoordsByAddress } from './calculateDistanceBetweenAddresses'; 
 
-// 기현님의 카카오 REST API 키 (길찾기 경로 받아올 때 필수!)
-const REST_API_KEY = "d381d00137ba5677a3ee0355c4c95abf"; 
+// 🔒 [보안] Kakao REST 키는 백엔드 프록시(/fr/maps/**)가 보관 — 브라우저 노출 제거
 
 const MapComponent2 = ({ startAddress, endAddress }) => {
   const mapContainer = useRef(null);
@@ -36,10 +36,8 @@ const MapComponent2 = ({ startAddress, endAddress }) => {
         new window.kakao.maps.Marker({ position: endPosition, map: map, title: "도착지" });
 
         // 💡 4. 대망의 실제 주행 경로(도로) 데이터 받아오기!
-        const routeUrl = `https://apis-navi.kakaomobility.com/v1/directions?origin=${startCoords.lng},${startCoords.lat}&destination=${endCoords.lng},${endCoords.lat}`;
-        const res = await fetch(routeUrl, {
-          headers: { Authorization: `KakaoAK ${REST_API_KEY}` },
-        });
+        const routeUrl = `${API_BASE}/fr/maps/directions?origin=${startCoords.lng},${startCoords.lat}&destination=${endCoords.lng},${endCoords.lat}`;
+        const res = await fetch(routeUrl);
         const data = await res.json();
 
         // 💡 5. 받아온 도로 데이터를 점(LatLng)으로 쪼개서 배열에 담기

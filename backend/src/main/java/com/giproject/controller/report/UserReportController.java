@@ -1,4 +1,5 @@
 package com.giproject.controller.report;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import com.giproject.dto.report.UserReportDTO;
 import com.giproject.service.report.UserReportService;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/fr/admin/reports")
+@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 public class UserReportController {
 
     private final UserReportService service;

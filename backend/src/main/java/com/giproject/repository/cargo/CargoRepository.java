@@ -15,4 +15,10 @@ public interface CargoRepository extends JpaRepository<Cargo, Integer> {
 	boolean existsByCargoOwner_CargoIdAndStatus(String cargoId, String status);
 	
 	List<Cargo> findByCargoOwner_CargoIdAndStatus(String cargoId, String status);
+
+	/** 알림(차주 정보형): 내 차량 중 특정 상태(예: APPROVED) 개수 */
+	long countByCargoOwner_CargoIdAndStatus(String cargoId, String status);
+
+	/** 알림(관리자 행동필요): 특정 상태(예: PENDING 승인 대기) 차량 개수 */
+	long countByStatus(String status);
 }

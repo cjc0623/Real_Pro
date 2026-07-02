@@ -26,7 +26,8 @@ import java.util.stream.Collectors;
 @Service
 public class JwtService {
 
-    @Value("${jwt.secret:CHANGE_THIS_TO_A_LONG_RANDOM_SECRET_256_BITS_MINIMUM_1234567890}")
+    // 기본값(약한 폴백) 제거 — jwt.secret 미설정 시 기동 실패하도록 강제
+    @Value("${jwt.secret}")
     private String secret;
 
     @Value("${jwt.issuer:fr}")
@@ -108,7 +109,9 @@ public class JwtService {
     }
 
     public String createRefreshToken(Map<String, Object> claims, String subject) {
-        return build(subject, claims, refreshExpSeconds);
+        Map<String, Object> c = new HashMap<>(claims != null ? claims : Map.of());
+        c.putIfAbsent("jti", java.util.UUID.randomUUID().toString()); // 서버측 폐기 식별자
+        return build(subject, c, refreshExpSeconds);
     }
 
     /* =========================
@@ -145,7 +148,9 @@ public class JwtService {
     }
 
     public String generateRefreshToken(Authentication authentication) {
-        return build(authentication.getName(), Map.of(), refreshExpSeconds);
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("jti", java.util.UUID.randomUUID().toString()); // 서버측 폐기(blacklist) 식별자
+        return build(authentication.getName(), claims, refreshExpSeconds);
     }
 
     public long getRefreshExpSeconds() {
@@ -174,6 +179,27 @@ public class JwtService {
 
     public String getUsername(String token) {
         return parseToken(token).getSubject();
+    }
+
+    /** refresh 토큰의 폐기 식별자(jti). 구버전(미포함) 토큰이면 null. */
+    public String getJti(String token) {
+        try {
+            Object v = parseToken(token).get("jti");
+            return v == null ? null : v.toString();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /** 토큰 만료 시각(LocalDateTime). 파싱 실패 시 null. */
+    public java.time.LocalDateTime getExpiresAt(String token) {
+        try {
+            Date exp = parseToken(token).getExpiration();
+            return exp == null ? null
+                    : exp.toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime();
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public Authentication toAuthentication(String token, UserDetailsService uds) {

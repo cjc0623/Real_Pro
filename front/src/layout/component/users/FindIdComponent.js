@@ -1,10 +1,10 @@
+import { API_BASE } from '../../../config';
 // src/layout/component/users/FindIdComponent.jsx
 import * as React from 'react';
 import {
     Box,
     Button,
     Container,
-    Paper,
     TextField,
     Typography,
 } from '@mui/material';
@@ -12,12 +12,25 @@ import EmailVerifyDialog from '../auth/EmailVerifyDialog';
 import { useNavigate } from 'react-router-dom';
 
 // 환경별 API 베이스
-const API_BASE =
-    process.env.REACT_APP_API_BASE ||
-    process.env.REACT_APP_API_BASE ||
-    'http://localhost:8080';
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// 다른 페이지(로그인/비밀번호 찾기)와 통일된 브랜드 레드 버튼 스타일
+const brandButtonSx = {
+    backgroundColor: '#DC2626',
+    '&:hover': { backgroundColor: '#B91C1C' },
+    '&:disabled': { backgroundColor: '#e5e7eb', color: '#9ca3af' },
+    borderRadius: '10px',
+    textTransform: 'none',
+    fontSize: '15px',
+    fontWeight: 700,
+    py: 1.5,
+    boxShadow: 'none',
+    '&:hover:not(:disabled)': {
+        boxShadow: '0 4px 14px rgba(220,38,38,0.35)',
+        backgroundColor: '#B91C1C',
+    },
+};
 
 const FindIdComponent = ({ onComplete }) => {
     const [email, setEmail] = React.useState('');
@@ -78,12 +91,12 @@ const FindIdComponent = ({ onComplete }) => {
     };
 
     return (
-        <Container maxWidth="sm" sx={{ mt: 6, mb: 6 }}>
-            <Box sx={{width: '100%', maxWidth: 400, mb: 2 }}>
-                      <img src="/image/logo/main_logo.png" alt="로고" style={{ height: 60 }} />
+        <Container maxWidth="sm" sx={{ mt: 6, mb: 8 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}>
+                <img src="/image/logo/main_logo.png" alt="로고" style={{ height: 56 }} />
             </Box>
-            <Paper elevation={3} sx={{ p: 3 }}>
-                <Typography variant="h5" sx={{ mb: 1.5, fontWeight: 700 }}>
+            <Box sx={{ p: 3, borderRadius: '12px', bgcolor: 'white', border: '1px solid #f0f0f0', boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
+                <Typography variant="h5" sx={{ mb: 2, fontWeight: 700 }}>
                     아이디 찾기
                 </Typography>
 
@@ -93,7 +106,7 @@ const FindIdComponent = ({ onComplete }) => {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     variant="outlined"
-                    sx={{ width: '100%', mb: 1.5 }}
+                    sx={{ width: '100%', mb: 2 }}
                 />
 
                 {/* 이메일 입력 */}
@@ -102,8 +115,8 @@ const FindIdComponent = ({ onComplete }) => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     variant="outlined"
-                    sx={{ width: '100%', mb: 1.5 }}
                     placeholder="example@gmail.com"
+                    sx={{ width: '100%', mb: 0.5 }}
                     helperText={
                         email.length > 0 && !emailRegex.test(email)
                             ? '이메일 형식을 확인해 주세요.'
@@ -115,13 +128,13 @@ const FindIdComponent = ({ onComplete }) => {
                 <Button
                     variant="contained"
                     fullWidth
-                    sx={{ mt: 1 }}
+                    sx={{ mt: 2, ...brandButtonSx }}
                     onClick={onClickVerifyEmail}
                     disabled={!canOpenVerify}
                 >
                     인증하기
                 </Button>
-            </Paper>
+            </Box>
 
             {/* 이메일 인증 다이얼로그 */}
             <EmailVerifyDialog

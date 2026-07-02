@@ -1,3 +1,4 @@
+import { API_BASE } from '../../../config';
 import React, { useEffect, useState } from "react";
 import {
   Avatar, Box, Dialog, DialogContent, Divider, IconButton,
@@ -7,7 +8,6 @@ import CloseIcon from "@mui/icons-material/Close";
 import { getShipperProfileCard } from "../../../api/userinfoApi/userInfoApi";
 import { getShipperWrittenReviews } from "../../../api/reviewApi/reviewApi";
 
-const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8080";
 const DEFAULT_AVATAR = "/image/placeholders/avatar.svg";
 
 const normalizeProfileUrl = (v) => {

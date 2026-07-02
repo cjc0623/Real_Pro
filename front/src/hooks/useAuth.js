@@ -1,13 +1,9 @@
+import { API_BASE } from '../config';
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { tokenStore } from '../lib/tokenStore';
 import { useDispatch } from 'react-redux';
-import { login as loginAction } from '../slice/loginSlice';
-
-const API_BASE =
-    process.env.REACT_APP_API_BASE ||
-    process.env.REACT_APP_API_BASE ||
-    'http://localhost:8080';
+import { login as loginAction, logout as logoutAction, getUserInfoAsync } from '../slice/loginSlice';
 
 export default function useAuth() {
     const navigate = useNavigate();
@@ -20,6 +16,9 @@ export default function useAuth() {
      */
     const login = useCallback(
         async ({ loginId, password, remember = true }) => {
+            // 계정 연속 전환 대비: 새 로그인 시작 전 Redux를 먼저 initState로 리셋(이전 계정 잔존 방지)
+            dispatch(logoutAction());
+
             const res = await fetch(`${API_BASE}/api/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -86,6 +85,12 @@ export default function useAuth() {
                 // payload 파싱 실패는 무시
             }
 
+            // 새 계정의 정확한 roles·memberId·프로필을 서버에서 즉시 확정(헤더 effect race에 의존하지 않음)
+            dispatch(getUserInfoAsync());
+
+            // 알림 등 토큰 의존 데이터가 새 계정으로 즉시 재조회되도록 명시 신호 발사
+            if (typeof window !== 'undefined') window.dispatchEvent(new Event('authChanged'));
+
             return data;
         },
         [dispatch]
@@ -107,9 +112,11 @@ export default function useAuth() {
                 // ignore
             }
             tokenStore.clear();
+            dispatch(logoutAction()); // 토큰뿐 아니라 Redux 로그인 상태도 함께 초기화
+            if (typeof window !== 'undefined') window.dispatchEvent(new Event('authChanged'));
             navigate(to, { replace: true });
         },
-        [navigate]
+        [navigate, dispatch]
     );
 
     return { login, logout };

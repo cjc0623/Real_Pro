@@ -8,14 +8,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.http.HttpMethod;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -23,43 +20,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
-
-    private static final AntPathMatcher MATCHER = new AntPathMatcher();
-
-    /**
-     * JWT 검사에서 제외할 경로 패턴들
-     * - OAuth2 인가 진입/콜백
-     * - 공개 API(회원가입/로그인 등)
-     * - 정적/리소스
-     */
-    private static final List<String> EXCLUDES = List.of(
-        "/", "/error", "/favicon.ico",
-        "/h2-console/**",
-        "/uploads/**",
-        "/fr/**",
-        "/g2i4/uploads/**", // 하위호환: 구경로 이미지 요청은 JWT 검사 제외
-
-        // === 공개 Auth/API ===
-        "/api/auth/login",
-        "/api/auth/refresh",
-        "/api/auth/signup",
-        "/api/auth/check-id",     // ✅ SecurityConfig와 일치
-        "/api/email/**",
-
-        // === OAuth2 ===
-        "/oauth2/authorization/**",
-        "/login/oauth2/**",
-
-        // === 정적 리소스 ===
-        "/favicon.ico", "/error", "/",
-        "/h2-console/**", "/uploads/**",
-        "/api/auth/login", "/api/auth/refresh", "/api/auth/signup",
-        "/api/signup/check-id", "/api/email/**",
-        "/oauth2/authorization/**", "/login/oauth2/**",
-        "/css/**", "/js/**", "/images/**", "/webjars/**",
-        "/**/*.css", "/**/*.js", "/**/*.png", "/**/*.jpg", "/**/*.jpeg",
-        "/**/*.gif", "/**/*.svg", "/**/*.ico"
-    );
 
     /**
      * 사전 검사: OPTIONS 및 제외 경로는 필터를 타지 않음

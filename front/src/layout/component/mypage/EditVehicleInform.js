@@ -1,3 +1,4 @@
+import { API_BASE } from '../../../config';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
@@ -10,7 +11,6 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import { useParams, useNavigate } from 'react-router-dom';
 
 // ===== 공통 API 베이스/인스턴스 =====
-const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:8080';
 
 const api = axios.create({ baseURL: API_BASE });
 api.interceptors.request.use((config) => {

@@ -1,4 +1,5 @@
 package com.giproject.controller.admin;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import com.giproject.dto.admin.DashboardDataDTO;
 import com.giproject.service.admin.AdminDashboardService;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/fr/admin/dashboard")
 @RequiredArgsConstructor
+@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 public class AdminDashboardController {
 
     private final AdminDashboardService adminDashboardService;

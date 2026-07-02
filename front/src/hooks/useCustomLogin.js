@@ -1,3 +1,4 @@
+import { API_BASE } from '../config';
 // src/hooks/useCustomLogin.js
 // 이 훅은 로그인/로그아웃, 로그인 상태 체크를 공통으로 제공합니다.
 
@@ -7,11 +8,6 @@ import axios from "axios";
 import { loginPostAsync, getUserInfoAsync, logout as logoutAction } from "../slice/loginSlice";
 
 // 백엔드 베이스 URL
-const API_BASE =
-   process.env.REACT_APP_API_BASE ||
-
-   process.env.REACT_APP_API_BASE ||
-   "http://localhost:8080";
 
 // 토큰 유틸
 const saveTokens = ({ accessToken, refreshToken }) => {

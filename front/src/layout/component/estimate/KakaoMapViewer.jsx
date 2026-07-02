@@ -1,10 +1,12 @@
+import { API_BASE } from '../../../config';
 import React, { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 
 const KakaoMapViewer = forwardRef(({ startAddress, endAddress, onAddressSelect }, ref) => {
   const mapRef = useRef(null);
   const polylineRef = useRef(null);
   const markersRef = useRef([]);
-  const REST_API_KEY = "d381d00137ba5677a3ee0355c4c95abf";
+  // 🔒 [보안] Kakao REST 키는 백엔드 프록시(/fr/maps/**)가 보관 — 브라우저 노출 제거
+  
 
   // 💡 [핵심] 부모의 '함수'와 '출발지 상태'를 실시간으로 담아둘 보관함(Ref)
   // 리액트의 일반 Props는 클로저 때문에 지도의 이벤트 리스너 안에서 옛날 값으로 박제될 수 있습니다.
@@ -24,7 +26,6 @@ const KakaoMapViewer = forwardRef(({ startAddress, endAddress, onAddressSelect }
       }
     }
   }));
-
 
   // 부모로부터 새로운 데이터가 내려올 때마다 보관함 내용물을 최신화합니다.
   useEffect(() => {
@@ -102,8 +103,7 @@ const KakaoMapViewer = forwardRef(({ startAddress, endAddress, onAddressSelect }
 
     const fetchCoords = async (address) => {
       const res = await fetch(
-        `https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(address)}`,
-        { headers: { Authorization: `KakaoAK ${REST_API_KEY}` } }
+        `${API_BASE}/fr/maps/geocode?query=${encodeURIComponent(address)}`
       );
       const data = await res.json();
       const loc = data.documents?.[0];
@@ -129,8 +129,7 @@ const KakaoMapViewer = forwardRef(({ startAddress, endAddress, onAddressSelect }
       markersRef.current = [ms, me];
 
       const res = await fetch(
-        `https://apis-navi.kakaomobility.com/v1/directions?origin=${start.lng},${start.lat}&destination=${end.lng},${end.lat}`,
-        { headers: { Authorization: `KakaoAK ${REST_API_KEY}` } }
+        `${API_BASE}/fr/maps/directions?origin=${start.lng},${start.lat}&destination=${end.lng},${end.lat}`
       );
       const data = await res.json();
       const roads = data?.routes?.[0]?.sections?.[0]?.roads;

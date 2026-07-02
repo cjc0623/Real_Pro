@@ -1,14 +1,15 @@
+import { API_BASE } from '../config';
 import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { login as loginAction, logout as logoutAction, getUserInfoAsync } from '../slice/loginSlice';
+import Avatar from '@mui/material/Avatar';
+import Badge from '@mui/material/Badge';
+import PersonIcon from '@mui/icons-material/Person';
+import useNotificationSummary from '../hooks/useNotificationSummary';
 import logo from '../assets/logo.png'; // 기현님 로고 경로 확인!
 
 // ✅ 백엔드 베이스 URL
-const API_BASE =
-  process.env.REACT_APP_API_BASE ||
-  process.env.REACT_APP_API_BASE ||
-  'http://localhost:8080';
 
 const pages = [
   { label: '견적서 작성', path: '/estimatepage' },
@@ -79,8 +80,6 @@ export default function ResponsiveAppBar() {
   const myPageLabel = isAdmin ? '관리자페이지' : '마이페이지';
   const displayUserName = loginState?.memberId || loginState?.nickname || loginState?.email || '회원';
 
-
-
   // ✅ 1) 앱 로드 시: 토큰 리프레시 로직 (기존 엔진 유지)
   useEffect(() => {
     if (hasReduxLogin || accessToken) return;
@@ -100,9 +99,12 @@ export default function ResponsiveAppBar() {
         if (!res.ok) return;
         const data = await res.json().catch(() => ({}));
         const newAccess = data.accessToken || data.access || data.token || null;
+        const newRefresh = data.refreshToken || data.refresh || null;
         if (!newAccess || aborted) return;
 
         sessionStorage.setItem('accessToken', newAccess);
+        // 🔒 회전(rotation): 새 refresh 토큰을 반드시 저장 (옛 토큰은 서버에서 폐기됨)
+        if (newRefresh) sessionStorage.setItem('refreshToken', newRefresh);
 
         const payload = decodeJwt(newAccess) || {};
         dispatch(loginAction(payload));
@@ -137,6 +139,9 @@ export default function ResponsiveAppBar() {
   const [anchorElUser, setAnchorElUser] = React.useState(null);
   const [menuOpen, setMenuOpen] = React.useState(false);
 
+  // ✅ 알림: 행동필요형이 있으면 아바타에 통합 빨간점(구체 항목은 사이드바 메뉴 점으로 안내)
+  const { hasAlert } = useNotificationSummary();
+
   const handleOpenNavMenu = (e) => setAnchorElNav(e.currentTarget);
   const handleOpenUserMenu = (e) => setAnchorElUser(e.currentTarget);
   const handleCloseNavMenu = () => setAnchorElNav(null);
@@ -145,24 +150,29 @@ export default function ResponsiveAppBar() {
   // ✅ 4) 로그아웃
   const handleLogout = async () => {
     try {
+      // 🔒 제거 전에 refresh 토큰 확보 → 서버측 폐기(blacklist)
+      const refreshToken = sessionStorage.getItem('refreshToken');
       sessionStorage.removeItem('accessToken');
       sessionStorage.removeItem('refreshToken');
 
       try {
-        await fetch(`${API_BASE}/api/auth/logout`, { method: 'POST' });
+        await fetch(`${API_BASE}/api/auth/logout`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reason: 'user_logout', refreshToken }),
+        });
       } catch { /* ignore */ }
       dispatch(logoutAction());
+      if (typeof window !== 'undefined') window.dispatchEvent(new Event('authChanged'));
     } finally {
       navigate('/login', { replace: true });
     }
   };
 
   return (
-    <header className="relative z-50 bg-white text-gray-800 font-sans w-full">
+    <header className="relative z-50 bg-white text-gray-800 font-sans w-full border-b border-gray-200">
       <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="flex flex-row justify-between items-center h-16 lg:h-20 relative">
-
-
 
           <Link to="/" className="flex-shrink-0">
             <img
@@ -186,9 +196,40 @@ export default function ResponsiveAppBar() {
               <>
                 <Link
                   to={myPagePath}
-                  className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                  title={displayUserName}
+                  aria-label={`${displayUserName} ${myPageLabel}${hasAlert ? ' (확인 필요)' : ''}`}
+                  className="flex-shrink-0"
                 >
-                  {displayUserName}
+                  {/* 프로필 미등록/로드 실패 시 마이페이지와 동일한 플레이스홀더(연한 파란 원 + 사람 아이콘) */}
+                  {/* 행동 필요한 항목이 있으면 우상단에 통합 빨간점 → 클릭 시 마이페이지로 이동(구체 항목은 사이드바 점으로 안내) */}
+                  <Badge
+                    color="error"
+                    variant="dot"
+                    invisible={!hasAlert}
+                    overlap="circular"
+                    anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+                    sx={{ '& .MuiBadge-badge': { bgcolor: '#DC2626', boxShadow: '0 0 0 2px #fff' } }}
+                  >
+                    <Avatar
+                      src={loginState?.profileImage || DEFAULT_AVATAR}
+                      alt={displayUserName}
+                      sx={{
+                        width: { xs: 36, lg: 40 },
+                        height: { xs: 36, lg: 40 },
+                        bgcolor: '#eff6ff',
+                        border: '1px solid #e5e7eb',
+                        transition: 'border-color 0.2s',
+                        '&:hover': { borderColor: '#DC2626' },
+                      }}
+                      imgProps={{
+                        referrerPolicy: 'no-referrer',
+                        crossOrigin: 'anonymous',
+                        onError: (e) => { e.currentTarget.src = DEFAULT_AVATAR; },
+                      }}
+                    >
+                      <PersonIcon sx={{ color: '#2563eb', fontSize: { xs: 20, lg: 22 } }} />
+                    </Avatar>
+                  </Badge>
                 </Link>
                 <button
                   onClick={handleLogout}

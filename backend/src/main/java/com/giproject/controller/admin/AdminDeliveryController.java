@@ -1,4 +1,5 @@
 package com.giproject.controller.admin;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import com.giproject.dto.admin.AdminMemberSearchDTO;
 import com.giproject.dto.admin.DeliveryDetailDTO; // Added import
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/fr/admin/delivery")
 @RequiredArgsConstructor
+@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 public class AdminDeliveryController {
 
     private final AdminDeliveryService adminDeliveryService;

@@ -1,16 +1,11 @@
+import { API_BASE } from '../../../config';
 import { useEffect, useState } from 'react';
 import { Outlet, Navigate, useLocation } from 'react-router-dom';
+import { Box, CircularProgress } from '@mui/material';
 import axios from 'axios';
-
-const API_BASE =
-  process.env.REACT_APP_API_BASE ||
-  process.env.REACT_APP_API_BASE ||
-  'http://localhost:8080';
 
 const pickToken = () =>
   sessionStorage.getItem('accessToken') ||
-  sessionStorage.getItem('accessToken') ||
-  sessionStorage.getItem('ACCESS_TOKEN') ||
   sessionStorage.getItem('ACCESS_TOKEN') ||
   null;
 
@@ -35,7 +30,14 @@ export default function RequireAuth() {
     return () => { cancelled = true; };
   }, []); 
 
-  if (ok === null) return null; 
+  // 인증 확인 중: 빈 화면 대신 로딩 표시 (깜빡임 제거)
+  if (ok === null) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   if (!ok) {
     return (

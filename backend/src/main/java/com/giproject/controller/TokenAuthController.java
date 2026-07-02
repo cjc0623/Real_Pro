@@ -54,6 +54,8 @@ public class TokenAuthController {
 
     private final PasswordEncoder passwordEncoder;
 
+    private final com.giproject.service.auth.TokenBlacklistService tokenBlacklistService;
+
     /* ----------------------------
      * 공통 에러 포맷
      * ---------------------------- */
@@ -342,13 +344,22 @@ public class TokenAuthController {
             return ResponseEntity.status(401).body(new ApiError("INVALID_REFRESH", "리프레시 토큰이 유효하지 않습니다."));
         }
 
+        // 🔒 [보안] 서버측 폐기(blacklist) 확인 — 이미 회전/로그아웃으로 폐기된 토큰은 재사용 불가
+        String jti = jwtService.getJti(refreshToken);
+        if (tokenBlacklistService.isRevoked(jti)) {
+            return ResponseEntity.status(401).body(new ApiError("REVOKED_REFRESH", "이미 사용되었거나 폐기된 리프레시 토큰입니다."));
+        }
+
         String username = jwtService.getUsername(refreshToken);
         var userDetails = userDetailsService.loadUserByUsername(username);
         var authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
         String access = jwtService.generateAccessToken(authentication);
+        // 🔒 [보안] refresh 토큰 회전(rotation) + 기존 토큰 서버측 폐기 → 재사용 차단
+        tokenBlacklistService.revoke(jti, jwtService.getExpiresAt(refreshToken));
+        String newRefresh = jwtService.generateRefreshToken(authentication);
 
-        return ResponseEntity.ok(Map.of("accessToken", access, "refreshToken", refreshToken));
+        return ResponseEntity.ok(Map.of("accessToken", access, "refreshToken", newRefresh));
     }
 
     @Data
@@ -358,8 +369,21 @@ public class TokenAuthController {
 
     /* ===== 4) 로그아웃 ===== */
     @PostMapping("/logout")
-    public ResponseEntity<?> logout() {
+    public ResponseEntity<?> logout(@RequestBody(required = false) LogoutReq req) {
+        // 🔒 [보안] 로그아웃 시 refresh 토큰을 서버측에서 폐기 → 이후 재사용 차단
+        if (req != null && req.getRefreshToken() != null && !req.getRefreshToken().isBlank()
+                && jwtService.validate(req.getRefreshToken())) {
+            tokenBlacklistService.revoke(
+                    jwtService.getJti(req.getRefreshToken()),
+                    jwtService.getExpiresAt(req.getRefreshToken()));
+        }
         return ResponseEntity.ok(Map.of("ok", true));
+    }
+
+    @Data
+    static class LogoutReq {
+        private String refreshToken;
+        private String reason;
     }
 
     /* ===== 5) 아이디 찾기 ===== */

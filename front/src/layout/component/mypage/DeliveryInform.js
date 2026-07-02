@@ -1,3 +1,4 @@
+import { API_BASE } from '../../../config';
 // DeliveryInfoPage.jsx (full)
 // 완료된 배송: 신고버튼 추가 (deliveryNo 전달)
 import React, { useEffect, useMemo, useState } from 'react';
@@ -17,12 +18,7 @@ import { createReview, getReviewExistsByDeliveryNo } from '../../../api/reviewAp
 import DriverProfileModal from '../common/DriverProfileModal';
 import ShipperProfileModal from '../common/ShipperProfileModal';
 
-
 // ===== 공통 API 베이스/인스턴스 =====
-const API_BASE =
-  process.env.REACT_APP_API_BASE ||
-  process.env.REACT_APP_API_BASE ||
-  'http://localhost:8080';
 
 const api = axios.create({ baseURL: API_BASE });
 api.interceptors.request.use((config) => {

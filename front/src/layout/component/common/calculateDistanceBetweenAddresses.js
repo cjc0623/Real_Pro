@@ -1,10 +1,9 @@
-const REST_API_KEY = "d381d00137ba5677a3ee0355c4c95abf";
+import { API_BASE } from '../../../config';
+// 🔒 [보안] Kakao REST 키를 브라우저에 노출하지 않도록 백엔드 프록시(/fr/maps/**) 경유로 호출
 
 export const fetchCoordsByAddress = async (address) => {
-  const url = `https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(address)}`;
-  const res = await fetch(url, {
-    headers: { Authorization: `KakaoAK ${REST_API_KEY}` },
-  });
+  const url = `${API_BASE}/fr/maps/geocode?query=${encodeURIComponent(address)}`;
+  const res = await fetch(url);
   const data = await res.json();
 
   if (!data.documents || data.documents.length === 0) {
@@ -20,10 +19,8 @@ export const calculateDistanceBetweenAddresses = async (startAddress, endAddress
     const start = await fetchCoordsByAddress(startAddress);
     const end = await fetchCoordsByAddress(endAddress);
 
-    const routeUrl = `https://apis-navi.kakaomobility.com/v1/directions?origin=${start.lng},${start.lat}&destination=${end.lng},${end.lat}`;
-    const res = await fetch(routeUrl, {
-      headers: { Authorization: `KakaoAK ${REST_API_KEY}` },
-    });
+    const routeUrl = `${API_BASE}/fr/maps/directions?origin=${start.lng},${start.lat}&destination=${end.lng},${end.lat}`;
+    const res = await fetch(routeUrl);
     const data = await res.json();
 
     if (!data.routes || data.routes.length === 0) {

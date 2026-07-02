@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
+import './api/axiosSetup'; // 전역 axios JWT 인터셉터 등록 (앱 시작 시 1회)
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 

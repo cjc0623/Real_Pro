@@ -1,4 +1,5 @@
 package com.giproject.controller.admin;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.*;
 
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/fr/admin/cargo")
 @RequiredArgsConstructor
+@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 public class AdminCargoController {
 
     private final CargoRepository cargoRepository;

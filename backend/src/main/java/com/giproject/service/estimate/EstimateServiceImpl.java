@@ -1,4 +1,6 @@
 package com.giproject.service.estimate;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 import java.util.List;
 import java.util.Optional;
@@ -105,11 +107,11 @@ public class EstimateServiceImpl implements EstimateService {
     @Transactional
     public List<Long> createDirectRequests(EstimateDTO dto, List<String> cargoIds) {
         if (cargoIds == null || cargoIds.isEmpty()) {
-            throw new RuntimeException("직접요청을 보낼 차주를 1명 이상 선택해야 합니다.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "직접요청을 보낼 차주를 1명 이상 선택해야 합니다.");
         }
         long distinctCount = cargoIds.stream().distinct().count();
         if (distinctCount > 5) {
-            throw new RuntimeException("직접요청은 한 번에 최대 5명의 차주에게만 보낼 수 있습니다.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "직접요청은 한 번에 최대 5명의 차주에게만 보낼 수 있습니다.");
         }
         log.info("직접요청(팬아웃) 제출 - 화주: {}, 대상 차주 {}명, 거리: {}km",
                 dto.getMemberId(), cargoIds.size(), dto.getDistanceKm());

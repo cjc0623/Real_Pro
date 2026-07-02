@@ -1,3 +1,4 @@
+import { API_BASE } from '../../../config';
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { useDispatch } from 'react-redux';
@@ -10,9 +11,6 @@ import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
 // =================== 공통 상수/유틸 ===================
-const API_BASE =
-  process.env.REACT_APP_API_BASE ||
-  'http://localhost:8080';
 
 const DEFAULT_AVATAR = '/image/placeholders/avatar.svg';
 
