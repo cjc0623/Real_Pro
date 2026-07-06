@@ -14,10 +14,15 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Pattern;
 
 @Slf4j
 @Service
@@ -37,33 +42,57 @@ public class PasswordResetService {
     private final Map<String, Challenge> store = new ConcurrentHashMap<>();
     private final SecureRandom random = new SecureRandom();
 
+    // 동일 loginId 재요청 쿨다운 추적(이메일 폭탄·챌린지 남발 방지).
+    // 존재 여부와 무관하게 '입력 loginId' 기준으로만 적용 → 사용자 열거는 여전히 불가.
+    private final Map<String, Instant> lastRequestAt = new ConcurrentHashMap<>();
+
     // 설정값
     private final int CODE_DIGITS = 6;
     private final int CHALLENGE_TTL_SEC = 180;      // 인증코드 유효 3분
     private final int RESET_TOKEN_TTL_SEC = 5 * 60; // resetToken 유효 5분
+    private final int MAX_VERIFY_ATTEMPTS = 5;      // 코드 검증 최대 시도(무차별 대입 방지)
+    private final int REQUEST_COOLDOWN_SEC = 60;    // 동일 아이디 재요청 최소 간격(초)
+
+    // 서버측 비밀번호 정책 — 프론트(usePasswordForm)의 규칙과 동일:
+    // 영문/숫자/특수문자(!@*_#$%^&?) 각 1자 이상 포함, 허용 문자만, 8~20자.
+    private static final Pattern PW_POLICY = Pattern.compile(
+            "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[!@*_#$%^&?])[A-Za-z\\d!@*_#$%^&?]{8,20}$");
 
     /* =========================
      * High-level API (컨트롤러에서 사용하기 좋은 형태)
      * ========================= */
 
-    /** (STEP 1) 아이디/이메일 확인 → 챌린지 발급 + 메일 발송 → 응답 DTO 반환 */
+    /**
+     * (STEP 1) 아이디/이메일 확인 → 챌린지 발급 + 메일 발송 → 응답 DTO 반환.
+     *
+     * 🔒 사용자 열거(enumeration) 방지: 회원 존재/이메일 일치 여부와 무관하게
+     *   - 항상 동일한 응답(challengeId + 입력 이메일 마스킹 + ttl)을 200으로 반환하고,
+     *   - 메일은 실제 일치할 때만, 그리고 '비동기'로 발송하여 SMTP 지연이 응답 시간에
+     *     반영되지 않도록 한다(응답 문구·시간 모두 동일 → 존재 여부 식별 불가).
+     */
     public IssueResult startReset(String loginId, String email) {
-        // 1) 회원 존재/이메일 매칭 검증
-        Member m = memberRepository.findById(loginId)
-                .orElseThrow(() -> new NoSuchElementException("NO_SUCH_USER"));
-        if (m.getMemEmail() == null || !m.getMemEmail().equalsIgnoreCase(email)) {
-            throw new IllegalArgumentException("EMAIL_NOT_MATCH");
+        // 0) 재요청 쿨다운 — 입력 loginId 기준(존재 여부 무관)으로만 판단 → 이메일 폭탄/무차별 방지, 열거는 불가
+        Instant last = lastRequestAt.get(loginId);
+        if (last != null && Instant.now().isBefore(last.plusSeconds(REQUEST_COOLDOWN_SEC))) {
+            throw new TooManyRequestsException("TOO_MANY_REQUESTS");
         }
+        lastRequestAt.put(loginId, Instant.now());
 
-        // 2) 챌린지 발급 + 메일 발송
+        // 1) 회원/이메일 일치 여부를 '예외 없이' 판정 (분기별 조기 return 금지 → 타이밍 균일)
+        boolean valid = memberRepository.findById(loginId)
+                .map(m -> m.getMemEmail() != null && m.getMemEmail().equalsIgnoreCase(email))
+                .orElse(false);
+
+        // 2) 존재 여부와 무관하게 항상 챌린지 발급(불일치 시 디코이) → 응답 형태 동일
         Challenge ch = issueChallenge(loginId, email);
-        sendCodeEmail(email, ch.code());
 
-        return new IssueResult(
-                ch.id(),
-                maskEmail(email),
-                ch.getTtlSeconds()
-        );
+        // 3) 메일은 일치할 때만 + 비동기 발송 → SMTP 지연이 응답 시간에 드러나지 않음(타이밍 열거 차단)
+        final boolean send = valid;
+        final String code = ch.code();
+        CompletableFuture.runAsync(() -> { if (send) sendCodeEmail(email, code); });
+
+        // 4) 마스킹은 '입력 이메일' 기준 → 저장된 이메일을 확인해 주지 않음
+        return new IssueResult(ch.id(), maskEmail(email), ch.getTtlSeconds());
     }
 
     /** (STEP 2) 코드 검증 → 성공 시 resetToken 발급 → 응답 DTO 반환 */
@@ -75,6 +104,10 @@ public class PasswordResetService {
 
     /** (STEP 3) resetToken 검증 → 비밀번호 변경 */
     public void completeReset(String resetToken, String newPassword) {
+        // 🔒 서버측 비밀번호 정책 검증(프론트 폼을 우회한 직접 API 호출 차단)
+        if (!isPasswordValid(newPassword)) {
+            throw new IllegalArgumentException("WEAK_PASSWORD");
+        }
         boolean ok = resetPassword(resetToken, newPassword);
         if (!ok) throw new IllegalArgumentException("INVALID_RESET_TOKEN");
     }
@@ -88,9 +121,10 @@ public class PasswordResetService {
         String id = UUID.randomUUID().toString();
         String code = randomCode(CODE_DIGITS);
         Instant expiresAt = Instant.now().plusSeconds(CHALLENGE_TTL_SEC);
-        Challenge ch = new Challenge(id, loginId, email, code, expiresAt);
+        Challenge ch = new Challenge(id, loginId, email, code, expiresAt, new AtomicInteger(0));
         store.put(id, ch);
-        log.info("[PWD_RESET] issue challenge id={}, loginId={}, email={}, code={}", id, loginId, email, code);
+        // 🔒 인증코드·이메일은 로그에 남기지 않는다(로그 접근만으로 계정 탈취 방지). 식별용 id/loginId만 기록.
+        log.info("[PWD_RESET] challenge issued id={}, loginId={}", id, loginId);
         return ch;
     }
 
@@ -131,7 +165,12 @@ public class PasswordResetService {
             store.remove(challengeId);
             return Optional.empty();
         }
-        if (!Objects.equals(ch.code(), code)) {
+        // 🔒 무차별 대입 방지: 시도 횟수 초과 시 챌린지 폐기(이후 시도는 모두 동일하게 실패)
+        if (ch.attempts().incrementAndGet() > MAX_VERIFY_ATTEMPTS) {
+            store.remove(challengeId);
+            return Optional.empty();
+        }
+        if (!constantTimeEquals(ch.code(), code)) {
             return Optional.empty();
         }
         // 일회성 사용 — 사용 후 제거
@@ -174,6 +213,19 @@ public class PasswordResetService {
      * 유틸
      * ========================= */
 
+    /** 서버측 비밀번호 정책 검증(프론트 usePasswordForm 규칙과 동일) */
+    private boolean isPasswordValid(String pw) {
+        return pw != null && PW_POLICY.matcher(pw).matches();
+    }
+
+    /** 타이밍 공격 완화용 상수시간 비교(코드 대조) */
+    private boolean constantTimeEquals(String a, String b) {
+        if (a == null || b == null) return false;
+        return MessageDigest.isEqual(
+                a.getBytes(StandardCharsets.UTF_8),
+                b.getBytes(StandardCharsets.UTF_8));
+    }
+
     private String randomCode(int digits) {
         int bound = (int) Math.pow(10, digits);
         int n = random.nextInt(bound);
@@ -209,7 +261,8 @@ public class PasswordResetService {
             String loginId,
             String email,
             String code,
-            Instant expiresAt
+            Instant expiresAt,
+            AtomicInteger attempts   // 코드 검증 시도 횟수(무차별 대입 방지)
     ) {
         public int getTtlSeconds() {
             long sec = expiresAt.getEpochSecond() - Instant.now().getEpochSecond();
@@ -236,5 +289,10 @@ public class PasswordResetService {
     public static class VerifyResult {
         private final String resetToken;
         public VerifyResult(String resetToken) { this.resetToken = resetToken; }
+    }
+
+    /** 재요청 쿨다운 초과(HTTP 429 매핑용) */
+    public static class TooManyRequestsException extends RuntimeException {
+        public TooManyRequestsException(String message) { super(message); }
     }
 }

@@ -1,0 +1,48 @@
+{
+  "issues": [],
+  "warnings": [
+    "Node 'file:backend/.understand-anything/.understandignore' has no edges (orphan)",
+    "Node 'config:backend/.understand-anything/config.json' has no edges (orphan)",
+    "Node 'file:backend/src/main/java/com/giproject/config/AopConfig.java' has no edges (orphan)",
+    "Node 'file:backend/src/main/java/com/giproject/controller/MiscController.java' has no edges (orphan)",
+    "Node 'file:backend/src/main/java/com/giproject/controller/SNSController.java' has no edges (orphan)",
+    "Node 'file:backend/src/main/java/com/giproject/repository/qna/MyInquiryRow.java' has no edges (orphan)",
+    "Node 'table:backend/src/main/resources/data-noboard.sql:notice' has no edges (orphan)",
+    "Node 'table:backend/src/main/resources/data-qaboard.sql:qa_post' has no edges (orphan)",
+    "Node 'file:backend/src/main/resources/static/css/suit.css' has no edges (orphan)",
+    "Node 'file:front/public/suit.css' has no edges (orphan)",
+    "Node 'file:front/.understand-anything/.understandignore' has no edges (orphan)",
+    "Node 'config:front/.understand-anything/config.json' has no edges (orphan)",
+    "Node 'file:front/postcss.config.js' has no edges (orphan)",
+    "Node 'file:front/src/layout/component/mypage/2team_project-1.code-workspace' has no edges (orphan)",
+    "Node 'file:front/src/pages/ServiceCenterPage.js' has no edges (orphan)",
+    "Node 'file:front/src/setupProxy.js' has no edges (orphan)",
+    "Node 'file:front/src/setupTests.js' has no edges (orphan)",
+    "Node 'file:front/tailwind.config.js' has no edges (orphan)"
+  ],
+  "stats": {
+    "totalNodes": 925,
+    "totalEdges": 1648,
+    "totalLayers": 16,
+    "tourSteps": 28,
+    "nodeTypes": {
+      "file": 393,
+      "class": 171,
+      "function": 349,
+      "config": 8,
+      "table": 2,
+      "document": 2
+    },
+    "edgeTypes": {
+      "contains": 513,
+      "implements": 18,
+      "imports": 772,
+      "depends_on": 56,
+      "calls": 113,
+      "configures": 2,
+      "exports": 160,
+      "related": 10,
+      "tested_by": 4
+    }
+  }
+}

@@ -1,0 +1,198 @@
+{
+  "projectRoot": "C:/Users/hallyms/Desktop/Real_Pro",
+  "batchFiles": [
+    {
+      "path": "backend/src/main/java/com/giproject/controller/TokenAuthController.java",
+      "language": "java",
+      "sizeLines": 399,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/main/java/com/giproject/controller/notification/NotificationController.java",
+      "language": "java",
+      "sizeLines": 31,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/main/java/com/giproject/dto/notification/NotificationSummaryDTO.java",
+      "language": "java",
+      "sizeLines": 28,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/main/java/com/giproject/entity/auth/RevokedToken.java",
+      "language": "java",
+      "sizeLines": 37,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/main/java/com/giproject/repository/auth/RevokedTokenRepository.java",
+      "language": "java",
+      "sizeLines": 19,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/main/java/com/giproject/repository/cargo/CargoRepository.java",
+      "language": "java",
+      "sizeLines": 24,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/main/java/com/giproject/repository/delivery/DeliveryRepository.java",
+      "language": "java",
+      "sizeLines": 112,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/main/java/com/giproject/repository/matching/DirectRequestRepository.java",
+      "language": "java",
+      "sizeLines": 32,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/main/java/com/giproject/repository/matching/MatchingRepository.java",
+      "language": "java",
+      "sizeLines": 85,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/main/java/com/giproject/repository/qaboard/QAPostRepository.java",
+      "language": "java",
+      "sizeLines": 230,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/main/java/com/giproject/repository/review/ReviewRepository.java",
+      "language": "java",
+      "sizeLines": 257,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/main/java/com/giproject/security/JwtAuthenticationFilter.java",
+      "language": "java",
+      "sizeLines": 83,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/main/java/com/giproject/security/JwtService.java",
+      "language": "java",
+      "sizeLines": 210,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/main/java/com/giproject/service/auth/PasswordResetService.java",
+      "language": "java",
+      "sizeLines": 241,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/main/java/com/giproject/service/auth/TokenBlacklistService.java",
+      "language": "java",
+      "sizeLines": 38,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/main/java/com/giproject/service/notification/NotificationService.java",
+      "language": "java",
+      "sizeLines": 15,
+      "fileCategory": "code"
+    },
+    {
+      "path": "backend/src/main/java/com/giproject/service/notification/NotificationServiceImpl.java",
+      "language": "java",
+      "sizeLines": 117,
+      "fileCategory": "code"
+    },
+    {
+      "path": "front/src/api/axiosSetup.js",
+      "language": "javascript",
+      "sizeLines": 41,
+      "fileCategory": "code"
+    },
+    {
+      "path": "front/src/api/notificationApi.js",
+      "language": "javascript",
+      "sizeLines": 20,
+      "fileCategory": "code"
+    },
+    {
+      "path": "front/src/common/AdminBottomNav.jsx",
+      "language": "javascript",
+      "sizeLines": 72,
+      "fileCategory": "code"
+    },
+    {
+      "path": "front/src/common/AdminSidebar.js",
+      "language": "javascript",
+      "sizeLines": 318,
+      "fileCategory": "code"
+    },
+    {
+      "path": "front/src/common/BottomNav.jsx",
+      "language": "javascript",
+      "sizeLines": 140,
+      "fileCategory": "code"
+    },
+    {
+      "path": "front/src/common/ResponsiveAppBar.js",
+      "language": "javascript",
+      "sizeLines": 305,
+      "fileCategory": "code"
+    },
+    {
+      "path": "front/src/common/Sidebar.js",
+      "language": "javascript",
+      "sizeLines": 279,
+      "fileCategory": "code"
+    },
+    {
+      "path": "front/src/hooks/useAuth.js",
+      "language": "javascript",
+      "sizeLines": 124,
+      "fileCategory": "code"
+    },
+    {
+      "path": "front/src/hooks/useNotificationSummary.js",
+      "language": "javascript",
+      "sizeLines": 168,
+      "fileCategory": "code"
+    },
+    {
+      "path": "front/src/layout/component/auth/EmailVerifyDialog.js",
+      "language": "javascript",
+      "sizeLines": 212,
+      "fileCategory": "code"
+    },
+    {
+      "path": "front/src/layout/component/estimate/EstimateComponentCombined.js",
+      "language": "javascript",
+      "sizeLines": 797,
+      "fileCategory": "code"
+    },
+    {
+      "path": "front/src/layout/component/users/FindIdComponent.js",
+      "language": "javascript",
+      "sizeLines": 151,
+      "fileCategory": "code"
+    },
+    {
+      "path": "front/src/layout/component/users/FindPasswordComponent.js",
+      "language": "javascript",
+      "sizeLines": 370,
+      "fileCategory": "code"
+    },
+    {
+      "path": "front/src/pages/HomePage.js",
+      "language": "javascript",
+      "sizeLines": 338,
+      "fileCategory": "code"
+    },
+    {
+      "path": "front/src/slice/loginSlice.js",
+      "language": "javascript",
+      "sizeLines": 190,
+      "fileCategory": "code"
+    }
+  ],
+  "batchImportData": {}
+}
