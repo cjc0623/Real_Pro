@@ -87,3 +87,34 @@ export const isTokenValid = () => {
 export const isUserLoggedIn = () => {
   return isTokenValid();
 };
+
+/**
+ * 전달된 JWT 문자열이 만료되었는지 확인 (exp 클레임 기준)
+ * - 디코딩 실패 / exp 없음 → 만료로 간주(안전측)
+ * @param {string} token - JWT 토큰
+ * @returns {boolean} - 만료 여부
+ */
+export const isTokenExpired = (token) => {
+  if (!token) return true;
+  const payload = decodeToken(token);
+  if (!payload || !payload.exp) return true;
+  // exp 클레임은 초 단위 → 현재 시각(초)과 비교
+  return Date.now() / 1000 >= payload.exp;
+};
+
+/**
+ * 앱 시작 시 1회 호출: 액세스 토큰이 만료됐으면 세션을 완전히 정리한다.
+ * "만료 = 로그아웃" 정책이므로 리프레시 토큰도 함께 제거하여 자동 재로그인을 막는다.
+ * → 새로고침 시 만료된 토큰이 남아 로그인 상태로 잘못 표시되던 문제 방지.
+ * @returns {boolean} - 정리(로그아웃)했으면 true
+ */
+export const purgeExpiredTokens = () => {
+  const token = sessionStorage.getItem('accessToken');
+  if (token && isTokenExpired(token)) {
+    sessionStorage.removeItem('accessToken');
+    sessionStorage.removeItem('refreshToken');
+    sessionStorage.removeItem('ACCESS_TOKEN');
+    return true;
+  }
+  return false;
+};

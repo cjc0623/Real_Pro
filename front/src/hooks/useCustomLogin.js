@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { Navigate, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { loginPostAsync, getUserInfoAsync, logout as logoutAction } from "../slice/loginSlice";
+import { isTokenExpired } from "../utils/jwtUtils";
 
 // 백엔드 베이스 URL
 
@@ -21,8 +22,11 @@ const clearTokens = () => {
    sessionStorage.removeItem("accessToken");
    sessionStorage.removeItem("refreshToken");
 };
-const hasToken = () =>
-   Boolean(sessionStorage.getItem("accessToken"));
+const hasToken = () => {
+   const t = sessionStorage.getItem("accessToken");
+   // 토큰이 있더라도 만료됐으면 로그인 아님으로 취급
+   return Boolean(t) && !isTokenExpired(t);
+};
 
 // ✅ 실제 로그인 API 호출 (경로 고정: /api/auth/login)
 async function loginApi({ loginId, password }) {
