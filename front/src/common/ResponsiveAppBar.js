@@ -7,6 +7,7 @@ import Avatar from '@mui/material/Avatar';
 import Badge from '@mui/material/Badge';
 import PersonIcon from '@mui/icons-material/Person';
 import useNotificationSummary from '../hooks/useNotificationSummary';
+import { isTokenExpired } from '../utils/jwtUtils';
 import logo from '../assets/logo.png'; // 기현님 로고 경로 확인!
 
 // ✅ 백엔드 베이스 URL
@@ -65,7 +66,8 @@ export default function ResponsiveAppBar() {
   const loginState = useSelector((state) => state?.login);
   const hasReduxLogin = Boolean(loginState?.email || loginState?.memberId);
   const accessToken = (typeof window !== 'undefined') ? pickToken() : null;
-  const isLogin = hasReduxLogin || Boolean(accessToken);
+  // 토큰이 "존재"만 하는 게 아니라 "만료되지 않아야" 로그인으로 인정 (만료된 토큰으로 로그인 UI가 뜨는 문제 방지)
+  const isLogin = hasReduxLogin || (Boolean(accessToken) && !isTokenExpired(accessToken));
 
   // 2. ✅ roles 정의 (순서가 가장 먼저 와야 합니다!)
   const roles = Array.isArray(loginState?.roles) ? loginState.roles :
