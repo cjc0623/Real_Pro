@@ -8,7 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
-import java.util.NoSuchElementException;
 
 @RestController
 @RequiredArgsConstructor
@@ -28,19 +27,16 @@ public class PasswordResetController {
             return ResponseEntity.badRequest().body(Map.of("message", "LOGIN_ID_AND_EMAIL_REQUIRED"));
         }
         try {
+            // 🔒 사용자 열거 방지: 존재 여부와 무관하게 항상 동일한 200 응답(문구·시간 동일)
             var r = passwordResetService.startReset(dto.getLoginId().trim(), dto.getEmail().trim());
             return ResponseEntity.ok(Map.of(
                     "challengeId", r.getChallengeId(),
                     "maskedEmail", r.getMaskedEmail(),
                     "ttlSeconds",  r.getTtlSeconds()
             ));
-        } catch (NoSuchElementException e) {
-            // 존재하지 않는 사용자
-            return ResponseEntity.badRequest().body(Map.of("message", "NO_SUCH_USER"));
-        } catch (IllegalArgumentException e) {
-            // 이메일 미일치 등
-            String msg = e.getMessage();
-            return ResponseEntity.badRequest().body(Map.of("message", msg != null ? msg : "EMAIL_NOT_MATCH"));
+        } catch (PasswordResetService.TooManyRequestsException e) {
+            // 재요청 쿨다운 — 입력 아이디 기준이라 계정 존재 여부를 드러내지 않음
+            return ResponseEntity.status(429).body(Map.of("message", "TOO_MANY_REQUESTS"));
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(Map.of("message", "INTERNAL_ERROR"));
         }
@@ -80,7 +76,9 @@ public class PasswordResetController {
             passwordResetService.completeReset(dto.getResetToken().trim(), dto.getNewPassword());
             return ResponseEntity.ok(Map.of("ok", true));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("message", "INVALID_RESET_TOKEN"));
+            // 🔒 서버측 비밀번호 정책 위반과 토큰 무효를 구분해 안내(둘 다 계정 존재 여부는 노출 안 함)
+            String msg = "WEAK_PASSWORD".equals(e.getMessage()) ? "WEAK_PASSWORD" : "INVALID_RESET_TOKEN";
+            return ResponseEntity.badRequest().body(Map.of("message", msg));
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(Map.of("message", "INTERNAL_ERROR"));
         }

@@ -1,7 +1,7 @@
 {
-  "lastAnalyzedAt": "2026-06-19T01:01:53.752Z",
-  "gitCommitHash": "ca020d81aca07e215783fe16e73d91f9beeaa4db",
+  "lastAnalyzedAt": "2026-07-02T01:59:19.598Z",
+  "gitCommitHash": "0d40cec72da72f0026d08f25464edd01a3bd78e2",
   "version": "1.0.0",
-  "analyzedFiles": 422,
-  "note": "Merged from backend + front subdomain graphs"
+  "analyzedFiles": 405,
+  "note": "Incremental update: notification feature + auth token blacklist (jw0618 merge)"
 }

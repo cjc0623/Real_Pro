@@ -339,13 +339,12 @@
       "type": "file",
       "name": "DeliveryRepository.java",
       "filePath": "backend/src/main/java/com/giproject/repository/delivery/DeliveryRepository.java",
-      "summary": "배송 entity의 핵심 JPA repository로, 월별 배송·매출 집계, 매칭/결제 기반 배송 조회, 상세 fetch join 쿼리 등 다양한 커스텀 쿼리를 제공한다. 알림 뱃지용 회원별 상태 배송 카운트 쿼리(countByMemberAndStatus)를 제공한다.",
+      "summary": "배송 entity의 핵심 JPA repository로, 월별 배송·매출 집계, 매칭/결제 기반 배송 조회, 상세 fetch join 쿼리 등 다양한 커스텀 쿼리를 제공한다.",
       "tags": [
         "repository",
         "data-access",
         "delivery",
-        "jpa",
-        "notification"
+        "jpa"
       ],
       "complexity": "complex",
       "languageNotes": "JPQL fetch join, nativeQuery 매출 집계, FUNCTION('DATE_FORMAT') 월별 그룹핑 등 복합 쿼리 패턴을 다수 포함한다."
@@ -1601,14 +1600,13 @@
       "type": "file",
       "name": "QAPostRepository.java",
       "filePath": "backend/src/main/java/com/giproject/repository/qaboard/QAPostRepository.java",
-      "summary": "QnA 게시글 영속성을 담당하는 Spring Data JPA 리포지토리. 공개/전체/접근 가능 게시글 조회, 카테고리·키워드 검색, 작성자별 조회 등 권한을 고려한 다양한 @Query를 제공한다. 알림 뱃지용 미답변 문의 카운트 쿼리(countUnansweredInquiries)를 제공한다.",
+      "summary": "QnA 게시글 영속성을 담당하는 Spring Data JPA 리포지토리. 공개/전체/접근 가능 게시글 조회, 카테고리·키워드 검색, 작성자별 조회 등 권한을 고려한 다양한 @Query를 제공한다.",
       "tags": [
         "repository",
         "data-access",
         "jpa",
         "qna",
-        "권한관리",
-        "notification"
+        "권한관리"
       ],
       "complexity": "complex",
       "languageNotes": "@Query JPQL로 비공개 글 접근 권한을 반영한 복합 검색 쿼리를 다수 정의한다."
@@ -2340,7 +2338,7 @@
       "type": "file",
       "name": "TokenAuthController.java",
       "filePath": "backend/src/main/java/com/giproject/controller/TokenAuthController.java",
-      "summary": "JWT 기반 인증의 핵심 controller. 일반 로그인·소셜 가입 완료·토큰 리프레시·로그아웃·아이디 찾기를 처리하며 UserIndex/Member/CargoOwner/SocialAccount를 동시에 저장한다. refresh 토큰 회전 시 기존 토큰을 서버측 폐기(blacklist)하고 로그아웃 시에도 폐기해 재사용을 차단한다.",
+      "summary": "JWT 기반 인증의 핵심 controller. 일반 로그인·소셜 가입 완료·토큰 리프레시·로그아웃·아이디 찾기를 처리하며 UserIndex/Member/CargoOwner/SocialAccount를 동시에 저장한다.",
       "tags": [
         "api-handler",
         "controller",
@@ -3170,7 +3168,7 @@
       "type": "file",
       "name": "JwtService.java",
       "filePath": "backend/src/main/java/com/giproject/security/JwtService.java",
-      "summary": "JJWT 기반 토큰 발급·검증의 핵심 서비스로, access/refresh/temp 토큰 생성, 서명·검증, 클레임 파싱, Authentication 변환을 담당한다. refresh 토큰에 jti(폐기 식별자)를 부여하고 만료시각 조회(getJti/getExpiresAt)를 지원해 서버측 blacklist를 뒷받침한다.",
+      "summary": "JJWT 기반 토큰 발급·검증의 핵심 서비스로, access/refresh/temp 토큰 생성, 서명·검증, 클레임 파싱, Authentication 변환을 담당한다.",
       "tags": [
         "security",
         "service",
@@ -5188,14 +5186,13 @@
       "type": "file",
       "name": "ReviewRepository.java",
       "filePath": "backend/src/main/java/com/giproject/repository/review/ReviewRepository.java",
-      "summary": "리뷰 핵심 JPA 리포지토리로 배송/기사별 리뷰 조회, 평점 요약 집계, 내 리뷰·받은 리뷰 조회, 기사 프로필 카드 projection 등 다수의 JPQL 쿼리를 제공한다. 알림 뱃지용 대상 차주 수신 리뷰 카운트 쿼리(countByTargetCargoId)를 제공한다.",
+      "summary": "리뷰 핵심 JPA 리포지토리로 배송/기사별 리뷰 조회, 평점 요약 집계, 내 리뷰·받은 리뷰 조회, 기사 프로필 카드 projection 등 다수의 JPQL 쿼리를 제공한다.",
       "tags": [
         "repository",
         "data-access",
         "jpa",
         "review",
-        "query",
-        "notification"
+        "query"
       ],
       "complexity": "complex",
       "languageNotes": "DTO projection 생성자를 활용한 @Query JPQL이 다수 정의되어 집계·조인 결과를 직접 DTO로 매핑한다."
@@ -5613,13 +5610,12 @@
       "type": "file",
       "name": "CargoRepository.java",
       "filePath": "backend/src/main/java/com/giproject/repository/cargo/CargoRepository.java",
-      "summary": "차량(Cargo) 엔티티의 데이터 접근을 담당하는 Spring Data JPA 리포지토리로, 차주별·상태별 조회 메서드를 제공한다. 알림 뱃지용 상태별 차량 카운트 쿼리(countByStatus, countByCargoOwner_CargoIdAndStatus)를 제공한다.",
+      "summary": "차량(Cargo) 엔티티의 데이터 접근을 담당하는 Spring Data JPA 리포지토리로, 차주별·상태별 조회 메서드를 제공한다.",
       "tags": [
         "repository",
         "data-access",
         "cargo",
-        "jpa",
-        "notification"
+        "jpa"
       ],
       "complexity": "simple"
     },
@@ -5677,13 +5673,12 @@
       "type": "file",
       "name": "DirectRequestRepository.java",
       "filePath": "backend/src/main/java/com/giproject/repository/matching/DirectRequestRepository.java",
-      "summary": "지정요청(DirectRequest) 엔티티의 데이터 접근 리포지토리로, 받은/보낸 요청 조회 및 상태별 조회 쿼리를 제공한다. 알림 뱃지용 차주별 요청상태 카운트 쿼리(countByCargoOwner_CargoIdAndStatus)를 제공한다.",
+      "summary": "지정요청(DirectRequest) 엔티티의 데이터 접근 리포지토리로, 받은/보낸 요청 조회 및 상태별 조회 쿼리를 제공한다.",
       "tags": [
         "repository",
         "data-access",
         "matching",
-        "jpa",
-        "notification"
+        "jpa"
       ],
       "complexity": "simple"
     },
@@ -5709,13 +5704,12 @@
       "type": "file",
       "name": "MatchingRepository.java",
       "filePath": "backend/src/main/java/com/giproject/repository/matching/MatchingRepository.java",
-      "summary": "매칭(Matching) 엔티티의 데이터 접근 리포지토리로, 유효 매칭 목록·화주 대기 목록·수락 여부 조회 등 매칭 도메인의 핵심 쿼리를 제공한다. 알림 뱃지용 '수락 후 결제 전' 매칭 카운트 쿼리(countAcceptedAwaitingPaymentByMember)를 제공한다.",
+      "summary": "매칭(Matching) 엔티티의 데이터 접근 리포지토리로, 유효 매칭 목록·화주 대기 목록·수락 여부 조회 등 매칭 도메인의 핵심 쿼리를 제공한다.",
       "tags": [
         "repository",
         "data-access",
         "matching",
-        "jpa",
-        "notification"
+        "jpa"
       ],
       "complexity": "moderate",
       "languageNotes": "@Query JPQL로 화주/차주 관점의 매칭 목록 및 수락 상태를 조회한다."
@@ -11145,13 +11139,12 @@
       "type": "file",
       "name": "AdminBottomNav.jsx",
       "filePath": "front/src/common/AdminBottomNav.jsx",
-      "summary": "모바일 화면용 관리자 하단 탭 네비게이션 컴포넌트로, 현재 경로를 기준으로 활성 탭을 계산하고 탭 클릭 시 해당 관리자 페이지로 이동시킨다. 탭에 알림 빨간점 뱃지를 표시한다.",
+      "summary": "모바일 화면용 관리자 하단 탭 네비게이션 컴포넌트로, 현재 경로를 기준으로 활성 탭을 계산하고 탭 클릭 시 해당 관리자 페이지로 이동시킨다.",
       "tags": [
         "component",
         "navigation",
         "admin",
-        "mobile",
-        "notification"
+        "mobile"
       ],
       "complexity": "moderate"
     },
@@ -11177,13 +11170,12 @@
       "type": "file",
       "name": "AdminSidebar.js",
       "filePath": "front/src/common/AdminSidebar.js",
-      "summary": "관리자 화면의 좌측 사이드바로, 그룹형 메뉴를 접고 펼치며 미확인 신고 수를 주기적으로 폴링해 배지로 표시하고 화면 크기에 따라 하단 네비게이션으로 전환한다. 차량 승인대기·미답변 문의 등 알림 빨간점을 메뉴에 표시하고 진입 시 markSeen으로 끈다.",
+      "summary": "관리자 화면의 좌측 사이드바로, 그룹형 메뉴를 접고 펼치며 미확인 신고 수를 주기적으로 폴링해 배지로 표시하고 화면 크기에 따라 하단 네비게이션으로 전환한다.",
       "tags": [
         "component",
         "navigation",
         "admin",
-        "sidebar",
-        "notification"
+        "sidebar"
       ],
       "complexity": "complex",
       "languageNotes": "useMemo/useEffect와 setInterval 폴링, window 이벤트 리스너를 조합해 미확인 신고 배지를 실시간 갱신하는 패턴."
@@ -11211,12 +11203,11 @@
       "type": "file",
       "name": "BottomNav.jsx",
       "filePath": "front/src/common/BottomNav.jsx",
-      "summary": "일반 사용자용 모바일 하단 탭 네비게이션 컴포넌트로, 탭 목록을 기반으로 현재 경로에 해당하는 활성 탭을 계산하고 클릭 시 라우팅한다. 알림 행동필요 항목을 빨간점 뱃지로 표시한다(Sidebar에서 props 전달).",
+      "summary": "일반 사용자용 모바일 하단 탭 네비게이션 컴포넌트로, 탭 목록을 기반으로 현재 경로에 해당하는 활성 탭을 계산하고 클릭 시 라우팅한다.",
       "tags": [
         "component",
         "navigation",
-        "mobile",
-        "notification"
+        "mobile"
       ],
       "complexity": "moderate"
     },
@@ -11254,13 +11245,12 @@
       "type": "file",
       "name": "ResponsiveAppBar.js",
       "filePath": "front/src/common/ResponsiveAppBar.js",
-      "summary": "전역 상단 앱바 컴포넌트로, 세션 토큰을 디코딩해 로그인·역할 상태를 판별하고 사일런트 리프레시·로그아웃을 처리하며 반응형 메뉴와 사용자 메뉴를 렌더링한다. 프로필 아바타에 알림 통합 빨간점(useNotificationSummary)을 표시한다.",
+      "summary": "전역 상단 앱바 컴포넌트로, 세션 토큰을 디코딩해 로그인·역할 상태를 판별하고 사일런트 리프레시·로그아웃을 처리하며 반응형 메뉴와 사용자 메뉴를 렌더링한다.",
       "tags": [
         "component",
         "navigation",
         "appbar",
-        "authentication",
-        "notification"
+        "authentication"
       ],
       "complexity": "complex",
       "languageNotes": "JWT를 atob/decodeURIComponent로 수동 디코딩하고 sessionStorage 토큰과 Redux 로그인 상태를 함께 활용해 인증 UI를 구성하는 패턴."
@@ -11305,13 +11295,12 @@
       "type": "file",
       "name": "Sidebar.js",
       "filePath": "front/src/common/Sidebar.js",
-      "summary": "마이페이지용 좌측 사이드바로, 사용자 정보 조회와 JWT 역할 정규화를 통해 사용자 유형(화물주/차주)별 메뉴를 구성하고 모바일에서는 하단 네비게이션으로 전환한다. 메뉴 우측에 알림 행동필요 빨간점(useNotificationSummary)을 표시한다.",
+      "summary": "마이페이지용 좌측 사이드바로, 사용자 정보 조회와 JWT 역할 정규화를 통해 사용자 유형(화물주/차주)별 메뉴를 구성하고 모바일에서는 하단 네비게이션으로 전환한다.",
       "tags": [
         "component",
         "navigation",
         "sidebar",
-        "role-based",
-        "notification"
+        "role-based"
       ],
       "complexity": "complex",
       "languageNotes": "다양한 형태의 role 객체를 normalizeRoles로 일괄 정규화하고 비동기 사용자 정보 조회 결과로 메뉴를 분기하는 패턴."
@@ -13407,14 +13396,13 @@
       "type": "file",
       "name": "useAuth.js",
       "filePath": "front/src/hooks/useAuth.js",
-      "summary": "이메일/비밀번호 로그인과 로그아웃을 처리하는 인증 커스텀 hook으로, 백엔드에 fetch 요청을 보내고 JWT 토큰을 tokenStore에 저장한 뒤 JWT payload를 디코딩해 Redux loginSlice에 로그인 상태를 dispatch한다. 로그인/로그아웃 시 authChanged 이벤트를 발행해 알림 요약을 갱신시킨다.",
+      "summary": "이메일/비밀번호 로그인과 로그아웃을 처리하는 인증 커스텀 hook으로, 백엔드에 fetch 요청을 보내고 JWT 토큰을 tokenStore에 저장한 뒤 JWT payload를 디코딩해 Redux loginSlice에 로그인 상태를 dispatch한다.",
       "tags": [
         "hook",
         "인증",
         "jwt",
         "redux",
-        "api-handler",
-        "notification"
+        "api-handler"
       ],
       "complexity": "moderate",
       "languageNotes": "atob와 decodeURIComponent를 조합해 외부 라이브러리 없이 base64url JWT payload를 수동으로 디코딩한다."
@@ -14326,373 +14314,6 @@
         "frontend"
       ],
       "complexity": "simple"
-    },
-    {
-      "id": "file:backend/src/main/java/com/giproject/controller/notification/NotificationController.java",
-      "type": "file",
-      "name": "NotificationController.java",
-      "filePath": "backend/src/main/java/com/giproject/controller/notification/NotificationController.java",
-      "summary": "헤더 프로필 아바타 알림 뱃지용 REST 컨트롤러. /fr/notifications/summary 에서 로그인 사용자의 역할별 '확인 필요' 요약(NotificationSummaryDTO)을 반환하며 SecurityConfig의 anyRequest().authenticated()로 보호된다.",
-      "tags": [
-        "controller",
-        "api-handler",
-        "notification",
-        "rest"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "class:backend/src/main/java/com/giproject/controller/notification/NotificationController.java:NotificationController",
-      "type": "class",
-      "name": "NotificationController",
-      "filePath": "backend/src/main/java/com/giproject/controller/notification/NotificationController.java",
-      "summary": "알림 요약 조회 REST 엔드포인트를 제공하는 컨트롤러.",
-      "tags": [
-        "controller",
-        "notification"
-      ],
-      "complexity": "simple",
-      "lineRange": [
-        18,
-        30
-      ]
-    },
-    {
-      "id": "function:backend/src/main/java/com/giproject/controller/notification/NotificationController.java:summary",
-      "type": "function",
-      "name": "summary",
-      "filePath": "backend/src/main/java/com/giproject/controller/notification/NotificationController.java",
-      "summary": "로그인 사용자의 역할별 '확인 필요' 알림 요약을 조회해 반환하는 핸들러.",
-      "tags": [
-        "api-handler",
-        "notification"
-      ],
-      "complexity": "simple",
-      "lineRange": [
-        26,
-        29
-      ]
-    },
-    {
-      "id": "file:backend/src/main/java/com/giproject/service/notification/NotificationService.java",
-      "type": "file",
-      "name": "NotificationService.java",
-      "filePath": "backend/src/main/java/com/giproject/service/notification/NotificationService.java",
-      "summary": "로그인 사용자의 역할별(SHIPPER/DRIVER/ADMIN) '확인 필요' 알림 요약을 제공하는 서비스 인터페이스.",
-      "tags": [
-        "service",
-        "interface",
-        "notification"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "class:backend/src/main/java/com/giproject/service/notification/NotificationService.java:NotificationService",
-      "type": "class",
-      "name": "NotificationService",
-      "filePath": "backend/src/main/java/com/giproject/service/notification/NotificationService.java",
-      "summary": "역할별 알림 요약 제공 계약을 정의하는 서비스 인터페이스.",
-      "tags": [
-        "service",
-        "interface",
-        "notification"
-      ],
-      "complexity": "simple",
-      "lineRange": [
-        11,
-        14
-      ]
-    },
-    {
-      "id": "file:backend/src/main/java/com/giproject/service/notification/NotificationServiceImpl.java",
-      "type": "file",
-      "name": "NotificationServiceImpl.java",
-      "filePath": "backend/src/main/java/com/giproject/service/notification/NotificationServiceImpl.java",
-      "summary": "역할별 '확인 필요' 신호를 집계하는 알림 서비스 구현체. ADMIN(미확인 신고·미답변 문의·차량 승인대기), DRIVER(배송 시작대기·받은 직접요청·리뷰·승인차량), SHIPPER(수락 후 결제전·배송완료)를 여러 리포지토리에서 카운트해 hasAlert/total/items로 반환하고, 집계 실패 시에도 화면을 막지 않도록 안전 폴백한다.",
-      "tags": [
-        "service",
-        "notification",
-        "aggregation",
-        "권한관리"
-      ],
-      "complexity": "complex"
-    },
-    {
-      "id": "class:backend/src/main/java/com/giproject/service/notification/NotificationServiceImpl.java:NotificationServiceImpl",
-      "type": "class",
-      "name": "NotificationServiceImpl",
-      "filePath": "backend/src/main/java/com/giproject/service/notification/NotificationServiceImpl.java",
-      "summary": "역할별 확인필요 신호를 리포지토리에서 집계하는 알림 서비스 구현체.",
-      "tags": [
-        "service",
-        "notification",
-        "aggregation"
-      ],
-      "complexity": "complex",
-      "lineRange": [
-        39,
-        116
-      ]
-    },
-    {
-      "id": "function:backend/src/main/java/com/giproject/service/notification/NotificationServiceImpl.java:getSummary",
-      "type": "function",
-      "name": "getSummary",
-      "filePath": "backend/src/main/java/com/giproject/service/notification/NotificationServiceImpl.java",
-      "summary": "인증 주체의 역할을 판별해 역할별 카운트를 집계하고 NotificationSummaryDTO로 반환하는 핵심 메서드.",
-      "tags": [
-        "notification",
-        "aggregation",
-        "권한관리"
-      ],
-      "complexity": "complex",
-      "lineRange": [
-        52,
-        111
-      ]
-    },
-    {
-      "id": "file:backend/src/main/java/com/giproject/dto/notification/NotificationSummaryDTO.java",
-      "type": "file",
-      "name": "NotificationSummaryDTO.java",
-      "filePath": "backend/src/main/java/com/giproject/dto/notification/NotificationSummaryDTO.java",
-      "summary": "헤더 알림 뱃지용 요약 DTO. hasAlert(빨간점 여부), total(합계), role(역할), items(항목별 건수)를 담는다.",
-      "tags": [
-        "dto",
-        "notification",
-        "serialization"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "class:backend/src/main/java/com/giproject/dto/notification/NotificationSummaryDTO.java:NotificationSummaryDTO",
-      "type": "class",
-      "name": "NotificationSummaryDTO",
-      "filePath": "backend/src/main/java/com/giproject/dto/notification/NotificationSummaryDTO.java",
-      "summary": "알림 요약 응답 필드(hasAlert/total/role/items)를 담는 DTO.",
-      "tags": [
-        "dto",
-        "notification"
-      ],
-      "complexity": "simple",
-      "lineRange": [
-        17,
-        27
-      ]
-    },
-    {
-      "id": "file:backend/src/main/java/com/giproject/entity/auth/RevokedToken.java",
-      "type": "file",
-      "name": "RevokedToken.java",
-      "filePath": "backend/src/main/java/com/giproject/entity/auth/RevokedToken.java",
-      "summary": "폐기(revoke)된 refresh 토큰의 식별자(jti)와 만료시각을 저장하는 JPA 엔티티(revoked_token 테이블). 로그아웃·토큰 회전 시 등록해 재사용을 차단한다.",
-      "tags": [
-        "entity",
-        "auth",
-        "security",
-        "jpa"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "class:backend/src/main/java/com/giproject/entity/auth/RevokedToken.java:RevokedToken",
-      "type": "class",
-      "name": "RevokedToken",
-      "filePath": "backend/src/main/java/com/giproject/entity/auth/RevokedToken.java",
-      "summary": "폐기된 refresh 토큰의 jti·만료시각을 저장하는 엔티티.",
-      "tags": [
-        "entity",
-        "auth",
-        "security"
-      ],
-      "complexity": "simple",
-      "lineRange": [
-        21,
-        36
-      ]
-    },
-    {
-      "id": "file:backend/src/main/java/com/giproject/repository/auth/RevokedTokenRepository.java",
-      "type": "file",
-      "name": "RevokedTokenRepository.java",
-      "filePath": "backend/src/main/java/com/giproject/repository/auth/RevokedTokenRepository.java",
-      "summary": "폐기된 refresh 토큰(jti) 저장소. 존재 여부 확인(existsById)과 만료기록 정리(deleteExpired)를 제공하는 Spring Data JPA 리포지토리.",
-      "tags": [
-        "repository",
-        "auth",
-        "security",
-        "jpa"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "class:backend/src/main/java/com/giproject/repository/auth/RevokedTokenRepository.java:RevokedTokenRepository",
-      "type": "class",
-      "name": "RevokedTokenRepository",
-      "filePath": "backend/src/main/java/com/giproject/repository/auth/RevokedTokenRepository.java",
-      "summary": "폐기 토큰 jti 저장·조회·만료정리를 담당하는 JPA 리포지토리.",
-      "tags": [
-        "repository",
-        "auth",
-        "security"
-      ],
-      "complexity": "simple",
-      "lineRange": [
-        12,
-        18
-      ]
-    },
-    {
-      "id": "file:backend/src/main/java/com/giproject/service/auth/TokenBlacklistService.java",
-      "type": "file",
-      "name": "TokenBlacklistService.java",
-      "filePath": "backend/src/main/java/com/giproject/service/auth/TokenBlacklistService.java",
-      "summary": "refresh 토큰 서버측 폐기(blacklist) 서비스. jti 기준으로 폐기 여부 확인(isRevoked)과 폐기 등록(revoke)을 담당해 토큰 회전·로그아웃 시 재사용을 차단한다.",
-      "tags": [
-        "service",
-        "auth",
-        "security"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "class:backend/src/main/java/com/giproject/service/auth/TokenBlacklistService.java:TokenBlacklistService",
-      "type": "class",
-      "name": "TokenBlacklistService",
-      "filePath": "backend/src/main/java/com/giproject/service/auth/TokenBlacklistService.java",
-      "summary": "refresh 토큰의 jti 기반 서버측 폐기(blacklist)를 관리하는 서비스.",
-      "tags": [
-        "service",
-        "auth",
-        "security"
-      ],
-      "complexity": "simple",
-      "lineRange": [
-        17,
-        37
-      ]
-    },
-    {
-      "id": "function:backend/src/main/java/com/giproject/service/auth/TokenBlacklistService.java:isRevoked",
-      "type": "function",
-      "name": "isRevoked",
-      "filePath": "backend/src/main/java/com/giproject/service/auth/TokenBlacklistService.java",
-      "summary": "주어진 jti가 폐기 목록에 등록되어 있는지 확인한다.",
-      "tags": [
-        "auth",
-        "security"
-      ],
-      "complexity": "simple",
-      "lineRange": [
-        23,
-        26
-      ]
-    },
-    {
-      "id": "function:backend/src/main/java/com/giproject/service/auth/TokenBlacklistService.java:revoke",
-      "type": "function",
-      "name": "revoke",
-      "filePath": "backend/src/main/java/com/giproject/service/auth/TokenBlacklistService.java",
-      "summary": "jti를 만료시각과 함께 폐기 목록에 등록한다(구버전·중복은 무시).",
-      "tags": [
-        "auth",
-        "security"
-      ],
-      "complexity": "simple",
-      "lineRange": [
-        28,
-        36
-      ]
-    },
-    {
-      "id": "file:front/src/api/axiosSetup.js",
-      "type": "file",
-      "name": "axiosSetup.js",
-      "filePath": "front/src/api/axiosSetup.js",
-      "summary": "전역 HTTP 설정 모듈. 백엔드(API_BASE)로 가는 axios·fetch 요청에 sessionStorage의 JWT를 자동 부착하는 인터셉터를 설치한다(백엔드 인가 강화 대응, 외부 도메인엔 미부착으로 토큰 유출 방지).",
-      "tags": [
-        "api",
-        "http",
-        "auth",
-        "interceptor"
-      ],
-      "complexity": "moderate"
-    },
-    {
-      "id": "file:front/src/api/notificationApi.js",
-      "type": "file",
-      "name": "notificationApi.js",
-      "filePath": "front/src/api/notificationApi.js",
-      "summary": "알림 요약 API 클라이언트. /fr/notifications/summary 를 Authorization 헤더(JWT)로 호출해 역할별 '확인 필요' 요약을 가져온다(쿠키 미사용으로 연속 로그인 시 계정 혼선 방지).",
-      "tags": [
-        "api",
-        "notification",
-        "http"
-      ],
-      "complexity": "simple"
-    },
-    {
-      "id": "function:front/src/api/notificationApi.js:getNotificationSummary",
-      "type": "function",
-      "name": "getNotificationSummary",
-      "filePath": "front/src/api/notificationApi.js",
-      "summary": "알림 요약 엔드포인트를 호출해 items 등 요약 데이터를 반환하는 API 함수.",
-      "tags": [
-        "api",
-        "notification"
-      ],
-      "complexity": "simple",
-      "lineRange": [
-        12,
-        19
-      ]
-    },
-    {
-      "id": "file:front/src/hooks/useNotificationSummary.js",
-      "type": "file",
-      "name": "useNotificationSummary.js",
-      "filePath": "front/src/hooks/useNotificationSummary.js",
-      "summary": "역할별 '확인 필요' 알림 요약을 불러오는 공용 React 훅. 헤더 통합 점·사이드바 메뉴 점에서 사용하며 60초 폴링+포커스/가시성 복귀+authChanged 이벤트로 갱신하고, localStorage read-state(항목별 markSeen/hasNew)로 새로 생긴 항목만 점을 켠다.",
-      "tags": [
-        "hook",
-        "notification",
-        "react",
-        "polling"
-      ],
-      "complexity": "complex"
-    },
-    {
-      "id": "function:front/src/hooks/useNotificationSummary.js:useNotificationSummary",
-      "type": "function",
-      "name": "useNotificationSummary",
-      "filePath": "front/src/hooks/useNotificationSummary.js",
-      "summary": "알림 요약 조회·폴링·read-state 관리를 캡슐화한 훅 본체(hasAlert/items/hasNew/markSeen/refresh 반환).",
-      "tags": [
-        "hook",
-        "notification",
-        "react"
-      ],
-      "complexity": "complex",
-      "lineRange": [
-        53,
-        156
-      ]
-    },
-    {
-      "id": "function:front/src/hooks/useNotificationSummary.js:decodeTokenSub",
-      "type": "function",
-      "name": "decodeTokenSub",
-      "filePath": "front/src/hooks/useNotificationSummary.js",
-      "summary": "JWT payload에서 실제 로그인 계정 식별자(memId/cargoId/sub)를 추출한다(계정 전환 stale 방지).",
-      "tags": [
-        "auth",
-        "jwt"
-      ],
-      "complexity": "moderate",
-      "lineRange": [
-        29,
-        42
-      ]
     }
   ],
   "edges": [
@@ -25867,370 +25488,6 @@
       "type": "related",
       "direction": "undirected",
       "weight": 1
-    },
-    {
-      "source": "file:backend/src/main/java/com/giproject/controller/notification/NotificationController.java",
-      "target": "file:backend/src/main/java/com/giproject/service/notification/NotificationService.java",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7
-    },
-    {
-      "source": "file:backend/src/main/java/com/giproject/controller/notification/NotificationController.java",
-      "target": "file:backend/src/main/java/com/giproject/service/notification/NotificationService.java",
-      "type": "depends_on",
-      "direction": "forward",
-      "weight": 0.6
-    },
-    {
-      "source": "file:backend/src/main/java/com/giproject/controller/notification/NotificationController.java",
-      "target": "file:backend/src/main/java/com/giproject/dto/notification/NotificationSummaryDTO.java",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7
-    },
-    {
-      "source": "file:backend/src/main/java/com/giproject/service/notification/NotificationServiceImpl.java",
-      "target": "file:backend/src/main/java/com/giproject/service/notification/NotificationService.java",
-      "type": "implements",
-      "direction": "forward",
-      "weight": 0.9
-    },
-    {
-      "source": "file:backend/src/main/java/com/giproject/service/notification/NotificationServiceImpl.java",
-      "target": "file:backend/src/main/java/com/giproject/repository/cargo/CargoRepository.java",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7
-    },
-    {
-      "source": "file:backend/src/main/java/com/giproject/service/notification/NotificationServiceImpl.java",
-      "target": "file:backend/src/main/java/com/giproject/repository/cargo/CargoRepository.java",
-      "type": "depends_on",
-      "direction": "forward",
-      "weight": 0.6
-    },
-    {
-      "source": "file:backend/src/main/java/com/giproject/service/notification/NotificationServiceImpl.java",
-      "target": "file:backend/src/main/java/com/giproject/repository/delivery/DeliveryRepository.java",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7
-    },
-    {
-      "source": "file:backend/src/main/java/com/giproject/service/notification/NotificationServiceImpl.java",
-      "target": "file:backend/src/main/java/com/giproject/repository/delivery/DeliveryRepository.java",
-      "type": "depends_on",
-      "direction": "forward",
-      "weight": 0.6
-    },
-    {
-      "source": "file:backend/src/main/java/com/giproject/service/notification/NotificationServiceImpl.java",
-      "target": "file:backend/src/main/java/com/giproject/repository/matching/DirectRequestRepository.java",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7
-    },
-    {
-      "source": "file:backend/src/main/java/com/giproject/service/notification/NotificationServiceImpl.java",
-      "target": "file:backend/src/main/java/com/giproject/repository/matching/DirectRequestRepository.java",
-      "type": "depends_on",
-      "direction": "forward",
-      "weight": 0.6
-    },
-    {
-      "source": "file:backend/src/main/java/com/giproject/service/notification/NotificationServiceImpl.java",
-      "target": "file:backend/src/main/java/com/giproject/repository/matching/MatchingRepository.java",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7
-    },
-    {
-      "source": "file:backend/src/main/java/com/giproject/service/notification/NotificationServiceImpl.java",
-      "target": "file:backend/src/main/java/com/giproject/repository/matching/MatchingRepository.java",
-      "type": "depends_on",
-      "direction": "forward",
-      "weight": 0.6
-    },
-    {
-      "source": "file:backend/src/main/java/com/giproject/service/notification/NotificationServiceImpl.java",
-      "target": "file:backend/src/main/java/com/giproject/repository/qaboard/QAPostRepository.java",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7
-    },
-    {
-      "source": "file:backend/src/main/java/com/giproject/service/notification/NotificationServiceImpl.java",
-      "target": "file:backend/src/main/java/com/giproject/repository/qaboard/QAPostRepository.java",
-      "type": "depends_on",
-      "direction": "forward",
-      "weight": 0.6
-    },
-    {
-      "source": "file:backend/src/main/java/com/giproject/service/notification/NotificationServiceImpl.java",
-      "target": "file:backend/src/main/java/com/giproject/repository/review/ReviewRepository.java",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7
-    },
-    {
-      "source": "file:backend/src/main/java/com/giproject/service/notification/NotificationServiceImpl.java",
-      "target": "file:backend/src/main/java/com/giproject/repository/review/ReviewRepository.java",
-      "type": "depends_on",
-      "direction": "forward",
-      "weight": 0.6
-    },
-    {
-      "source": "file:backend/src/main/java/com/giproject/service/notification/NotificationServiceImpl.java",
-      "target": "file:backend/src/main/java/com/giproject/service/report/UserReportService.java",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7
-    },
-    {
-      "source": "file:backend/src/main/java/com/giproject/service/notification/NotificationServiceImpl.java",
-      "target": "file:backend/src/main/java/com/giproject/service/report/UserReportService.java",
-      "type": "depends_on",
-      "direction": "forward",
-      "weight": 0.6
-    },
-    {
-      "source": "file:backend/src/main/java/com/giproject/service/notification/NotificationServiceImpl.java",
-      "target": "file:backend/src/main/java/com/giproject/dto/notification/NotificationSummaryDTO.java",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7
-    },
-    {
-      "source": "file:backend/src/main/java/com/giproject/repository/auth/RevokedTokenRepository.java",
-      "target": "file:backend/src/main/java/com/giproject/entity/auth/RevokedToken.java",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7
-    },
-    {
-      "source": "file:backend/src/main/java/com/giproject/repository/auth/RevokedTokenRepository.java",
-      "target": "file:backend/src/main/java/com/giproject/entity/auth/RevokedToken.java",
-      "type": "depends_on",
-      "direction": "forward",
-      "weight": 0.6
-    },
-    {
-      "source": "file:backend/src/main/java/com/giproject/service/auth/TokenBlacklistService.java",
-      "target": "file:backend/src/main/java/com/giproject/repository/auth/RevokedTokenRepository.java",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7
-    },
-    {
-      "source": "file:backend/src/main/java/com/giproject/service/auth/TokenBlacklistService.java",
-      "target": "file:backend/src/main/java/com/giproject/repository/auth/RevokedTokenRepository.java",
-      "type": "depends_on",
-      "direction": "forward",
-      "weight": 0.6
-    },
-    {
-      "source": "file:backend/src/main/java/com/giproject/service/auth/TokenBlacklistService.java",
-      "target": "file:backend/src/main/java/com/giproject/entity/auth/RevokedToken.java",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7
-    },
-    {
-      "source": "file:backend/src/main/java/com/giproject/controller/TokenAuthController.java",
-      "target": "file:backend/src/main/java/com/giproject/service/auth/TokenBlacklistService.java",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7
-    },
-    {
-      "source": "file:backend/src/main/java/com/giproject/controller/TokenAuthController.java",
-      "target": "file:backend/src/main/java/com/giproject/service/auth/TokenBlacklistService.java",
-      "type": "depends_on",
-      "direction": "forward",
-      "weight": 0.6
-    },
-    {
-      "source": "file:front/src/api/notificationApi.js",
-      "target": "file:front/src/api/serverConfig.js",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7
-    },
-    {
-      "source": "file:front/src/api/notificationApi.js",
-      "target": "file:front/src/api/serverConfig.js",
-      "type": "depends_on",
-      "direction": "forward",
-      "weight": 0.6
-    },
-    {
-      "source": "file:front/src/hooks/useNotificationSummary.js",
-      "target": "file:front/src/api/notificationApi.js",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7
-    },
-    {
-      "source": "file:front/src/hooks/useNotificationSummary.js",
-      "target": "file:front/src/api/notificationApi.js",
-      "type": "depends_on",
-      "direction": "forward",
-      "weight": 0.6
-    },
-    {
-      "source": "file:front/src/api/axiosSetup.js",
-      "target": "file:front/src/config.js",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7
-    },
-    {
-      "source": "file:front/src/api/axiosSetup.js",
-      "target": "file:front/src/config.js",
-      "type": "depends_on",
-      "direction": "forward",
-      "weight": 0.6
-    },
-    {
-      "source": "file:front/src/common/ResponsiveAppBar.js",
-      "target": "file:front/src/hooks/useNotificationSummary.js",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7
-    },
-    {
-      "source": "file:front/src/common/ResponsiveAppBar.js",
-      "target": "file:front/src/hooks/useNotificationSummary.js",
-      "type": "depends_on",
-      "direction": "forward",
-      "weight": 0.6
-    },
-    {
-      "source": "file:front/src/common/Sidebar.js",
-      "target": "file:front/src/hooks/useNotificationSummary.js",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7
-    },
-    {
-      "source": "file:front/src/common/Sidebar.js",
-      "target": "file:front/src/hooks/useNotificationSummary.js",
-      "type": "depends_on",
-      "direction": "forward",
-      "weight": 0.6
-    },
-    {
-      "source": "file:front/src/common/AdminSidebar.js",
-      "target": "file:front/src/hooks/useNotificationSummary.js",
-      "type": "imports",
-      "direction": "forward",
-      "weight": 0.7
-    },
-    {
-      "source": "file:front/src/common/AdminSidebar.js",
-      "target": "file:front/src/hooks/useNotificationSummary.js",
-      "type": "depends_on",
-      "direction": "forward",
-      "weight": 0.6
-    },
-    {
-      "source": "file:backend/src/main/java/com/giproject/controller/notification/NotificationController.java",
-      "target": "class:backend/src/main/java/com/giproject/controller/notification/NotificationController.java:NotificationController",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "class:backend/src/main/java/com/giproject/controller/notification/NotificationController.java:NotificationController",
-      "target": "function:backend/src/main/java/com/giproject/controller/notification/NotificationController.java:summary",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:backend/src/main/java/com/giproject/service/notification/NotificationService.java",
-      "target": "class:backend/src/main/java/com/giproject/service/notification/NotificationService.java:NotificationService",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:backend/src/main/java/com/giproject/service/notification/NotificationServiceImpl.java",
-      "target": "class:backend/src/main/java/com/giproject/service/notification/NotificationServiceImpl.java:NotificationServiceImpl",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "class:backend/src/main/java/com/giproject/service/notification/NotificationServiceImpl.java:NotificationServiceImpl",
-      "target": "function:backend/src/main/java/com/giproject/service/notification/NotificationServiceImpl.java:getSummary",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:backend/src/main/java/com/giproject/dto/notification/NotificationSummaryDTO.java",
-      "target": "class:backend/src/main/java/com/giproject/dto/notification/NotificationSummaryDTO.java:NotificationSummaryDTO",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:backend/src/main/java/com/giproject/entity/auth/RevokedToken.java",
-      "target": "class:backend/src/main/java/com/giproject/entity/auth/RevokedToken.java:RevokedToken",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:backend/src/main/java/com/giproject/repository/auth/RevokedTokenRepository.java",
-      "target": "class:backend/src/main/java/com/giproject/repository/auth/RevokedTokenRepository.java:RevokedTokenRepository",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:backend/src/main/java/com/giproject/service/auth/TokenBlacklistService.java",
-      "target": "class:backend/src/main/java/com/giproject/service/auth/TokenBlacklistService.java:TokenBlacklistService",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "class:backend/src/main/java/com/giproject/service/auth/TokenBlacklistService.java:TokenBlacklistService",
-      "target": "function:backend/src/main/java/com/giproject/service/auth/TokenBlacklistService.java:isRevoked",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "class:backend/src/main/java/com/giproject/service/auth/TokenBlacklistService.java:TokenBlacklistService",
-      "target": "function:backend/src/main/java/com/giproject/service/auth/TokenBlacklistService.java:revoke",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:front/src/api/notificationApi.js",
-      "target": "function:front/src/api/notificationApi.js:getNotificationSummary",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:front/src/hooks/useNotificationSummary.js",
-      "target": "function:front/src/hooks/useNotificationSummary.js:useNotificationSummary",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:front/src/hooks/useNotificationSummary.js",
-      "target": "function:front/src/hooks/useNotificationSummary.js:decodeTokenSub",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
     }
   ],
   "layers": [
@@ -26275,8 +25532,7 @@
         "file:backend/src/main/java/com/giproject/controller/SNSController.java",
         "file:backend/src/main/java/com/giproject/api/oauth/OAuthSignupController.java",
         "file:backend/src/main/java/com/giproject/email/EmailVerificationController.java",
-        "file:backend/src/main/java/com/giproject/controller/MapProxyController.java",
-        "file:backend/src/main/java/com/giproject/controller/notification/NotificationController.java"
+        "file:backend/src/main/java/com/giproject/controller/MapProxyController.java"
       ]
     },
     {
@@ -26344,10 +25600,7 @@
         "file:backend/src/main/java/com/giproject/service/member/YourUserQueryService.java",
         "file:backend/src/main/java/com/giproject/scheduler/CouponScheduler.java",
         "file:backend/src/main/java/com/giproject/email/EmailVerificationService.java",
-        "file:backend/src/main/java/com/giproject/service/payment/PortOneVerificationService.java",
-        "file:backend/src/main/java/com/giproject/service/notification/NotificationService.java",
-        "file:backend/src/main/java/com/giproject/service/notification/NotificationServiceImpl.java",
-        "file:backend/src/main/java/com/giproject/service/auth/TokenBlacklistService.java"
+        "file:backend/src/main/java/com/giproject/service/payment/PortOneVerificationService.java"
       ]
     },
     {
@@ -26382,8 +25635,7 @@
         "file:backend/src/main/java/com/giproject/repository/report/UserReportRepository.java",
         "file:backend/src/main/java/com/giproject/repository/qna/QnaRepository.java",
         "file:backend/src/main/java/com/giproject/repository/ChatMessageRepository.java",
-        "file:backend/src/main/java/com/giproject/repository/qna/MyInquiryRow.java",
-        "file:backend/src/main/java/com/giproject/repository/auth/RevokedTokenRepository.java"
+        "file:backend/src/main/java/com/giproject/repository/qna/MyInquiryRow.java"
       ]
     },
     {
@@ -26423,8 +25675,7 @@
         "file:backend/src/main/java/com/giproject/entity/ChatMessage.java",
         "file:backend/src/main/java/com/giproject/enums/NoticeCategory.java",
         "table:backend/src/main/resources/data-noboard.sql:notice",
-        "table:backend/src/main/resources/data-qaboard.sql:qa_post",
-        "file:backend/src/main/java/com/giproject/entity/auth/RevokedToken.java"
+        "table:backend/src/main/resources/data-qaboard.sql:qa_post"
       ]
     },
     {
@@ -26488,8 +25739,7 @@
         "file:backend/src/main/java/com/giproject/dto/common/PasswordChangeRequest.java",
         "file:backend/src/main/java/com/giproject/dto/qna/MyInquiryDTO.java",
         "file:backend/src/main/java/com/giproject/dto/address/AddressDTO.java",
-        "file:backend/src/main/java/com/giproject/annotation/RequirePermission.java",
-        "file:backend/src/main/java/com/giproject/dto/notification/NotificationSummaryDTO.java"
+        "file:backend/src/main/java/com/giproject/annotation/RequirePermission.java"
       ]
     },
     {
@@ -26669,8 +25919,7 @@
         "file:front/src/hooks/useIdForm.js",
         "file:front/src/hooks/usePasswordForm.js",
         "file:front/src/hooks/useAuth.js",
-        "file:front/src/hooks/useLogout.js",
-        "file:front/src/hooks/useNotificationSummary.js"
+        "file:front/src/hooks/useLogout.js"
       ]
     },
     {
@@ -26711,9 +25960,7 @@
         "file:front/src/api/orderAPI/orderApi.js",
         "file:front/src/api/paymentApi/paymentApi.js",
         "file:front/src/api/paymentApi/paymentUtil.js",
-        "file:front/src/lib/tokenStore.js",
-        "file:front/src/api/axiosSetup.js",
-        "file:front/src/api/notificationApi.js"
+        "file:front/src/lib/tokenStore.js"
       ]
     },
     {
@@ -27019,17 +26266,6 @@
         "file:front/tailwind.config.js"
       ],
       "languageLesson": "package.json의 dependencies는 런타임 의존성, devDependencies는 개발/빌드 전용 의존성을 구분하며, scripts 필드는 npm/yarn 명령(예: yarn start)을 빌드 도구 호출로 매핑합니다."
-    },
-    {
-      "order": 28,
-      "title": "역할별 알림 요약 기능",
-      "description": "헤더 아바타·사이드바의 '확인 필요' 빨간점 흐름을 따라간다. 프론트 useNotificationSummary 훅이 notificationApi로 /fr/notifications/summary를 폴링하면, 백엔드 NotificationController→NotificationServiceImpl이 역할별(SHIPPER/DRIVER/ADMIN)로 여러 리포지토리를 집계해 hasAlert/items를 돌려준다.",
-      "nodeIds": [
-        "file:front/src/hooks/useNotificationSummary.js",
-        "file:front/src/api/notificationApi.js",
-        "file:backend/src/main/java/com/giproject/controller/notification/NotificationController.java",
-        "file:backend/src/main/java/com/giproject/service/notification/NotificationServiceImpl.java"
-      ]
     }
   ]
 }
