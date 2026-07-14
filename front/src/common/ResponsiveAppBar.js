@@ -1,54 +1,32 @@
-import React, { useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
-import { login as loginAction, logout as logoutAction, getUserInfoAsync } from '../slice/loginSlice';
-import logo from '../assets/logo.png'; // 기현님 로고 경로 확인!
+import React, { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { getUserInfoAsync, login as loginAction, logout as logoutAction } from "../slice/loginSlice";
+import logo from "../assets/logo.png";
 
-// ✅ 백엔드 베이스 URL
-const API_BASE =
-  process.env.REACT_APP_API_BASE ||
-  process.env.REACT_APP_API_BASE ||
-  'http://localhost:8080';
+const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8080";
 
-const pages = [
-  { label: '견적서 작성', path: '/estimatepage' },
-  { label: '운송 접수 사항', path: '/estimatepage/list' },
-  { label: '고객지원', path: '/qaboard' },
-  { label: '공지사항', path: '/noboard' },
+const navItems = [
+  { label: "이용가이드", path: "/guide" },
+  { label: "간편조회", path: "/quick-search" },
+  { label: "온라인 퀵 접수", path: "/estimatepage" },
+  { label: "운송 접수 목록", path: "/estimatepage/list" },
+  { label: "공지사항", path: "/noboard" },
+  { label: "문의사항", path: "/qaboard" },
 ];
-
-const settings = [
-  { label: '마이페이지', path: '/mypage' },
-  // { label: '주문내역 확인', path: '/mypage' },
-  { label: '배송상태', path: '/mypage' },
-  { label: '로그아웃', path: '/logout' },
-];
-
-const settingsAdmin = [
-  { label: '관리자페이지', path: '/admin' },
-  { label: '회원조회', path: '/admin/memberAll' },
-  { label: '배송상태', path: '/admin/deliveryPage' },
-  { label: '로그아웃', path: '/logout' },
-];
-
-const DEFAULT_AVATAR = '/image/placeholders/avatar.svg';
 
 const pickToken = () =>
-  sessionStorage.getItem('accessToken') ||
-  sessionStorage.getItem('accessToken') ||
-  sessionStorage.getItem('ACCESS_TOKEN') ||
-  sessionStorage.getItem('ACCESS_TOKEN') ||
-  null;
+  sessionStorage.getItem("accessToken") || sessionStorage.getItem("ACCESS_TOKEN") || null;
 
 function decodeJwt(token) {
   try {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
     const json = decodeURIComponent(
       atob(base64)
-        .split('')
-        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-        .join('')
+        .split("")
+        .map((char) => `%${(`00${char.charCodeAt(0).toString(16)}`).slice(-2)}`)
+        .join("")
     );
     return JSON.parse(json);
   } catch {
@@ -59,176 +37,215 @@ function decodeJwt(token) {
 export default function ResponsiveAppBar() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [homeHeaderTone, setHomeHeaderTone] = useState("dark");
+  const isHomePage = pathname === "/";
+  const useLightHomeHeader = isHomePage && homeHeaderTone === "light";
+  const homeTextClass = useLightHomeHeader
+    ? "text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.52)]"
+    : "text-[#121826]";
+  const homeDividerClass = useLightHomeHeader ? "bg-white/60" : "bg-[#d7dde7]";
+  const homeMenuLineClass = useLightHomeHeader ? "bg-white" : "bg-[#172033]";
 
-  // 1. 상태 가져오기
-  const loginState = useSelector((state) => state?.login);
-  const hasReduxLogin = Boolean(loginState?.email || loginState?.memberId);
-  const accessToken = (typeof window !== 'undefined') ? pickToken() : null;
-  const isLogin = hasReduxLogin || Boolean(accessToken);
+  const loginState = useSelector((state) => state?.login || {});
+  const accessToken = typeof window !== "undefined" ? pickToken() : null;
+  const isLogin = Boolean(loginState?.email || loginState?.memberId || accessToken);
+  const roles = Array.isArray(loginState?.roles)
+    ? loginState.roles
+    : loginState?.roles
+      ? [loginState.roles]
+      : [];
+  const isAdmin = roles.includes("ROLE_ADMIN");
+  const myPagePath = isAdmin ? "/admin" : "/mypage";
+  const displayUserName = loginState?.memberId || loginState?.nickname || loginState?.email || "마이페이지";
 
-  // 2. ✅ roles 정의 (순서가 가장 먼저 와야 합니다!)
-  const roles = Array.isArray(loginState?.roles) ? loginState.roles :
-    (loginState?.roles ? [loginState.roles] : []);
-
-  // 3. ✅ 정의된 roles를 사용하여 권한 판별
-  const isAdmin = roles.includes('ROLE_ADMIN');
-  const isDriver = roles.some(r => String(r).toUpperCase().includes('DRIVER'));
-
-  // 4. 나머지 경로 및 이름 설정
-  const myPagePath = isAdmin ? '/admin' : '/mypage';
-  const myPageLabel = isAdmin ? '관리자페이지' : '마이페이지';
-  const displayUserName = loginState?.memberId || loginState?.nickname || loginState?.email || '회원';
-
-
-
-  // ✅ 1) 앱 로드 시: 토큰 리프레시 로직 (기존 엔진 유지)
   useEffect(() => {
-    if (hasReduxLogin || accessToken) return;
-    let aborted = false;
-    const silentRefresh = async () => {
-      try {
-        const storedRefresh =
-          sessionStorage.getItem('refreshToken') ||
-          sessionStorage.getItem('refreshToken');
+    const token = pickToken();
+    if (!token || loginState?.email || loginState?.memberId) return;
 
-        if (!storedRefresh) return;
-        const res = await fetch(`${API_BASE}/api/auth/refresh`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-          body: JSON.stringify({ refreshToken: storedRefresh }),
-        });
-        if (!res.ok) return;
-        const data = await res.json().catch(() => ({}));
-        const newAccess = data.accessToken || data.access || data.token || null;
-        if (!newAccess || aborted) return;
+    const payload = decodeJwt(token);
+    if (!payload) return;
 
-        sessionStorage.setItem('accessToken', newAccess);
+    dispatch(
+      loginAction({
+        email: payload.email || payload.memEmail || "",
+        nickname: payload.name || "",
+        roles: payload.roles || payload.rolenames || ["USER"],
+        memberId: payload.memId || payload.cargoId || payload.sub || null,
+      })
+    );
+    dispatch(getUserInfoAsync());
+  }, [dispatch, loginState?.email, loginState?.memberId]);
 
-        const payload = decodeJwt(newAccess) || {};
-        dispatch(loginAction(payload));
-        dispatch(getUserInfoAsync());
-      } catch { /* ignore */ }
+  useEffect(() => {
+    if (!isHomePage) return undefined;
+
+    const syncHomeState = () => {
+      const probeX = Math.min(Math.max(window.innerWidth / 2, 24), window.innerWidth - 24);
+      const probeY = 48;
+      const toneElement = document
+        .elementsFromPoint(probeX, probeY)
+        .find((element) => !element.closest("header") && element.closest("[data-header-tone]"))
+        ?.closest("[data-header-tone]");
+
+      setHomeHeaderTone(toneElement?.dataset.headerTone || "dark");
     };
-    silentRefresh();
-    return () => { aborted = true; };
-  }, [hasReduxLogin, accessToken, dispatch]);
 
-  // ✅ 2) 새로고침 시 정보 복원 (기존 엔진 유지)
-  useEffect(() => {
-    const t = pickToken();
-    if (isLogin && t && !loginState.profileImage) {
-      const payload = decodeJwt(t);
-      if (payload) {
-        dispatch(
-          loginAction({
-            email: payload.email || payload.memEmail || '',
-            nickname: payload.name || '',
-            pw: '',
-            roles: payload.roles || payload.rolenames || ['USER'],
-            memberId: payload.memId || payload.cargoId || payload.sub || null,
-          })
-        );
-        dispatch(getUserInfoAsync());
-      }
-    }
-  }, [isLogin, dispatch, loginState.profileImage]);
+    syncHomeState();
+    window.addEventListener("firstroad-home-mode", syncHomeState);
+    window.addEventListener("scroll", syncHomeState, { passive: true });
+    window.addEventListener("resize", syncHomeState);
+    return () => {
+      window.removeEventListener("firstroad-home-mode", syncHomeState);
+      window.removeEventListener("scroll", syncHomeState);
+      window.removeEventListener("resize", syncHomeState);
+    };
+  }, [isHomePage]);
 
-  const [anchorElNav, setAnchorElNav] = React.useState(null);
-  const [anchorElUser, setAnchorElUser] = React.useState(null);
-  const [menuOpen, setMenuOpen] = React.useState(false);
-
-  const handleOpenNavMenu = (e) => setAnchorElNav(e.currentTarget);
-  const handleOpenUserMenu = (e) => setAnchorElUser(e.currentTarget);
-  const handleCloseNavMenu = () => setAnchorElNav(null);
-  const handleCloseUserMenu = () => setAnchorElUser(null);
-
-  // ✅ 4) 로그아웃
   const handleLogout = async () => {
     try {
-      sessionStorage.removeItem('accessToken');
-      sessionStorage.removeItem('refreshToken');
+      sessionStorage.removeItem("accessToken");
+      sessionStorage.removeItem("refreshToken");
 
       try {
-        await fetch(`${API_BASE}/api/auth/logout`, { method: 'POST' });
-      } catch { /* ignore */ }
+        await fetch(`${API_BASE}/api/auth/logout`, { method: "POST" });
+      } catch {
+        // Local logout should still continue when the server is unavailable.
+      }
+
       dispatch(logoutAction());
     } finally {
-      navigate('/login', { replace: true });
+      navigate("/login", { replace: true });
     }
   };
 
   return (
-    <header className="relative z-50 bg-white shadow-lg border-b border-gray-100 text-gray-800 font-sans w-full">
-      <div className="w-full px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-row justify-between items-center h-16 lg:h-20 relative">
-
-
-
-          <Link to="/" className="flex-shrink-0">
+    <header
+      className={
+        isHomePage
+          ? "fixed inset-x-0 top-0 z-50 w-full bg-transparent px-3 py-3 font-sans text-[#121826] sm:px-5 lg:px-6"
+          : "sticky top-0 z-50 w-full bg-white/92 font-sans text-[#121826] shadow-[0_8px_28px_rgba(15,23,42,0.045)] backdrop-blur-xl"
+      }
+    >
+      <div className={isHomePage ? "mx-auto w-full max-w-[1920px]" : "mx-auto w-full max-w-[1920px] px-4 sm:px-6 lg:px-10"}>
+        <div className={isHomePage ? "flex items-start justify-between gap-2 sm:gap-3" : "flex h-16 items-center justify-between gap-4 lg:h-20"}>
+          <Link
+            to="/"
+            className={
+              isHomePage
+                ? "flex min-w-0 flex-shrink-0 items-center px-1 py-1 sm:px-2"
+                : "flex min-w-0 flex-shrink-0 items-center"
+            }
+            aria-label="퍼스트로드 홈"
+          >
             <img
-              className="w-36 lg:w-56 h-auto object-contain"
+              className={
+                isHomePage
+                  ? `h-auto w-28 object-contain sm:w-36 lg:w-40 ${useLightHomeHeader ? "brightness-0 invert drop-shadow-[0_2px_12px_rgba(0,0,0,0.55)]" : ""}`
+                  : "h-auto w-32 object-contain sm:w-36 lg:w-52"
+              }
               src={logo}
-              alt="퍼스트로드 로고"
+              alt="퍼스트로드"
             />
           </Link>
 
-          <nav className="hidden lg:flex items-center gap-x-8 absolute left-1/2 -translate-x-1/2">
-            <Link to="/guide" className="text-base font-bold text-gray-700 hover:text-red-600 transition-colors whitespace-nowrap">이용가이드</Link>
-            <Link to="/quick-search" className="text-base font-bold text-gray-700 hover:text-red-600 transition-colors whitespace-nowrap">간편조회</Link>
-            <Link to="/estimatepage" className="text-base font-bold text-gray-700 hover:text-red-600 transition-colors whitespace-nowrap">온라인 퀵 접수</Link>
-            <Link to="/estimatepage/list" className="text-base font-bold text-gray-700 hover:text-red-600 transition-colors whitespace-nowrap">운송 접수 목록</Link>
-            <Link to="/noboard" className="text-base font-bold text-gray-700 hover:text-red-600 transition-colors whitespace-nowrap">공지사항</Link>
-            <Link to="/qaboard" className="text-base font-bold text-gray-700 hover:text-red-600 transition-colors whitespace-nowrap">문의사항</Link>
-
+          <nav
+            className={
+              isHomePage
+                ? `hidden items-center gap-7 px-6 py-4 lg:flex ${homeTextClass}`
+                : "hidden items-center gap-7 lg:flex"
+            }
+          >
+            {navItems.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`whitespace-nowrap text-[15px] font-extrabold tracking-[-0.02em] transition-colors hover:text-[#e52424] ${
+                  isHomePage ? "" : "text-[#1f2937]"
+                }`}
+              >
+                {item.label}
+              </Link>
+            ))}
           </nav>
 
-          <div className="flex items-center gap-2 text-sm lg:text-base">
+          <div
+            className={
+              isHomePage
+                ? `flex items-center gap-2 px-1 py-1 text-sm font-extrabold sm:gap-3 sm:px-2 sm:py-2 lg:text-[15px] ${homeTextClass}`
+                : "flex items-center gap-3 text-sm font-extrabold text-[#172033] lg:text-[15px]"
+            }
+          >
             {isLogin ? (
               <>
-                <Link to={myPagePath} className="font-bold text-gray-700 hover:text-red-600">{displayUserName}</Link>
-                <span className="text-gray-300">|</span>
-                <button onClick={handleLogout} className="font-bold hover:text-red-600">로그아웃</button>
+                <Link to={myPagePath} className="hidden transition-colors hover:text-[#e52424] sm:inline-flex">
+                  {displayUserName}
+                </Link>
+                <span className={`hidden h-4 w-px sm:block ${isHomePage ? homeDividerClass : "bg-[#d7dde7]"}`} />
+                <button type="button" onClick={handleLogout} className="transition-colors hover:text-[#e52424]">
+                  로그아웃
+                </button>
               </>
             ) : (
               <>
-                <Link to="/login" className="font-bold hover:text-red-600">로그인</Link>
-                <span className="text-gray-300">|</span>
-                <Link to="/signup" className="font-bold hover:text-red-600">회원가입</Link>
+                <Link to="/login" className="transition-colors hover:text-[#e52424]">
+                  로그인
+                </Link>
+                <span className={`h-4 w-px ${isHomePage ? homeDividerClass : "bg-[#d7dde7]"}`} />
+                <Link to="/signup" className="transition-colors hover:text-[#e52424]">
+                  회원가입
+                </Link>
               </>
             )}
 
             <button
-              className="lg:hidden flex flex-col justify-center gap-[5px] ml-2 p-1"
+              type="button"
+              className={
+                isHomePage
+                  ? "ml-1 flex h-10 w-10 flex-col items-center justify-center gap-[5px] rounded-xl transition lg:hidden"
+                  : "ml-1 flex h-10 w-10 flex-col items-center justify-center gap-[5px] rounded-full bg-white shadow-[0_8px_20px_rgba(15,23,42,0.08)] transition lg:hidden"
+              }
               onClick={() => setMenuOpen((prev) => !prev)}
               aria-label="메뉴 열기"
+              aria-expanded={menuOpen}
             >
-              <span className={`block w-[22px] h-[2px] bg-gray-700 rounded transition-all duration-300 ${menuOpen ? 'translate-y-[7px] rotate-45' : ''}`} />
-              <span className={`block w-[22px] h-[2px] bg-gray-700 rounded transition-all duration-300 ${menuOpen ? 'opacity-0' : ''}`} />
-              <span className={`block w-[22px] h-[2px] bg-gray-700 rounded transition-all duration-300 ${menuOpen ? '-translate-y-[7px] -rotate-45' : ''}`} />
+              <span className={`block h-[2px] w-[20px] rounded transition ${isHomePage ? homeMenuLineClass : "bg-[#172033]"} ${menuOpen ? "translate-y-[7px] rotate-45" : ""}`} />
+              <span className={`block h-[2px] w-[20px] rounded transition ${isHomePage ? homeMenuLineClass : "bg-[#172033]"} ${menuOpen ? "opacity-0" : ""}`} />
+              <span className={`block h-[2px] w-[20px] rounded transition ${isHomePage ? homeMenuLineClass : "bg-[#172033]"} ${menuOpen ? "-translate-y-[7px] -rotate-45" : ""}`} />
             </button>
           </div>
         </div>
       </div>
 
       {menuOpen && (
-        <nav className="lg:hidden flex flex-col border-t border-gray-100 bg-white">
-          {[
-            { label: '이용가이드', path: '/guide' },
-            { label: '간편조회', path: '/quick-search' },
-            { label: '온라인 퀵 접수', path: '/estimatepage' },
-            { label: '운송 접수 목록', path: '/estimatepage/list' },
-            { label: '공지사항', path: '/noboard' },
-            { label: '문의사항', path: '/qaboard' },
-          ].map(({ label, path }) => (
-            <Link
-              key={path}
-              to={path}
-              onClick={() => setMenuOpen(false)}
-              className="px-6 py-4 text-base font-bold text-gray-700 hover:text-red-600 hover:bg-gray-50 border-b border-gray-100 transition-colors"
-            >
-              {label}
-            </Link>
-          ))}
+        <nav
+          className={
+            isHomePage
+              ? `mx-3 mt-2 rounded-[1.4rem] px-2 py-2 backdrop-blur-sm sm:mx-5 lg:hidden ${
+                  useLightHomeHeader ? "bg-[#0b1019]/72 text-white" : "bg-white/80 text-[#121826]"
+                }`
+              : "bg-white/95 shadow-[0_14px_30px_rgba(15,23,42,0.06)] backdrop-blur-xl lg:hidden"
+          }
+        >
+          <div className="grid px-4 py-3">
+            {navItems.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                onClick={() => setMenuOpen(false)}
+                className={`rounded-2xl px-4 py-3 text-base font-black transition hover:text-[#e52424] ${
+                  isHomePage
+                    ? useLightHomeHeader
+                      ? "text-white hover:bg-white/10"
+                      : "text-[#1f2937] hover:bg-white/60"
+                    : "text-[#1f2937] hover:bg-[#f7f8fa]"
+                }`}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
         </nav>
       )}
     </header>

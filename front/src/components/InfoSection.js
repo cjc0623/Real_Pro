@@ -5,7 +5,7 @@ const InfoSection = () => {
   return (
     // 사용자 요청으로 bg-gray-950에서 bg-white로 배경 변경
     // 그에 맞춰 text-white에서 text-gray-900(본문), text-gray-700(설명)으로 색상 변경
-    <section className="py-24 bg-white font-sans antialiased text-gray-900">
+    <section className="hidden lg:block bg-white font-sans antialiased text-gray-900 lg:py-24">
       <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center gap-16">
         <div className="flex-1">
           {/* 브랜드명('퍼스트로드') 포인트 컬러 유지 */}
