@@ -1,5 +1,6 @@
 import { API_BASE } from '../../config';
 import axios from 'axios';
+import { attachRefreshInterceptor } from '../../lib/tokenRefresh';
 
 const api = axios.create({ baseURL: API_BASE });
 api.interceptors.request.use((config) => {
@@ -11,6 +12,7 @@ api.interceptors.request.use((config) => {
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
+attachRefreshInterceptor(api);
 
 export const getMyInquiries = async (limit = 10) => {
   const { data } = await api.get('/fr/qna/my', { params: { limit } });

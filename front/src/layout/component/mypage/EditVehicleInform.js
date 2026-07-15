@@ -1,6 +1,7 @@
 import { API_BASE } from '../../../config';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { attachRefreshInterceptor } from '../../../lib/tokenRefresh';
 import {
   Box, Paper, Typography, Button, Modal, TextField,
   IconButton, Select, MenuItem, InputLabel, FormControl, Chip, Pagination
@@ -18,6 +19,7 @@ api.interceptors.request.use((config) => {
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
+attachRefreshInterceptor(api);
 
 // 구/신 경로 모두 보정
 const toPreviewUrl = (p) => {

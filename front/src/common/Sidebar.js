@@ -14,6 +14,7 @@ import MoveToInboxIcon from '@mui/icons-material/MoveToInbox';
 import { useSelector } from 'react-redux';
 import useNotificationSummary from '../hooks/useNotificationSummary';
 import axios from 'axios';
+import { attachRefreshInterceptor } from '../lib/tokenRefresh';
 import { useMediaQuery, useTheme } from '@mui/material';
 import BottomNav from './BottomNav';
 
@@ -51,6 +52,7 @@ api.interceptors.request.use((config) => {
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
+attachRefreshInterceptor(api);
 
 const pickToken = () => sessionStorage.getItem('accessToken') || sessionStorage.getItem('ACCESS_TOKEN') || null;
 

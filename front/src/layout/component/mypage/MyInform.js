@@ -10,6 +10,7 @@ import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow
 } from '@mui/material';
 import axios from 'axios';
+import { attachRefreshInterceptor } from '../../../lib/tokenRefresh';
 import { getMyAllEstimateList, getMyPaidEstimateList } from '../../../api/estimateApi/estimateApi';
 
 // ===== 공통 API 베이스/인스턴스 =====
@@ -24,6 +25,7 @@ api.interceptors.request.use((config) => {
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
+attachRefreshInterceptor(api);
 
 // ===== 유저 타입 파서 =====
 const parseUserType = (raw) => {

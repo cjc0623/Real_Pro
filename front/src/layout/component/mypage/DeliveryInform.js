@@ -13,6 +13,7 @@ import { useNavigate } from "react-router-dom";
 import { getMyUnpaidEstimateList, getMyPaidEstimateList } from '../../../api/estimateApi/estimateApi';
 import { simplifyBatch } from "../../../api/addressApi/addressApi";
 import axios from 'axios';
+import { attachRefreshInterceptor } from '../../../lib/tokenRefresh';
 import ReportComponent from './ReportComponent';
 import { createReview, getReviewExistsByDeliveryNo } from '../../../api/reviewApi/reviewApi';
 import DriverProfileModal from '../common/DriverProfileModal';
@@ -30,6 +31,7 @@ api.interceptors.request.use((config) => {
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
+attachRefreshInterceptor(api);
 
 // ===== 유저 타입 파서 =====
 const parseUserType = (raw) => {

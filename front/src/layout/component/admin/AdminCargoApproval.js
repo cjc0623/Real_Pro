@@ -1,6 +1,7 @@
 import { API_BASE } from '../../../config';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { attachRefreshInterceptor } from '../../../lib/tokenRefresh';
 import { Box, Typography, Button, Chip, Divider, Paper, Stack, Pagination, TextField, InputAdornment } from '@mui/material';
 import SearchIcon from "@mui/icons-material/Search";
 import { useTheme } from '@mui/material/styles';
@@ -12,6 +13,7 @@ api.interceptors.request.use((config) => {
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
+attachRefreshInterceptor(api);
 
 const toPreviewUrl = (p) => {
   if (!p) return '/image/placeholders/truck.svg';

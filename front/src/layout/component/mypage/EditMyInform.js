@@ -1,6 +1,7 @@
 import { API_BASE } from '../../../config';
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import axios from 'axios';
+import { attachRefreshInterceptor } from '../../../lib/tokenRefresh';
 import { useDispatch } from 'react-redux';
 import { updateProfileImage } from '../../../slice/loginSlice';
 import {
@@ -33,6 +34,7 @@ api.interceptors.request.use((config) => {
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
+attachRefreshInterceptor(api);
 
 // =================== 컴포넌트 ===================
 const EditMyInform = () => {
